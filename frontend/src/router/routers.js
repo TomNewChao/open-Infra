@@ -86,7 +86,7 @@ export default [
           icon: 'md-arrow-dropdown-circle',
           title: '端口扫描'
         },
-        component: () => import('@/view/components/tables/tables.vue')
+        component: () => import('@/view/components/scan_port/scan_port.vue')
       },
       {
         path: 'scan_obs',
@@ -95,7 +95,7 @@ export default [
           icon: 'md-trending-up',
           title: '对象系统扫描'
         },
-        component: () => import('@/view/components/scan-obs/index.vue')
+        component: () => import('@/view/components/scan-obs/scan_obs.vue')
       }
     ]
   },

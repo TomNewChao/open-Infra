@@ -4,12 +4,15 @@
 # @FileName: common.py
 # @Software: PyCharm
 
+import os
 import time
 import base64
 import pickle
 import subprocess
 import tempfile
 import traceback
+import yaml
+import openpyxl
 
 from functools import wraps
 from collections import Mapping
@@ -17,10 +20,10 @@ from collections import Iterable
 from itsdangerous.jws import TimedJSONWebSignatureSerializer
 from django.conf import settings
 from logging import getLogger
+from django.http import JsonResponse
+from open_infra.utils.api_error_code import ErrCode
 
-from .api_error_code import ErrCode
-
-logger = getLogger(__file__)
+logger = getLogger("django")
 
 
 def func_retry(tries=3, delay=1):
@@ -251,5 +254,40 @@ def assemble_api_result(err_code, trans_code=None, trans_para=None, data=None, l
 
         api_ret['description'] = trans_desc
     api_ret['data'] = data
+    return JsonResponse(data=api_ret)
 
-    return api_ret
+
+def load_yaml(file_path, method="load"):
+    """
+    method: load_all/load
+    """
+    yaml_load_method = getattr(yaml, method)
+    with open(file_path, "r", encoding="utf-8") as file:
+        return yaml_load_method(file, Loader=yaml.FullLoader)
+
+
+def convert_yaml(content, method="load"):
+    yaml_load_method = getattr(yaml, method)
+    return yaml_load_method(content, Loader=yaml.FullLoader)
+
+
+def output_excel(excel_path, dict_data, page_name, title_list):
+    if os.path.exists(excel_path):
+        work_book = openpyxl.load_workbook(excel_path)
+    else:
+        work_book = openpyxl.Workbook()
+    if page_name not in work_book.get_sheet_names():
+        work_book.create_sheet(page_name)
+    if settings.DEFAULT_SHEET_NAME in work_book.get_sheet_names():
+        need_remove_sheet = work_book.get_sheet_by_name(settings.DEFAULT_SHEET_NAME)
+        work_book.remove_sheet(need_remove_sheet)
+    table = work_book.get_sheet_by_name(page_name)
+    table.delete_rows(1, 65536)
+    table.append(title_list)
+    for ip, eip_info_list in dict_data.items():
+        for eip_list in eip_info_list:
+            if eip_list:
+                temp_info = [ip]
+                temp_info.extend(eip_list)
+                table.append(temp_info)
+    work_book.save(excel_path)

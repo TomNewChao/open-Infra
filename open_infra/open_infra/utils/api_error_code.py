@@ -54,7 +54,8 @@ class ErrCode(object):
 
     # sub module: clouds_tools
     STATUS_CLOUDS_TOOLS_BASE = STATUS_FACILITY_DASHBOARD + 200
-    STATUS_BC_SET_DISK_FULL_RATIO_FAILED = STATUS_SEREVITY_ERROR + STATUS_CLOUDS_TOOLS_BASE + 1
+    STATUS_SCAN_PORT_ING = STATUS_SEREVITY_ERROR + STATUS_CLOUDS_TOOLS_BASE + 1
+    STATUS_SCAN_PORT_FAILED = STATUS_SEREVITY_ERROR + STATUS_CLOUDS_TOOLS_BASE + 2
 
     _en_err_desc = {
         STATUS_SUCCESS: "Successfully",
@@ -72,6 +73,10 @@ class ErrCode(object):
 
         # for auth
         STATUS_USER_FAIL: "Auth failed.",
+
+        # for clouds_tools
+        STATUS_SCAN_PORT_ING: "Scanning Port, Please wait.",
+        STATUS_SCAN_PORT_FAILED: "No result, please try again",
 
     }
 
@@ -92,6 +97,11 @@ class ErrCode(object):
 
         # for auth
         STATUS_USER_FAIL: "认证失败。",
+
+        # for clouds_tools
+        STATUS_SCAN_PORT_ING: "正在扫描，请稍等。",
+        STATUS_SCAN_PORT_FAILED: "查无结果，请重试。",
+
     }
 
     @classmethod
