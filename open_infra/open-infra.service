@@ -1,0 +1,18 @@
+[Unit]
+Description=open-infra service
+
+Requires=sys-kernel-config.mount
+After=sys-kernel-config.mount network-online.target DmServiceDMSERVER.service
+Wants=network-online.target
+
+[Service]
+LimitNOFILE=1024
+LimitNPROC=1024
+Type=simple
+ExecStart=/usr/bin/python3 manage.py runserver 0.0.0.0:8000 --noreload --insecure
+ExecReload=/usr/bin/kill -HUP $MAINPID
+Restart=on-failure
+RestartSec=3s
+
+[Install]
+WantedBy=multi-user.target
