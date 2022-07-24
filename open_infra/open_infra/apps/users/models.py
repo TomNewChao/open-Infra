@@ -12,7 +12,7 @@ class User(AbstractUser):
     is_superuser = models.IntegerField(default=1, verbose_name='超级管理员')
 
     class Meta:
-        db_table = 'users_table'
+        db_table = 'users'
         verbose_name = '用户'
         verbose_name_plural = verbose_name
 

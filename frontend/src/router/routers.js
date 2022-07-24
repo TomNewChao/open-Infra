@@ -99,35 +99,6 @@ export default [
       }
     ]
   },
-  // {
-  //   path: '/monitor',
-  //   name: 'Monitor',
-  //   meta: {
-  //     icon: 'md-cloud-upload',
-  //     title: '性能监控'
-  //   },
-  //   component: Main,
-  //   children: [
-  //     {
-  //       path: 'cce_monitor',
-  //       name: 'cce_monitor',
-  //       meta: {
-  //         icon: 'ios-document',
-  //         title: 'cce性能监控'
-  //       },
-  //       component: () => import('@/view/update/update-table.vue')
-  //     },
-  //     {
-  //       path: 'ecs_monitor',
-  //       name: 'ecs_monitor',
-  //       meta: {
-  //         icon: 'md-clipboard',
-  //         title: 'ecs性能监控'
-  //       },
-  //       component: () => import('@/view/update/update-paste.vue')
-  //     }
-  //   ]
-  // },
   {
     path: '/argu',
     name: 'argu',

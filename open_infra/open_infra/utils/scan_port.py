@@ -5,14 +5,16 @@
 # @Software: PyCharm
 import os
 import re
+import shutil
 
 import requests
 import subprocess
-import tempfile
+import uuid
 from abc import abstractmethod
 from open_infra.utils.common import func_retry
 from collections import defaultdict
 from logging import getLogger
+from django.conf import settings
 
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 from huaweicloudsdkcore.auth.credentials import BasicCredentials
@@ -187,7 +189,7 @@ class EipTools(object):
         :param cmd: string, the cmd
         :return: string, the result of execute cmd
         """
-        return subprocess.getoutput(cmd)
+        return subprocess.getstatusoutput(cmd)
 
     @classmethod
     def request_server(cls, ip, ports):
@@ -211,7 +213,7 @@ class EipTools(object):
 
 
 # noinspection DuplicatedCode
-def scan_port(config_list):
+def scan_port(username, config_list):
     eip_tools = EipTools()
     tcp_ret_dict, udp_ret_dict, tcp_server_info = dict(), dict(), dict()
     logger.info("############1.start to collect ip######")
@@ -228,17 +230,28 @@ def scan_port(config_list):
     if not result_list:
         return tcp_ret_dict, udp_ret_dict, tcp_server_info
     logger.info("###########2.lookup port###################")
-    with tempfile.NamedTemporaryFile() as out_tmp_file:
-        temp_name = os.path.join(out_tmp_file.name, GlobalConfig.ip_result_name)
-        for ip in result_list:
-            logger.info("1.start to collect tcp:{} info".format(ip))
-            eip_tools.execute_cmd(GlobalConfig.tcp_search_cmd.format(temp_name, ip))
+    if not username:
+        username = "anonymous_{}".format(uuid.uuid1())
+    ip_result_dir = os.path.join(settings.LIB_PATH, "scan_port_{}".format(username))
+    if not os.path.exists(ip_result_dir):
+        os.mkdir(ip_result_dir)
+    temp_name = os.path.join(ip_result_dir, GlobalConfig.ip_result_name)
+    for ip in result_list:
+        logger.info("1.start to collect tcp:{} info".format(ip))
+        ret_code, data = eip_tools.execute_cmd(GlobalConfig.tcp_search_cmd.format(temp_name, ip))
+        if ret_code != 0:
+            logger.error("search tcp:{}, error:{}".format(ip, data))
+        else:
             tcp_content_list = eip_tools.read_txt(temp_name)
             tcp_ret_dict[ip] = eip_tools.parse_tcp_result_txt(tcp_content_list)
-            logger.info("2.start to collect udp:{} info".format(ip))
-            eip_tools.execute_cmd(GlobalConfig.udp_search_cmd.format(temp_name, ip))
+        logger.info("2.start to collect udp:{} info".format(ip))
+        ret_code, data = eip_tools.execute_cmd(GlobalConfig.udp_search_cmd.format(temp_name, ip))
+        if ret_code != 0:
+            logger.error("search tcp:{}, error:{}".format(ip, data))
+        else:
             udp_content_list = eip_tools.read_txt(temp_name)
             udp_ret_dict[ip] = eip_tools.parse_tcp_result_txt(udp_content_list)
+    shutil.rmtree(ip_result_dir)
     logger.info("###########3.lookup service info###################")
     tcp_server_info = EipTools.collect_tcp_server_info(tcp_ret_dict)
     logger.info("###########4.return tar file###################")

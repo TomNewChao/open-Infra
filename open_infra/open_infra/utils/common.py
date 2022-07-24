@@ -23,6 +23,15 @@ from logging import getLogger
 from django.http import JsonResponse
 from open_infra.utils.api_error_code import ErrCode
 
+try:
+    from StringIO import StringIO
+    from urllib import urlencode
+except ImportError:
+    # Python3
+    from io import BytesIO as StringIO
+    from urllib.parse import urlencode
+
+
 logger = getLogger("django")
 
 
@@ -291,3 +300,48 @@ def output_excel(excel_path, dict_data, page_name, title_list):
                 temp_info.extend(eip_list)
                 table.append(temp_info)
     work_book.save(excel_path)
+
+
+def output_all_excel(scan_port_info):
+    work_book = openpyxl.Workbook()
+    if settings.EXCEL_TCP_PAGE_NAME not in work_book.get_sheet_names():
+        work_book.create_sheet(settings.EXCEL_TCP_PAGE_NAME)
+    if settings.EXCEL_UDP_PAGE_NAME not in work_book.get_sheet_names():
+        work_book.create_sheet(settings.EXCEL_UDP_PAGE_NAME)
+    if settings.EXCEL_SERVER_PAGE_NAME not in work_book.get_sheet_names():
+        work_book.create_sheet(settings.EXCEL_SERVER_PAGE_NAME)
+    if settings.DEFAULT_SHEET_NAME in work_book.get_sheet_names():
+        need_remove_sheet = work_book.get_sheet_by_name(settings.DEFAULT_SHEET_NAME)
+        work_book.remove_sheet(need_remove_sheet)
+    table = work_book.get_sheet_by_name(settings.EXCEL_TCP_PAGE_NAME)
+    table.delete_rows(1, 65536)
+    table.append(settings.EXCEL_TITLE)
+    for ip, eip_info_list in scan_port_info["tcp_info"].items():
+        for eip_list in eip_info_list:
+            if eip_list:
+                temp_info = [ip]
+                temp_info.extend(eip_list)
+                table.append(temp_info)
+    table = work_book.get_sheet_by_name(settings.EXCEL_UDP_PAGE_NAME)
+    table.delete_rows(1, 65536)
+    table.append(settings.EXCEL_TITLE)
+    for ip, eip_info_list in scan_port_info["udp_info"].items():
+        for eip_list in eip_info_list:
+            if eip_list:
+                temp_info = [ip]
+                temp_info.extend(eip_list)
+                table.append(temp_info)
+
+    table = work_book.get_sheet_by_name(settings.EXCEL_SERVER_PAGE_NAME)
+    table.delete_rows(1, 65536)
+    table.append(settings.EXCEL_SERVER_TITLE)
+    for ip, eip_info_list in scan_port_info["tcp_server_info"].items():
+        for eip_list in eip_info_list:
+            if eip_list:
+                temp_info = [ip]
+                temp_info.extend(eip_list)
+                table.append(temp_info)
+    buf = StringIO()
+    work_book.save(buf)  # excel文件的二进制流写到buf
+    buf.seek(0)
+    return buf.read()

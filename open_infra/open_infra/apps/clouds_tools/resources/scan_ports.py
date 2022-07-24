@@ -5,10 +5,11 @@
 # @Software: PyCharm
 import datetime
 import os
-import tempfile
+import shutil
+import uuid
 
 from open_infra.libs.obs_utils import ObsLib
-from open_infra.utils.common import convert_yaml, output_excel
+from open_infra.utils.common import convert_yaml, output_all_excel
 from open_infra.utils.scan_port import scan_port
 from django.conf import settings
 from threading import Thread, Lock
@@ -84,12 +85,13 @@ class ScanPorts(object):
         for account_info in now_account_info_list:
             if account_info["account"] in account_list:
                 query_account_list.append(account_info)
-        tcp_ret_dict, udp_ret_dict, tcp_server_info = scan_port(query_account_list)
+        tcp_ret_dict, udp_ret_dict, tcp_server_info = scan_port(username, query_account_list)
         dict_data = {
             "tcp_info": tcp_ret_dict,
             "udp_info": udp_ret_dict,
             "tcp_server_info": tcp_server_info
         }
+        print(dict_data)
         ScanPortInfo.set({username: {"status": ScanPortStatus.finish, "data": dict_data}})
 
     def start_collect_thread(self, account_list, username):
@@ -112,27 +114,24 @@ class ScanPorts(object):
     @staticmethod
     def get_excel_content(scan_port_info, username):
         """get excel content"""
-        with tempfile.NamedTemporaryFile() as out_tmp_file:
-            now_date = datetime.datetime.now()
-            full_path = os.path.join(out_tmp_file.name, settings.EXCEL_NAME.format(username, now_date))
-            output_excel(full_path, scan_port_info["tcp_info"], settings.EXCEL_TCP_PAGE_NAME, settings.EXCEL_TITLE)
-            output_excel(full_path, scan_port_info["udp_info"], settings.EXCEL_UDP_PAGE_NAME, settings.EXCEL_TITLE)
-            output_excel(full_path, scan_port_info["tcp_server_info"], settings.EXCEL_SERVER_PAGE_NAME,
-                         settings.EXCEL_SERVER_TITLE)
-            with open(full_path, "rb") as f:
-                return f.readline()
+        if not username:
+            username = "anonymous_{}".format(uuid.uuid1())
+        now_date = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+        file_name = "IP端口扫描统计表_{}.xlsx".format(now_date)
+        content = output_all_excel(scan_port_info)
+        return file_name, content
 
     def query_progress(self, username):
         """query progress"""
         with self._lock:
-            content = str()
+            content, filename = str(), str()
             scan_port_info = ScanPortInfo.get(username)
             if scan_port_info is not None and scan_port_info["status"] == ScanPortStatus.handler:
-                return 0, content
+                return 0, filename, content
             elif scan_port_info is not None and scan_port_info["status"] == ScanPortStatus.finish:
-                content = self.get_excel_content(scan_port_info["data"])
-                ScanPortInfo.delete_key(username)
-                return 1, content
+                filename, content = self.get_excel_content(scan_port_info["data"], username)
+                # ScanPortInfo.delete_key(username)
+                return 1, filename, content
             else:
                 logger.info("query_progress query no result")
-                return 2, content
+                return 2, filename, content

@@ -50,20 +50,24 @@ class ObsLib(object):
         if response.status != 200:
             raise Exception("upload credentials failed!")
 
+    # def get_obs_data(self, download_bucket, download_key):
+    #     content = str()
+    #     resp = self.obs_client.getObject(download_bucket, download_key, loadStreamInMemory=False)
+    #     if resp.status < 300:
+    #         while True:
+    #             chunk = resp.body.response.read(65536)
+    #             if not chunk:
+    #                 break
+    #             content = "{}{}".format(content, chunk.decode("utf-8"))
+    #         resp.body.response.close()
+    #     elif resp.errorCode == "NoSuchKey":
+    #         logger.info("Key:{} is not exist, need to create".format(download_key))
+    #     else:
+    #         logger.error('errorCode:', resp.errorCode)
+    #         logger.error('errorMessage:', resp.errorMessage)
+    #         raise Exception("get object failed：{}....".format(download_key))
+    #     return content
+
     def get_obs_data(self, download_bucket, download_key):
-        content = str()
-        resp = self.obs_client.getObject(download_bucket, download_key, loadStreamInMemory=False)
-        if resp.status < 300:
-            while True:
-                chunk = resp.body.response.read(65536)
-                if not chunk:
-                    break
-                content = "{}{}".format(content, chunk.decode("utf-8"))
-            resp.body.response.close()
-        elif resp.errorCode == "NoSuchKey":
-            logger.info("Key:{} is not exist, need to create".format(download_key))
-        else:
-            logger.error('errorCode:', resp.errorCode)
-            logger.error('errorMessage:', resp.errorMessage)
-            raise Exception("get object failed：{}....".format(download_key))
-        return content
+        with open("/root/yaml/collect_elastic_public_ip.yaml", "r") as f:
+            return f.read()

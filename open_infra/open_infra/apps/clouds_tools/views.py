@@ -1,6 +1,6 @@
 import json
 
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render
 
 # Create your views here.
@@ -20,7 +20,8 @@ class ScanPortView(View):
 
     def post(self, request):
         """output a file"""
-        dict_data = request.POST
+        dict_data = json.loads(request.body)
+        print(dict_data)
         user_name = request.user.username
         if dict_data.get("account") is None or not isinstance(dict_data["account"], list):
             return assemble_api_result(ErrCode.STATUS_PARAMETER_ERROR)
@@ -39,10 +40,13 @@ class ScanPortProgressView(View):
     def get(self, request):
         user_name = request.user.username
         scan_ports = ScanPorts()
-        progress, data = scan_ports.query_progress(user_name)
+        progress, filename, data = scan_ports.query_progress(user_name)
         if progress == 0:
             return assemble_api_result(ErrCode.STATUS_SCAN_PORT_ING)
         elif progress == 1:
-            return assemble_api_result(ErrCode.STATUS_SUCCESS, data=data)
+            res = HttpResponse(content=data, content_type="application/octet-stream")
+            res["Content-Disposition"] = 'attachment;filename="{}"'.format(filename)
+            res['charset'] = 'utf-8'
+            return res
         else:
             return assemble_api_result(ErrCode.STATUS_SCAN_PORT_FAILED)

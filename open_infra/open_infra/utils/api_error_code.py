@@ -96,7 +96,7 @@ class ErrCode(object):
         STATUS_COMMON_START_SERVICE_FAILED: "启动主机 (%s) 的服务 (%s) 失败。",
 
         # for auth
-        STATUS_USER_FAIL: "认证失败。",
+        STATUS_USER_FAIL: "用户名或者密码错误，登录失败。",
 
         # for clouds_tools
         STATUS_SCAN_PORT_ING: "正在扫描，请稍等。",
