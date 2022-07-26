@@ -51,11 +51,14 @@ class ErrCode(object):
     # sub module: users
     STATUS_USERS_BASE = STATUS_FACILITY_DASHBOARD + 100
     STATUS_USER_FAIL = STATUS_SEREVITY_ERROR + STATUS_USERS_BASE + 1
+    STATUS_USER_NOT_EXIST_FAIL = STATUS_SEREVITY_ERROR + STATUS_USERS_BASE + 2
+    STATUS_USER_EXPIRE_FAIL = STATUS_SEREVITY_ERROR + STATUS_USERS_BASE + 3
 
     # sub module: clouds_tools
     STATUS_CLOUDS_TOOLS_BASE = STATUS_FACILITY_DASHBOARD + 200
-    STATUS_SCAN_PORT_ING = STATUS_SEREVITY_ERROR + STATUS_CLOUDS_TOOLS_BASE + 1
-    STATUS_SCAN_PORT_FAILED = STATUS_SEREVITY_ERROR + STATUS_CLOUDS_TOOLS_BASE + 2
+    STATUS_SCAN_ING = STATUS_SEREVITY_ERROR + STATUS_CLOUDS_TOOLS_BASE + 1
+    STATUS_SCAN_FAILED = STATUS_SEREVITY_ERROR + STATUS_CLOUDS_TOOLS_BASE + 2
+    STATUS_SCAN_CLEAN = STATUS_SEREVITY_ERROR + STATUS_CLOUDS_TOOLS_BASE + 3
 
     _en_err_desc = {
         STATUS_SUCCESS: "Successfully",
@@ -73,10 +76,13 @@ class ErrCode(object):
 
         # for auth
         STATUS_USER_FAIL: "Auth failed.",
+        STATUS_USER_NOT_EXIST_FAIL: "User (%s) is not existed.",
+        STATUS_USER_EXPIRE_FAIL: "User (%s) is expired.",
 
         # for clouds_tools
-        STATUS_SCAN_PORT_ING: "Scanning Port, Please wait.",
-        STATUS_SCAN_PORT_FAILED: "No result, please try again",
+        STATUS_SCAN_ING: "Scanning, Please wait.",
+        STATUS_SCAN_FAILED: "No result, please try again.",
+        STATUS_SCAN_CLEAN: "The background is trying again later, Please wait.",
 
     }
 
@@ -97,10 +103,13 @@ class ErrCode(object):
 
         # for auth
         STATUS_USER_FAIL: "用户名或者密码错误，登录失败。",
+        STATUS_USER_NOT_EXIST_FAIL: "用户(%s)不存在，认证失败。",
+        STATUS_USER_EXPIRE_FAIL: "用户(%s)认证已过期，请重新登录。",
 
         # for clouds_tools
-        STATUS_SCAN_PORT_ING: "正在扫描，请稍等。",
-        STATUS_SCAN_PORT_FAILED: "查无结果，请重试。",
+        STATUS_SCAN_ING: "正在扫描，请稍等。",
+        STATUS_SCAN_FAILED: "查无结果，请重试。",
+        STATUS_SCAN_CLEAN: "后台正在清理，请稍后重试。",
 
     }
 

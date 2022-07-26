@@ -43,7 +43,8 @@ export default {
   org_tree_page: 'Org Tree',
   drag_drawer_page: 'Draggable Drawer',
   tree_select_page: 'Tree Selector',
-  Tools: 'Tools',
+  Tools: 'ToolBar',
   scan_port: 'scan_port',
-  scan_obs: 'scan_obs'
+  scan_obs: 'scan_obs',
+  Home: 'Home'
 }

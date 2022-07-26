@@ -20,7 +20,7 @@ from collections import Iterable
 from itsdangerous.jws import TimedJSONWebSignatureSerializer
 from django.conf import settings
 from logging import getLogger
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from open_infra.utils.api_error_code import ErrCode
 
 try:
@@ -195,6 +195,8 @@ def auto_response():
             except Exception:
                 logger.error(traceback.format_exc())
                 return assemble_api_result(ErrCode.INTERNAL_ERROR)
+            if isinstance(data, HttpResponse):
+                return data
             else:
                 return assemble_api_result(ErrCode.STATUS_SUCCESS, data=data)
 
@@ -302,7 +304,7 @@ def output_excel(excel_path, dict_data, page_name, title_list):
     work_book.save(excel_path)
 
 
-def output_all_excel(scan_port_info):
+def output_scan_port_excel(scan_port_info):
     work_book = openpyxl.Workbook()
     if settings.EXCEL_TCP_PAGE_NAME not in work_book.get_sheet_names():
         work_book.create_sheet(settings.EXCEL_TCP_PAGE_NAME)
@@ -342,6 +344,38 @@ def output_all_excel(scan_port_info):
                 temp_info.extend(eip_list)
                 table.append(temp_info)
     buf = StringIO()
-    work_book.save(buf)  # excel文件的二进制流写到buf
+    work_book.save(buf)
+    buf.seek(0)
+    return buf.read()
+
+
+def output_scan_obs_excel(scan_obs_info):
+    work_book = openpyxl.Workbook()
+    if settings.OBS_ANONYMOUS_BUCKET_PAGE_NAME not in work_book.get_sheet_names():
+        work_book.create_sheet(settings.OBS_ANONYMOUS_BUCKET_PAGE_NAME)
+    if settings.OBS_SENSITIVE_FILE_PAGE_NAME not in work_book.get_sheet_names():
+        work_book.create_sheet(settings.OBS_SENSITIVE_FILE_PAGE_NAME)
+    if settings.OBS_ANONYMOUS_DATA_PAGE_NAME not in work_book.get_sheet_names():
+        work_book.create_sheet(settings.OBS_ANONYMOUS_DATA_PAGE_NAME)
+    if settings.DEFAULT_SHEET_NAME in work_book.get_sheet_names():
+        need_remove_sheet = work_book.get_sheet_by_name(settings.DEFAULT_SHEET_NAME)
+        work_book.remove_sheet(need_remove_sheet)
+    table = work_book.get_sheet_by_name(settings.OBS_ANONYMOUS_BUCKET_PAGE_NAME)
+    table.delete_rows(1, 65536)
+    table.append(settings.SCAN_OBS_EXCEL_BUCKET_TITLE)
+    for bucket_list in scan_obs_info["bucket"]:
+        table.append(bucket_list)
+    table = work_book.get_sheet_by_name(settings.OBS_SENSITIVE_FILE_PAGE_NAME)
+    table.delete_rows(1, 65536)
+    table.append(settings.SCAN_OBS_EXCEL_FILE_TITLE)
+    for file_list in scan_obs_info["file"]:
+        table.append(file_list)
+    table = work_book.get_sheet_by_name(settings.OBS_ANONYMOUS_DATA_PAGE_NAME)
+    table.delete_rows(1, 65536)
+    table.append(settings.SCAN_OBS_EXCEL_DATA_TITLE)
+    for data_list in scan_obs_info["data"]:
+        table.append(data_list)
+    buf = StringIO()
+    work_book.save(buf)
     buf.seek(0)
     return buf.read()

@@ -3,7 +3,8 @@ const btns = {
     return h('Poptip', {
       props: {
         confirm: true,
-        title: '你确定要删除吗?'
+        title: '你确定要删除吗?',
+        placement: "right"
       },
       on: {
         'on-ok': () => {

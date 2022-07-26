@@ -29,12 +29,14 @@ export default [
   },
   {
     path: '/',
-    name: '_home',
+    name: 'Home',
     redirect: '/home',
     component: Main,
     meta: {
-      hideInMenu: true,
-      notCache: true
+      // hideInMenu: true,
+      notCache: true,
+      icon: 'logo-buffer',
+      title: '工具'
     },
     children: [
       {

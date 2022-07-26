@@ -26,7 +26,7 @@ sys.path.insert(0, os.path.join(BASE_DIR, "apps"))
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("secret", '0h1$0+fi%2slhd0nc*3#$uts0ls@s48xqww*+35$y2w8ah52h5')
+SECRET_KEY = os.getenv("secret")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -146,19 +146,8 @@ CACHES = {
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
-    },
-    # storage session
-    "session": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6379/1",
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
-        }
-    },
-
+    }
 }
-SESSION_ENGINE = "django.contrib.sessions.backends.cache"
-SESSION_CACHE_ALIAS = "session"
 
 # log and lib path setting
 if platform.system() == "Windows":
@@ -212,32 +201,26 @@ LOGGING = {
 }
 
 AUTH_USER_MODEL = 'users.User'
-AUTHENTICATION_BACKENDS = ['open_infra.utils.authenticate.UserModelBackend']
+
+
+# jwt settings
+JWT_AUTH = {
+    'JWT_EXPIRATION_DELTA': datetime.timedelta(minutes=30),  # 30minutes
+    # 'JWT_RESPONSE_PAYLOAD_HANDLER': "open_infra.utils.jwt_response.jwt_response_payload_handler",
+}
 
 REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticated',
-    ),
+    # 'DEFAULT_PERMISSION_CLASSES': (
+    #     'rest_framework.permissions.IsAuthenticated',
+    # ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_jwt.authentication.JSONWebTokenAuthentication',  # 是对storage的认证
-        'rest_framework.authentication.SessionAuthentication',  # django认证，
-        'rest_framework.authentication.BasicAuthentication',  # 简单认证，认证用户和密码，返回用户
-
+        'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
     ),
 }
-# JWT_AUTH = {
-#     'JWT_EXPIRATION_DELTA': datetime.timedelta(minutes=15),  # 1天
-#     'JWT_RESPONSE_PAYLOAD_HANDLER': "open_infra.utils.jwt_response.jwt_response_payload_handler",
-# }
 
-SIMPLE_JWT = {
-    # token有效时长
-    'ACCESS_TOKEN_LIFETIME': datetime.timedelta(minutes=30),
-    # token刷新后的有效时间
-    'REFRESH_TOKEN_LIFETIME': datetime.timedelta(days=1),
-}
-
-# 跨域处理
+# cors setting
 CORS_ORIGIN_ALLOW_ALL = True  # 如果是True，白名单不启用
 CORS_ALLOW_METHODS = (
     'DELETE',
@@ -258,12 +241,12 @@ CORS_ALLOW_HEADERS = (
     'x-requested-with'
 )
 
-# obs的设置
+# obs setting
 AK = os.getenv("ak")
 SK = os.getenv("sk")
 URL = os.getenv("url")
-DOWNLOAD_BUCKET_NAME = os.getenv("bucket_name")
-DOWNLOAD_KEY_NAME = os.getenv("bucket_key")
+DOWNLOAD_BUCKET_NAME = "obs-for-openeuler-developer"
+DOWNLOAD_KEY_NAME = "secret-files/collect_elastic_public_ip.yaml"
 
 ZONE_ALIAS_DICT = {
     "cn-north-1": "华北-北京一",
@@ -287,7 +270,7 @@ ZONE_ALIAS_DICT = {
     "ru-northwest-2": "俄罗斯-莫斯科二",
 }
 
-# sheet
+# scan port setting
 DEFAULT_SHEET_NAME = "Sheet"
 EXCEL_NAME = "IP端口扫描统计表_{}_{}.xlsx"
 EXCEL_TITLE = ["弹性公网IP", "端口", "状态", "链接协议", "传输协议"]
@@ -295,3 +278,21 @@ EXCEL_SERVER_TITLE = ["弹性公网IP", "端口", "服务器版本信息"]
 EXCEL_TCP_PAGE_NAME = "TCP"
 EXCEL_UDP_PAGE_NAME = "UDP"
 EXCEL_SERVER_PAGE_NAME = "TCP_SERVER_INFO"
+
+# scan obs setting
+OBS_URL = "https://obs.{}.myhuaweicloud.com"
+OBS_BASE_URL = "obs.cn-north-4.myhuaweicloud.com"
+OBS_FILE_POSTFIX = ["sh", "java", "jsp", "sql", "conf", "cer",
+                    "php", "php5", "asp", "cgi", "aspx", "war", "bat",
+                    "c", "cc", "cpp", "cs", "go", "lua", "perl", "pl",
+                    "py", "rb", "vb", "vbs", "vba", "h", "jar", "properties",
+                    "config", "class"]
+# "log"
+
+SCAN_OBS_EXCEL_NAME = "对象系统扫描统计表_{}_{}.xlsx"
+SCAN_OBS_EXCEL_BUCKET_TITLE = ["account", "bucket"]
+SCAN_OBS_EXCEL_DATA_TITLE = ["account", "bucket", "path", "data"]
+SCAN_OBS_EXCEL_FILE_TITLE = ["account", "bucket", "path"]
+OBS_ANONYMOUS_BUCKET_PAGE_NAME = "scan_obs_anonymous_bucket"
+OBS_SENSITIVE_FILE_PAGE_NAME = "scan_obs_sensitive_file"
+OBS_ANONYMOUS_DATA_PAGE_NAME = "scan_obs_sensitive_data"

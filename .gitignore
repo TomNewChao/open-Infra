@@ -5,10 +5,14 @@ __pycache__/
 
 # C extensions
 *.so
-
+*.xml
+*.idea/
+*.idea
+*.iml
 # Distribution / packaging
 .Python
 build/
+node_modules/
 develop-eggs/
 dist/
 downloads/

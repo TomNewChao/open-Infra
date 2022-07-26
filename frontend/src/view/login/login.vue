@@ -1,5 +1,5 @@
 <style lang="less">
-  @import './login.less';
+@import './login.less';
 </style>
 
 <template>
@@ -17,7 +17,8 @@
 
 <script>
 import LoginForm from '_c/login-form'
-import { mapActions } from 'vuex'
+import {mapActions} from 'vuex'
+
 export default {
   components: {
     LoginForm
@@ -27,13 +28,15 @@ export default {
       'handleLogin',
       'getUserInfo'
     ]),
-    handleSubmit ({ username, password }) {
-      this.handleLogin({ username, password }).then(res => {
+    handleSubmit({username, password}) {
+      this.handleLogin({username, password}).then(res => {
         this.getUserInfo().then(res => {
           this.$router.push({
             name: this.$config.homeName
           })
         })
+      }).catch(res =>{
+        this.$Message.info('用户名或者密码错误，请重新输入。')
       })
     }
   }

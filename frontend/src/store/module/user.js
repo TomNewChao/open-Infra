@@ -9,7 +9,7 @@ import {
   restoreTrash,
   getUnreadCount
 } from '@/api/user'
-import {setToken, getToken } from '@/libs/util'
+import {setToken, getToken} from '@/libs/util'
 
 export default {
   state: {
@@ -82,11 +82,9 @@ export default {
           password
         }).then(res => {
           const data = res.data;
-          console.log(data.token)
           commit('setToken', data.token);
           resolve()
         }).catch(err => {
-          alert("用户名或密码错误，登录失败。")
           reject(err)
         })
       })
@@ -111,7 +109,7 @@ export default {
     getUserInfo({state, commit}) {
       return new Promise((resolve, reject) => {
         try {
-          getUserInfo(state.token).then(res => {
+          getUserInfo().then(res => {
             const data = res.data
             commit('setAvatar', data.avatar)
             commit('setUserName', data.name)

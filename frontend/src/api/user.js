@@ -6,18 +6,15 @@ export const login = ({ username, password }) => {
     password
   }
   return axios.request({
-    url: '/api/users/login/',
+    url: '/api/users/login',
     data,
     method: 'post'
   })
 }
 
-export const getUserInfo = (token) => {
+export const getUserInfo = () => {
   return axios.request({
-    url: '/api/users/get_info/',
-    params: {
-      token
-    },
+    url: '/api/users/user_info',
     method: 'get'
   })
 }
@@ -31,7 +28,7 @@ export const logout = (token) => {
 
 export const getUnreadCount = () => {
   return axios.request({
-    url: '/api/users/message_count/',
+    url: '/api/users/message_count',
     method: 'get'
   })
 }

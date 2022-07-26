@@ -45,5 +45,6 @@ export default {
   tree_select_page: '樹狀下拉選擇器',
   Tools: '工具',
   scan_port: '端口掃描',
-  scan_obs: '對象系統掃描'
+  scan_obs: '對象系統掃描',
+  Home: '首頁'
 }

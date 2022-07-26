@@ -18,7 +18,7 @@ export default {
    */
   baseUrl: {
     dev: 'http://43.154.162.239:8000',
-    pro: 'https://produce.com'
+    pro: ''
   },
   /**
    * @description 默认打开的首页的路由name值，默认为home

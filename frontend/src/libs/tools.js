@@ -100,6 +100,26 @@ const getDate = (timeStamp, startType) => {
   return resStr
 }
 
+/**获取当前时间的字符串拼接
+ */
+export const getStrDate = () => {
+  let d = new Date();
+  let year = d.getFullYear();
+  let month = change(d.getMonth() + 1);
+  let day = change(d.getDate());
+  let hour = change(d.getHours());
+  let minute = change(d.getMinutes());
+
+  function change(t) {
+    if (t < 10) {
+      return "0" + t;
+    } else {
+      return t;
+    }
+  }
+  return  year + '_' + month + '_' + day + '_' + hour + '_' + minute
+}
+
 /**
  * @param {String|Number} timeStamp 时间戳
  * @returns {String} 相对时间字符串

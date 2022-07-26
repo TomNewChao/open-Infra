@@ -1,16 +1,12 @@
 # -*- coding: utf-8 -*-
 # @Time    : 2022/7/21 15:34
 # @Author  : Tom_zc
-# @FileName: scan_ports.py
+# @FileName: scan_tools.py
 # @Software: PyCharm
-import datetime
-import os
-import shutil
-import uuid
-
 from open_infra.libs.obs_utils import ObsLib
-from open_infra.utils.common import convert_yaml, output_all_excel
+from open_infra.utils.common import convert_yaml, output_scan_port_excel, output_scan_obs_excel
 from open_infra.utils.scan_port import scan_port
+from open_infra.utils.scan_obs import scan_obs
 from django.conf import settings
 from threading import Thread, Lock
 from collections import defaultdict
@@ -19,13 +15,21 @@ from logging import getLogger
 logger = getLogger("django")
 
 
-class ScanPortStatus(object):
+class BaseStatus(object):
     new = 0
     handler = 1
     finish = 2
 
 
-class ScanPortInfo(object):
+class ScanPortStatus(BaseStatus):
+    pass
+
+
+class ScanObsStatus(BaseStatus):
+    pass
+
+
+class BaseInfo(object):
     _lock = Lock()
     _data = defaultdict(dict)
 
@@ -46,10 +50,17 @@ class ScanPortInfo(object):
                 del cls._data[username]
 
 
+class ScanPortInfo(BaseInfo):
+    pass
+
+
+class ScanObsInfo(BaseInfo):
+    pass
+
+
 # noinspection PyArgumentList
-class ScanPorts(object):
+class ScanBaseTools(object):
     _instance = None
-    _lock = Lock()
 
     def __new__(cls, *args, **kwargs):
         if cls._instance is None:
@@ -75,6 +86,16 @@ class ScanPorts(object):
             ret_list.append(account_temp)
         return ret_list
 
+    def start_collect_thread(self, account_list, username):
+        raise NotImplemented()
+
+    def query_progress(self, username):
+        raise NotImplemented()
+
+
+class ScanPorts(ScanBaseTools):
+    _lock = Lock()
+
     @staticmethod
     def collect_thread(account_list, username):
         """collect data"""
@@ -91,7 +112,7 @@ class ScanPorts(object):
             "udp_info": udp_ret_dict,
             "tcp_server_info": tcp_server_info
         }
-        print(dict_data)
+        logger.info("scan port：{}".format(dict_data))
         ScanPortInfo.set({username: {"status": ScanPortStatus.finish, "data": dict_data}})
 
     def start_collect_thread(self, account_list, username):
@@ -101,37 +122,83 @@ class ScanPorts(object):
             scan_port_info = ScanPortInfo.get(username)
             if scan_port_info is not None and scan_port_info["status"] == ScanPortStatus.handler:
                 return True
-            # 2.set status to new
-            ScanPortInfo.set({username: {"status": ScanPortStatus.new, "data": dict()}})
-            # 3.delete tar info
+            # 2.delete tar info
             ScanPortInfo.delete_key(username)
+            # 3.set status to new
+            ScanPortInfo.set({username: {"status": ScanPortStatus.new, "data": dict()}})
             # 4.start a thread to collect data
             th = Thread(target=self.collect_thread, args=(account_list, username))
             th.start()
             # 5.set status to handler
             ScanPortInfo.set({username: {"status": ScanPortStatus.handler, "data": dict()}})
 
+    def query_progress(self, username):
+        """query progress"""
+        with self._lock:
+            content = str()
+            scan_port_info = ScanPortInfo.get(username)
+            print(scan_port_info)
+            if scan_port_info is not None and scan_port_info["status"] == ScanPortStatus.handler:
+                return 0, content
+            elif scan_port_info is not None and scan_port_info["status"] == ScanPortStatus.finish:
+                content = output_scan_port_excel(scan_port_info["data"])
+                ScanPortInfo.delete_key(username)
+                return 1, content
+            else:
+                logger.info("scan port query_progress query no result")
+                return 2, content
+
+
+class ScanObs(ScanBaseTools):
+    _lock = Lock()
+
     @staticmethod
-    def get_excel_content(scan_port_info, username):
-        """get excel content"""
-        if not username:
-            username = "anonymous_{}".format(uuid.uuid1())
-        now_date = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
-        file_name = "IP端口扫描统计表_{}.xlsx".format(now_date)
-        content = output_all_excel(scan_port_info)
-        return file_name, content
+    def collect_thread(account_list, username):
+        """collect data"""
+        obs_lib = ObsLib(settings.AK, settings.SK, settings.URL)
+        content = obs_lib.get_obs_data(settings.DOWNLOAD_BUCKET_NAME, settings.DOWNLOAD_KEY_NAME)
+        now_account_info_list = convert_yaml(content)
+        query_account_list = list()
+        for account_info in now_account_info_list:
+            if account_info["account"] in account_list:
+                query_account_list.append(account_info)
+        list_sensitive_file, list_anonymous_bucket, list_anonymous_data = scan_obs(query_account_list)
+        dict_data = {
+            "file": list_sensitive_file,
+            "bucket": list_anonymous_bucket,
+            "data": list_anonymous_data
+        }
+        logger.info("collect scan_obs:{}".format(dict_data))
+        ScanObsInfo.set({username: {"status": ScanObsStatus.finish, "data": dict_data}})
+
+    def start_collect_thread(self, account_list, username):
+        """start a collect thread"""
+        with self._lock:
+            # 1.judge status
+            scan_obs_info = ScanObsInfo.get(username)
+            if scan_obs_info is not None and scan_obs_info["status"] == ScanObsStatus.handler:
+                return True
+            # 2.delete tar info
+            ScanObsInfo.delete_key(username)
+            # 3.set status to new
+            ScanObsInfo.set({username: {"status": ScanObsStatus.new, "data": dict()}})
+            # 4.start a thread to collect data
+            th = Thread(target=self.collect_thread, args=(account_list, username))
+            th.start()
+            # 5.set status to handler
+            ScanObsInfo.set({username: {"status": ScanObsStatus.handler, "data": dict()}})
 
     def query_progress(self, username):
         """query progress"""
         with self._lock:
-            content, filename = str(), str()
-            scan_port_info = ScanPortInfo.get(username)
-            if scan_port_info is not None and scan_port_info["status"] == ScanPortStatus.handler:
-                return 0, filename, content
-            elif scan_port_info is not None and scan_port_info["status"] == ScanPortStatus.finish:
-                filename, content = self.get_excel_content(scan_port_info["data"], username)
-                # ScanPortInfo.delete_key(username)
-                return 1, filename, content
+            content = str()
+            scan_obs_info = ScanObsInfo.get(username)
+            if scan_obs_info is not None and scan_obs_info["status"] == ScanObsStatus.handler:
+                return 0, content
+            elif scan_obs_info is not None and scan_obs_info["status"] == ScanObsStatus.finish:
+                content = output_scan_obs_excel(scan_obs_info["data"])
+                ScanObsInfo.delete_key(username)
+                return 1, content
             else:
-                logger.info("query_progress query no result")
-                return 2, filename, content
+                logger.info("scan obs query_progress query no result")
+                return 2, content
