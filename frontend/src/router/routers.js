@@ -88,7 +88,7 @@ export default [
           icon: 'md-arrow-dropdown-circle',
           title: '端口扫描'
         },
-        component: () => import('@/view/components/scan_port/scan_port.vue')
+        component: () => import('@/view/components/scan-port/scan-port.vue')
       },
       {
         path: 'scan_obs',
@@ -97,7 +97,25 @@ export default [
           icon: 'md-trending-up',
           title: '对象系统扫描'
         },
-        component: () => import('@/view/components/scan-obs/scan_obs.vue')
+        component: () => import('@/view/components/scan-obs/scan-obs.vue')
+      },
+      {
+        path: 'scan_cloud',
+        name: 'scan_cloud',
+        meta: {
+          icon: 'md-trending-up',
+          title: '云扫描工具'
+        },
+        component: () => import('@/view/components/scan-cloud/scan-cloud.vue')
+      },
+      {
+        path: 'scan_single_obs',
+        name: 'scan_single_obs',
+        meta: {
+          icon: 'md-trending-up',
+          title: '云扫描工具'
+        },
+        component: () => import('@/view/components/scan-single-obs/scan-single-obs.vue')
       }
     ]
   },
