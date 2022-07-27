@@ -257,3 +257,21 @@ def scan_obs(query_account_list):
                     list_anonymous_bucket.extend(list_anonymous_bucket_temp or [])
                     list_anonymous_data.extend(list_anonymous_data_temp or [])
     return result_list, list_anonymous_bucket, list_anonymous_data
+
+
+# noinspection DuplicatedCode
+def single_scan_obs(ak, sk, account):
+    eip_tools = EipTools()
+    result_list, list_anonymous_bucket, list_anonymous_data = list(), list(), list()
+    single_location_bucket = eip_tools.get_all_bucket(ak, sk, settings.OBS_BASE_URL)
+    logger.info("scan_obs:{}".format(single_location_bucket))
+    for location, bucket_name_list in single_location_bucket.items():
+        url = settings.OBS_URL.format(location)
+        with ObsClientConn(ak, sk, url) as obs_client:
+            for bucket_name in bucket_name_list:
+                ret_temp, list_anonymous_bucket_temp, list_anonymous_data_temp = eip_tools.check_bucket_info(
+                    obs_client, bucket_name, account)
+                result_list.extend(ret_temp or [])
+                list_anonymous_bucket.extend(list_anonymous_bucket_temp or [])
+                list_anonymous_data.extend(list_anonymous_data_temp or [])
+    return result_list, list_anonymous_bucket, list_anonymous_data

@@ -100,22 +100,22 @@ export default [
         component: () => import('@/view/components/scan-obs/scan-obs.vue')
       },
       {
-        path: 'scan_cloud',
-        name: 'scan_cloud',
+        path: 'singe_scan_port',
+        name: 'singe_scan_port',
         meta: {
           icon: 'md-trending-up',
-          title: '云扫描工具'
+          title: '单账户端口扫描'
         },
-        component: () => import('@/view/components/scan-cloud/scan-cloud.vue')
+        component: () => import('@/view/components/single-scan-port/single-scan-port.vue')
       },
       {
         path: 'scan_single_obs',
         name: 'scan_single_obs',
         meta: {
           icon: 'md-trending-up',
-          title: '云扫描工具'
+          title: '单账户对象系统扫描'
         },
-        component: () => import('@/view/components/scan-single-obs/scan-single-obs.vue')
+        component: () => import('@/view/components/single-scan-obs/single-scan-obs.vue')
       }
     ]
   },

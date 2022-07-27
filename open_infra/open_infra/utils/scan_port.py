@@ -182,6 +182,21 @@ class EipTools(object):
             eip_ip_list.append(eip_info['public_ip_address'])
         return eip_ip_list
 
+    @func_retry(tries=1)
+    def get_single_data_list(self, eip_tools, project_id, zone, ak, sk):
+        config = eip_tools.get_eip_config()
+        credentials = BasicCredentials(ak, sk, project_id)
+        if zone in GlobalConfig.eip_v2_zone:
+            eip_instance = EipInstanceV2(EipClientV2, config, credentials, EndPoint.vpc_endpoint.format(zone))
+        else:
+            eip_instance = EipInstanceV3(EipClientV3, config, credentials, EndPoint.vpc_endpoint.format(zone))
+        eip_dict = eip_instance.show_infos()
+        eip_list = eip_instance.parse_response_data(eip_dict)
+        eip_ip_list = list()
+        for eip_info in eip_list:
+            eip_ip_list.append(eip_info['public_ip_address'])
+        return eip_ip_list
+
     @classmethod
     def execute_cmd(cls, cmd):
         """
@@ -228,6 +243,46 @@ def scan_port(username, config_list):
             result_list.extend(ret_temp or [])
     result_list = list(set(result_list))
     if not result_list:
+        return tcp_ret_dict, udp_ret_dict, tcp_server_info
+    logger.info("###########2.lookup port###################")
+    if not username:
+        username = "anonymous_{}".format(uuid.uuid1())
+    ip_result_dir = os.path.join(settings.LIB_PATH, "scan_port_{}".format(username))
+    if not os.path.exists(ip_result_dir):
+        os.mkdir(ip_result_dir)
+    temp_name = os.path.join(ip_result_dir, GlobalConfig.ip_result_name)
+    for ip in result_list:
+        logger.info("1.start to collect tcp:{} info".format(ip))
+        ret_code, data = eip_tools.execute_cmd(GlobalConfig.tcp_search_cmd.format(temp_name, ip))
+        if ret_code != 0:
+            logger.error("search tcp:{}, error:{}".format(ip, data))
+        else:
+            tcp_content_list = eip_tools.read_txt(temp_name)
+            tcp_ret_dict[ip] = eip_tools.parse_tcp_result_txt(tcp_content_list)
+        logger.info("2.start to collect udp:{} info".format(ip))
+        ret_code, data = eip_tools.execute_cmd(GlobalConfig.udp_search_cmd.format(temp_name, ip))
+        if ret_code != 0:
+            logger.error("search tcp:{}, error:{}".format(ip, data))
+        else:
+            udp_content_list = eip_tools.read_txt(temp_name)
+            udp_ret_dict[ip] = eip_tools.parse_tcp_result_txt(udp_content_list)
+    shutil.rmtree(ip_result_dir)
+    logger.info("###########3.lookup service info###################")
+    tcp_server_info = EipTools.collect_tcp_server_info(tcp_ret_dict)
+    logger.info("###########4.return tar file###################")
+    return tcp_ret_dict, udp_ret_dict, tcp_server_info
+
+
+# noinspection DuplicatedCode
+def single_scan_port(ak, sk, username, zone, project_id):
+    eip_tools = EipTools()
+    tcp_ret_dict, udp_ret_dict, tcp_server_info = dict(), dict(), dict()
+    logger.info("############1.start to collect ip######")
+    result_list = list()
+    logger.info("Collect the zone of info:{}".format(zone))
+    ret_temp = eip_tools.get_single_data_list(eip_tools, project_id, zone, ak, sk)
+    result_list = list(set(result_list))
+    if not ret_temp:
         return tcp_ret_dict, udp_ret_dict, tcp_server_info
     logger.info("###########2.lookup port###################")
     if not username:
