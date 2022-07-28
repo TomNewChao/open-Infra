@@ -10,21 +10,21 @@
 </template>
 
 <script>
-import Tables from '_c/tables';
-import {scanObsApi, downloadScanObsExcelApi, queryProgressScanObsApi} from '@/api/tools';
-import {blobDownload} from '@/libs/download.js';
-import {getStrDate} from '@/libs/tools.js';
+import Tables from '_c/tables'
+import { scanObsApi, downloadScanObsExcelApi } from '@/api/tools'
+import { blobDownload } from '@/libs/download.js'
+import { getStrDate } from '@/libs/tools.js'
 
 export default {
   name: 'tables_page',
   components: {
     Tables
   },
-  data() {
+  data () {
     return {
       columns: [
-        {title: 'Account', key: 'account', sortable: true},
-        {title: 'Zone', key: 'zone', sortable: true},
+        { title: 'Account', key: 'account', sortable: true },
+        { title: 'Zone', key: 'zone', sortable: true },
         {
           title: 'Handle',
           key: 'handle',
@@ -53,65 +53,46 @@ export default {
       tempValue: null
     }
   },
-  mounted() {
+  mounted () {
     this.scanPort()
   },
-  beforeDestroy() {
+  beforeDestroy () {
     if (this.timer) {
-      clearInterval(this.timer);
-      this.timer = null;
+      clearInterval(this.timer)
+      this.timer = null
       this.loading = false
     }
   },
   methods: {
-    handleDelete(params) {
+    handleDelete (params) {
     },
-    exportExcel() {
-      let selectName = [];
+    exportExcel () {
+      let selectName = []
       for (let i = 0; i < this.tableData.length; i++) {
         selectName.push(this.tableData[i].account)
       }
       if (selectName.length === 0) {
-        this.$Message.info('请至少选择一个Account。');
+        this.$Message.info('请至少选择一个Account。')
       } else {
         downloadScanObsExcelApi(selectName).then(res => {
-          if (res.data.err_code !== 0) {
-            this.$Message.info(res.data.description)
-          } else {
-            this.startTimer();
-            this.loading = true
+          if (res.headers['content-type'] === 'application/octet-stream') {
+            let strDate = getStrDate()
+            const fileName = '对象系统扫描统计表_' + strDate + '.xlsx'
+            blobDownload(res.data, fileName)
+            if (this.timer) {
+              clearInterval(this.timer)
+              this.timer = null
+              this.loading = false
+            }
           }
         })
       }
     },
-    queryExcel() {
-      queryProgressScanObsApi().then(res => {
-        if (res.headers['content-type'] === 'application/octet-stream') {
-          let strDate = getStrDate();
-          const fileName = "对象系统扫描统计表_" + strDate + ".xlsx";
-          blobDownload(res.data, fileName);
-          if (this.timer) {
-            clearInterval(this.timer);
-            this.timer = null;
-            this.loading = false
-          }
-        }
-      })
-    },
-    scanPort() {
+    scanPort () {
       scanObsApi().then(res => {
         this.tableData = res.data.data
       })
-    },
-    startTimer() {
-      if (this.timer) {
-        clearInterval(this.timer);
-        this.timer = null
-      }
-      this.timer = setInterval(() => {
-        setTimeout(this.queryExcel, 0)
-      }, 3000)
-    },
+    }
   }
 }
 </script>

@@ -46,5 +46,7 @@ export default {
   Tools: '工具',
   scan_port: '端口掃描',
   scan_obs: '對象系統掃描',
+  single_scan_port: '單賬戶端口掃描',
+  single_scan_obs: '單賬戶對象系統掃描',
   Home: '首頁'
 }

@@ -165,11 +165,8 @@ class EipTools(object):
                     ret_dict[key] = value
         return ret_dict
 
-    @func_retry(tries=1)
-    def get_data_list(self, eip_tools, project_temp, ak, sk):
-        project_id = project_temp["project_id"]
-        zone = project_temp["zone"]
-        config = eip_tools.get_eip_config()
+    def get_data_list(self, project_id, zone, ak, sk):
+        config = self.get_eip_config()
         credentials = BasicCredentials(ak, sk, project_id)
         if zone in GlobalConfig.eip_v2_zone:
             eip_instance = EipInstanceV2(EipClientV2, config, credentials, EndPoint.vpc_endpoint.format(zone))
@@ -239,7 +236,9 @@ def scan_port(username, config_list):
         project_info = config_item["project_info"]
         for project_temp in project_info:
             logger.info("Collect the zone of info:{}".format(project_temp["zone"]))
-            ret_temp = eip_tools.get_data_list(eip_tools, project_temp, ak, sk)
+            project_id = project_temp["project_id"]
+            zone = project_temp["zone"]
+            ret_temp = eip_tools.get_data_list(project_id, zone, ak, sk)
             result_list.extend(ret_temp or [])
     result_list = list(set(result_list))
     if not result_list:
@@ -274,17 +273,16 @@ def scan_port(username, config_list):
 
 
 # noinspection DuplicatedCode
-def single_scan_port(ak, sk, username, zone, project_id):
+def single_scan_port(ak, sk, zone, project_id, username=None):
     eip_tools = EipTools()
     tcp_ret_dict, udp_ret_dict, tcp_server_info = dict(), dict(), dict()
-    logger.info("############1.start to collect ip######")
+    logger.info("############1.start to collect ip:{}######".format(zone))
     result_list = list()
-    logger.info("Collect the zone of info:{}".format(zone))
     ret_temp = eip_tools.get_single_data_list(eip_tools, project_id, zone, ak, sk)
     result_list = list(set(result_list))
     if not ret_temp:
         return tcp_ret_dict, udp_ret_dict, tcp_server_info
-    logger.info("###########2.lookup port###################")
+    logger.info("###########2.lookup port:{}###################".format(zone))
     if not username:
         username = "anonymous_{}".format(uuid.uuid1())
     ip_result_dir = os.path.join(settings.LIB_PATH, "scan_port_{}".format(username))

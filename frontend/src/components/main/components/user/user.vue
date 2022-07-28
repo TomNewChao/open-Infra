@@ -9,7 +9,7 @@
         <DropdownItem name="message">
           消息中心<Badge style="margin-left: 10px" :count="messageUnreadCount"></Badge>
         </DropdownItem>
-        <DropdownItem name="logout">退出登录</DropdownItem>
+<!--        <DropdownItem name="logout">退出登录</DropdownItem>-->
       </DropdownMenu>
     </Dropdown>
   </div>

@@ -46,5 +46,7 @@ export default {
   Tools: '工具栏',
   scan_port: '端口扫描',
   scan_obs: '对象系统扫描',
+  single_scan_port: '单账户端口扫描',
+  single_scan_obs: '单账户对象系统扫描',
   Home: '首页'
 }

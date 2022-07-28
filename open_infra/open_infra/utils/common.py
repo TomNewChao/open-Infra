@@ -304,7 +304,7 @@ def output_excel(excel_path, dict_data, page_name, title_list):
     work_book.save(excel_path)
 
 
-def output_scan_port_excel(scan_port_info):
+def output_scan_port_excel(tcp_info, udp_info, tcp_server_info):
     work_book = openpyxl.Workbook()
     if settings.EXCEL_TCP_PAGE_NAME not in work_book.get_sheet_names():
         work_book.create_sheet(settings.EXCEL_TCP_PAGE_NAME)
@@ -318,7 +318,7 @@ def output_scan_port_excel(scan_port_info):
     table = work_book.get_sheet_by_name(settings.EXCEL_TCP_PAGE_NAME)
     table.delete_rows(1, 65536)
     table.append(settings.EXCEL_TITLE)
-    for ip, eip_info_list in scan_port_info["tcp_info"].items():
+    for ip, eip_info_list in tcp_info.items():
         for eip_list in eip_info_list:
             if eip_list:
                 temp_info = [ip]
@@ -327,7 +327,7 @@ def output_scan_port_excel(scan_port_info):
     table = work_book.get_sheet_by_name(settings.EXCEL_UDP_PAGE_NAME)
     table.delete_rows(1, 65536)
     table.append(settings.EXCEL_TITLE)
-    for ip, eip_info_list in scan_port_info["udp_info"].items():
+    for ip, eip_info_list in udp_info.items():
         for eip_list in eip_info_list:
             if eip_list:
                 temp_info = [ip]
@@ -337,7 +337,7 @@ def output_scan_port_excel(scan_port_info):
     table = work_book.get_sheet_by_name(settings.EXCEL_SERVER_PAGE_NAME)
     table.delete_rows(1, 65536)
     table.append(settings.EXCEL_SERVER_TITLE)
-    for ip, eip_info_list in scan_port_info["tcp_server_info"].items():
+    for ip, eip_info_list in tcp_server_info.items():
         for eip_list in eip_info_list:
             if eip_list:
                 temp_info = [ip]
@@ -349,7 +349,7 @@ def output_scan_port_excel(scan_port_info):
     return buf.read()
 
 
-def output_scan_obs_excel(scan_obs_info):
+def output_scan_obs_excel(anonymous_file_list, anonymous_bucket_list, anonymous_data_data):
     work_book = openpyxl.Workbook()
     if settings.OBS_ANONYMOUS_BUCKET_PAGE_NAME not in work_book.get_sheet_names():
         work_book.create_sheet(settings.OBS_ANONYMOUS_BUCKET_PAGE_NAME)
@@ -363,19 +363,29 @@ def output_scan_obs_excel(scan_obs_info):
     table = work_book.get_sheet_by_name(settings.OBS_ANONYMOUS_BUCKET_PAGE_NAME)
     table.delete_rows(1, 65536)
     table.append(settings.SCAN_OBS_EXCEL_BUCKET_TITLE)
-    for bucket_list in scan_obs_info["bucket"]:
+    for bucket_list in anonymous_bucket_list:
         table.append(bucket_list)
     table = work_book.get_sheet_by_name(settings.OBS_SENSITIVE_FILE_PAGE_NAME)
     table.delete_rows(1, 65536)
     table.append(settings.SCAN_OBS_EXCEL_FILE_TITLE)
-    for file_list in scan_obs_info["file"]:
+    for file_list in anonymous_file_list:
         table.append(file_list)
     table = work_book.get_sheet_by_name(settings.OBS_ANONYMOUS_DATA_PAGE_NAME)
     table.delete_rows(1, 65536)
     table.append(settings.SCAN_OBS_EXCEL_DATA_TITLE)
-    for data_list in scan_obs_info["data"]:
+    for data_list in anonymous_data_data:
         table.append(data_list)
     buf = StringIO()
     work_book.save(buf)
     buf.seek(0)
     return buf.read()
+
+
+def runserver_executor(func):
+    """运行服务时才执行方法的装饰器v
+    """
+    @wraps(func)
+    def wrapper(*args, **kw):
+        if settings.IS_RUNSERVER:
+            return func(*args, **kw)
+    return wrapper

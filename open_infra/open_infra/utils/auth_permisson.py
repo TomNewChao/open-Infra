@@ -13,6 +13,7 @@ from rest_framework_jwt.utils import jwt_decode_handler
 from open_infra.utils.api_error_code import ErrCode
 from open_infra.utils.common import auto_response, assemble_api_result
 from users.models import User
+from uuid import uuid1
 
 
 class AuthView(View):
@@ -20,10 +21,11 @@ class AuthView(View):
 
     @staticmethod
     def get_username(request):
-        token = request.headers.get("Authorization")
-        token_list = token.split("Bearer ")
-        toke_dict = jwt_decode_handler(token_list[1])
-        return toke_dict["username"]
+        # token = request.headers.get("Authorization")
+        # token_list = token.split("Bearer ")
+        # toke_dict = jwt_decode_handler(token_list[1])
+        # return toke_dict["username"]
+        return uuid1()
 
     @staticmethod
     def _auth_user(request):
@@ -49,9 +51,9 @@ class AuthView(View):
         # defer to the error handler. Also defer to the error handler if the
         # request method isn't on the approved list.
         if request.method.lower() in self.http_method_names:
-            auth_result = self._auth_user(request)
-            if isinstance(auth_result, HttpResponse):
-                return auth_result
+            # auth_result = self._auth_user(request)
+            # if isinstance(auth_result, HttpResponse):
+            #     return auth_result
             handler = getattr(self, request.method.lower(), self.http_method_not_allowed)
         else:
             handler = self.http_method_not_allowed

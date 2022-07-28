@@ -12,92 +12,111 @@
     <FormItem>
       <Button type="primary" @click="handleSubmit('formValidate')">Submit</Button>
       <Button @click="handleReset('formValidate')" style="margin-left: 8px">Reset</Button>
+      <Progress :percent="progressValue" :stroke-width="32" status="active" :text-inside="true" CLASS="progress"/>
     </FormItem>
   </Form>
 </template>
 <script>
-  import {scanPortApi, downloadScanPortExcelApi, queryProgressScanPortApi} from '@/api/tools';
-  import {blobDownload} from '@/libs/download.js';
-  export default {
-    data() {
-      return {
-        formValidate: {
-          ak: '',
-          sk: '',
-          account: '',
-        },
-        ruleValidate: {
-          ak: [
-            {required: true, message: 'The ak cannot be empty', trigger: 'blur'}
-          ],
-          sk: [
-            {required: true, message: 'The sk cannot be empty', trigger: 'blur'}
-          ],
-          account: [
-            {required: true, message: 'The account cannot be empty', trigger: 'blur'}
-          ]
-        }
+import { downloadSingleScanObsExcelApi, queryProgressSingleScanObsApi } from '@/api/tools'
+import { blobDownload } from '@/libs/download.js'
+import { getStrDate } from '@/libs/tools.js'
+
+export default {
+  data () {
+    return {
+      timer: null,
+      progressValue: 0,
+      formValidate: {
+        ak: '',
+        sk: '',
+        account: ''
+      },
+      ruleValidate: {
+        ak: [
+          { required: true, message: 'The ak cannot be empty', trigger: 'blur' }
+        ],
+        sk: [
+          { required: true, message: 'The sk cannot be empty', trigger: 'blur' }
+        ],
+        account: [
+          { required: true, message: 'The account cannot be empty', trigger: 'blur' }
+        ]
       }
-    },
-    methods: {
-      handleSubmit(name) {
-        this.$refs[name].validate((valid) => {
-          if (valid) {
-            this.$Message.success('Success!');
-          } else {
-            this.$Message.error('Fail!');
-          }
-        })
-      },
-      handleReset(name) {
-        this.$refs[name].resetFields();
-      },
-      exportExcel() {
-        let selectName = [];
-        for (let i = 0; i < this.tableData.length; i++) {
-          selectName.push(this.tableData[i].account)
-        }
-        if (selectName.length === 0) {
-          this.$Message.info('请至少选择一个Account。');
-        } else {
-          downloadScanPortExcelApi(selectName).then(res => {
+    }
+  },
+  beforeDestroy () {
+    if (this.timer) {
+      clearInterval(this.timer)
+      this.timer = null
+      this.loading = false
+      this.progressValue = 0
+    }
+  },
+  methods: {
+    handleSubmit (name) {
+      this.$refs[name].validate((valid) => {
+        if (valid) {
+          let ak = this.formValidate.ak
+          let sk = this.formValidate.sk
+          let account = this.formValidate.account
+          downloadSingleScanObsExcelApi(ak, sk, account).then(res => {
             if (res.data.err_code !== 0) {
               this.$Message.info(res.data.description)
             } else {
-              this.startTimer();
+              this.startTimer()
               this.loading = true
+              this.$Message.success('Success')
             }
           })
+        } else {
+          this.$Message.error('Fail')
         }
-      },
-      queryExcel() {
-        queryProgressScanPortApi().then(res => {
-          if (res.headers['content-type'] === 'application/octet-stream') {
-            let strDate = getStrDate();
-            const fileName = "IP端口扫描统计表_" + strDate + ".xlsx";
-            blobDownload(res.data, fileName);
-            if (this.timer) {
-              clearInterval(this.timer);
-              this.timer = null;
-              this.loading = false
-            }
+      })
+    },
+    handleReset (name) {
+      this.$refs[name].resetFields()
+    },
+    queryExcel () {
+      let ak = this.formValidate.ak
+      let sk = this.formValidate.sk
+      let account = this.formValidate.account
+      queryProgressSingleScanObsApi(ak, sk, account).then(res => {
+        this.progressValue = this.progressValue + 3
+        if (this.progressValue > 99) {
+          this.progressValue = 99
+        }
+        console.log(res.headers)
+        if (res.headers['content-type'] === 'application/octet-stream') {
+          console.log('aaaaaaaaaaaaaaaaaaaaaaaaaa')
+          console.log(res.data)
+          let strDate = getStrDate()
+          const fileName = 'IP端口扫描统计表_' + strDate + '.xlsx'
+          blobDownload(res.data, fileName)
+          if (this.timer) {
+            clearInterval(this.timer)
+            this.timer = null
+            this.loading = false
+            this.progressValue = 100
           }
-        })
-      },
-      scanPort() {
-        scanPortApi().then(res => {
-          this.tableData = res.data.data
-        })
-      },
-      startTimer() {
-        if (this.timer) {
-          clearInterval(this.timer);
-          this.timer = null
         }
-        this.timer = setInterval(() => {
-          setTimeout(this.queryExcel, 0)
-        }, 3000)
+      })
+    },
+    startTimer () {
+      if (this.timer) {
+        clearInterval(this.timer)
+        this.timer = null
+        this.progressValue = 0
       }
+      this.timer = setInterval(() => {
+        setTimeout(this.queryExcel, 0)
+      }, 3000)
     }
   }
+}
 </script>
+<style>
+.progress {
+  margin-top: 20px;
+}
+
+</style>

@@ -46,5 +46,7 @@ export default {
   Tools: 'ToolBar',
   scan_port: 'scan_port',
   scan_obs: 'scan_obs',
+  single_scan_port: 'single_scan_port',
+  single_scan_obs: 'single_scan_obs',
   Home: 'Home'
 }

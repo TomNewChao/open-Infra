@@ -35,7 +35,7 @@ export default [
     meta: {
       // hideInMenu: true,
       notCache: true,
-      icon: 'logo-buffer',
+      icon: 'logo-windows',
       title: '工具'
     },
     children: [
@@ -85,7 +85,7 @@ export default [
         path: 'scan_port',
         name: 'scan_port',
         meta: {
-          icon: 'md-arrow-dropdown-circle',
+          icon: 'ios-stats',
           title: '端口扫描'
         },
         component: () => import('@/view/components/scan-port/scan-port.vue')
@@ -94,28 +94,28 @@ export default [
         path: 'scan_obs',
         name: 'scan_obs',
         meta: {
-          icon: 'md-trending-up',
+          icon: 'ios-stats-outline',
           title: '对象系统扫描'
         },
         component: () => import('@/view/components/scan-obs/scan-obs.vue')
       },
       {
-        path: 'singe_scan_port',
-        name: 'singe_scan_port',
+        path: 'single_scan_port',
+        name: 'single_scan_port',
         meta: {
-          icon: 'md-trending-up',
-          title: '单账户端口扫描'
+          icon: 'ios-basketball',
+          title: '单个端口扫描'
         },
-        component: () => import('@/view/components/single-scan-port/single-scan-port.vue')
+        component: () => import('@/view/components/single-scan-port/single-scan-port')
       },
       {
-        path: 'scan_single_obs',
-        name: 'scan_single_obs',
+        path: 'single_scan_obs',
+        name: 'single_scan_obs',
         meta: {
-          icon: 'md-trending-up',
-          title: '单账户对象系统扫描'
+          icon: 'ios-basketball-outline',
+          title: '单个对象系统扫描'
         },
-        component: () => import('@/view/components/single-scan-obs/single-scan-obs.vue')
+        component: () => import('@/view/components/single-scan-obs/single-scan-obs')
       }
     ]
   },

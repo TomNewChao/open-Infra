@@ -13,18 +13,10 @@ export const downloadScanPortExcelApi = account => {
     method: 'post',
     data: {
       account
-    }
-  })
-}
-
-export const queryProgressScanPortApi = () => {
-  return axios.request({
-    url: '/api/clouds_tools/scan_port/progress',
-    method: 'get',
+    },
     responseType: 'blob'
   })
 }
-
 
 export const scanObsApi = () => {
   return axios.request({
@@ -39,14 +31,49 @@ export const downloadScanObsExcelApi = account => {
     method: 'post',
     data: {
       account
+    },
+    responseType: 'blob'
+  })
+}
+
+export const downloadSingleScanPortExcelApi = (ak, sk, project_id, zone) => {
+  return axios.request({
+    url: '/api/clouds_tools/single_scan_port',
+    method: 'post',
+    data: {
+      ak, sk, project_id, zone
     }
   })
 }
 
-export const queryProgressScanObsApi = () => {
+export const queryProgressSingleScanPortApi = (ak, sk, project_id, zone) => {
   return axios.request({
-    url: '/api/clouds_tools/scan_obs/progress',
-    method: 'get',
+    url: '/api/clouds_tools/single_scan_port/progress',
+    method: 'post',
+    data: {
+      ak, sk, project_id, zone
+    },
+    responseType: 'blob'
+  })
+}
+
+export const downloadSingleScanObsExcelApi = (ak, sk, account) => {
+  return axios.request({
+    url: '/api/clouds_tools/single_scan_obs',
+    method: 'post',
+    data: {
+      ak, sk, account
+    }
+  })
+}
+
+export const queryProgressSingleScanObsApi = (ak, sk, account) => {
+  return axios.request({
+    url: '/api/clouds_tools/single_scan_obs/progress',
+    method: 'post',
+    data: {
+      ak, sk, account
+    },
     responseType: 'blob'
   })
 }
