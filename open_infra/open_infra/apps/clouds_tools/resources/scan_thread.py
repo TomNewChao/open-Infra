@@ -34,6 +34,7 @@ class ScanThreadTools(object):
                     project_id = project_info.get("project_id")
                     zone = project_info.get("zone")
                     key = (ak, sk, project_id, zone)
+                    print("********************{}".format(key))
                     tcp_ret_dict, udp_ret_dict, tcp_server_info = single_scan_port(ak, sk, zone, project_id)
                     dict_data = {
                         "tcp_info": tcp_ret_dict,
@@ -41,7 +42,7 @@ class ScanThreadTools(object):
                         "tcp_server_info": tcp_server_info
                     }
                     logger.info("ScanThreadTools: scan port：{}".format(dict_data))
-                    ScanObsInfo.set({key: {"status": ScanObsStatus.finish, "data": dict_data}})
+                    ScanPortInfo.set({key: {"status": ScanObsStatus.finish, "data": dict_data}})
 
     @classmethod
     def scan_obs(cls):
@@ -61,3 +62,4 @@ class ScanThreadTools(object):
                 }
                 logger.info("ScanThreadTools: scan obs：{}".format(dict_data))
                 ScanObsInfo.set({key: {"status": ScanObsStatus.finish, "data": dict_data}})
+                break

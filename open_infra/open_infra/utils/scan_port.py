@@ -276,13 +276,11 @@ def scan_port(username, config_list):
 def single_scan_port(ak, sk, zone, project_id, username=None):
     eip_tools = EipTools()
     tcp_ret_dict, udp_ret_dict, tcp_server_info = dict(), dict(), dict()
-    logger.info("############1.start to collect ip:{}######".format(zone))
-    result_list = list()
     ret_temp = eip_tools.get_single_data_list(eip_tools, project_id, zone, ak, sk)
-    result_list = list(set(result_list))
-    if not ret_temp:
+    result_list = list(set(ret_temp))
+    if not result_list:
+        logger.info("single_scan_port: There is no ip:{}".format(zone))
         return tcp_ret_dict, udp_ret_dict, tcp_server_info
-    logger.info("###########2.lookup port:{}###################".format(zone))
     if not username:
         username = "anonymous_{}".format(uuid.uuid1())
     ip_result_dir = os.path.join(settings.LIB_PATH, "scan_port_{}".format(username))
@@ -305,7 +303,6 @@ def single_scan_port(ak, sk, zone, project_id, username=None):
             udp_content_list = eip_tools.read_txt(temp_name)
             udp_ret_dict[ip] = eip_tools.parse_tcp_result_txt(udp_content_list)
     shutil.rmtree(ip_result_dir)
-    logger.info("###########3.lookup service info###################")
     tcp_server_info = EipTools.collect_tcp_server_info(tcp_ret_dict)
-    logger.info("###########4.return tar file###################")
+    logger.info("2.return dict file:{}, {}, {}".format(tcp_ret_dict, udp_ret_dict, tcp_server_info))
     return tcp_ret_dict, udp_ret_dict, tcp_server_info

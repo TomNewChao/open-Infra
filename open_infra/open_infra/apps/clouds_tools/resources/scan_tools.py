@@ -113,6 +113,9 @@ class ScanPorts(ScanBaseTools):
         """query progress"""
         tcp_info, udp_info, tcp_server_info = dict(), dict(), dict()
         config_obj = self.get_cloud_config()
+        print("#########################1:{}".format(config_obj))
+        print("#########################2:{}".format(account_list))
+        print("#########################3:{}".format(ScanPortInfo._data))
         for config_info in config_obj:
             if config_info["account"] not in account_list:
                 continue
@@ -122,6 +125,7 @@ class ScanPorts(ScanBaseTools):
                 project_id = project_temp["project_id"]
                 zone = project_temp["zone"]
                 key = (ak, sk, project_id, zone)
+                print("#########################4:{}".format(key))
                 scan_port_info = ScanPortInfo.get(key)
                 if scan_port_info:
                     tcp_info.update(scan_port_info["data"]["tcp_info"])
@@ -161,7 +165,7 @@ class SingleScanPorts(ScanBaseTools):
             "udp_info": udp_ret_dict,
             "tcp_server_info": tcp_server_info
         }
-        logger.info("collect_thread scan port：{}".format(dict_data))
+        logger.info("collect_thread single scan port：{}".format(dict_data))
         key = (ak, sk, project_id, zone)
         ScanPortInfo.set({key: {"status": ScanPortStatus.finish, "data": dict_data}})
 
@@ -177,7 +181,7 @@ class SingleScanPorts(ScanBaseTools):
             # 1.judge status
             key = (ak, sk, project_id, zone)
             single_scan_port_info = ScanPortInfo.get(key)
-            if single_scan_port_info is not None and single_scan_port_info["status"] == ScanPortStatus.handler:
+            if single_scan_port_info is not None:
                 return True
             # 2.start a thread to collect data
             th = Thread(target=self.collect_thread, args=(ak, sk, zone, project_id))
@@ -235,7 +239,7 @@ class SingleScanObs(ScanBaseTools):
             key = (ak, sk, account)
             # 1.judge status
             single_scan_obs_info = ScanObsInfo.get(key)
-            if single_scan_obs_info is not None and single_scan_obs_info["status"] == ScanPortStatus.handler:
+            if single_scan_obs_info is not None:
                 return True
             # 2.start a thread to collect data
             th = Thread(target=self.collect_thread, args=(ak, sk, account))

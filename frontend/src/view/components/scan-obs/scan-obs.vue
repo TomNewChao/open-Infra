@@ -2,7 +2,6 @@
   <div>
     <Card>
       <tables ref="tables" editable searchable search-place="top" v-model="tableData" :columns="columns"
-              :loading="loading"
               @on-delete="handleDelete"/>
       <Button style="margin: 10px 2px 2px;" type="primary" @click="exportExcel">导出</Button>
     </Card>
@@ -47,21 +46,11 @@ export default {
           ]
         }
       ],
-      tableData: [],
-      timer: null,
-      loading: false,
-      tempValue: null
+      tableData: []
     }
   },
   mounted () {
     this.scanPort()
-  },
-  beforeDestroy () {
-    if (this.timer) {
-      clearInterval(this.timer)
-      this.timer = null
-      this.loading = false
-    }
   },
   methods: {
     handleDelete (params) {
@@ -79,11 +68,6 @@ export default {
             let strDate = getStrDate()
             const fileName = '对象系统扫描统计表_' + strDate + '.xlsx'
             blobDownload(res.data, fileName)
-            if (this.timer) {
-              clearInterval(this.timer)
-              this.timer = null
-              this.loading = false
-            }
           }
         })
       }
@@ -96,7 +80,3 @@ export default {
   }
 }
 </script>
-
-<style>
-
-</style>

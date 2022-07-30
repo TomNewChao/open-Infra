@@ -113,6 +113,7 @@ export const getStrDate = () => {
   let day = change(d.getDate())
   let hour = change(d.getHours())
   let minute = change(d.getMinutes())
+  let seconds = change(d.getSeconds())
 
   function change (t) {
     if (t < 10) {
@@ -122,7 +123,7 @@ export const getStrDate = () => {
     }
   }
 
-  return year + '_' + month + '_' + day + '_' + hour + '_' + minute
+  return year + '_' + month + '_' + day + '_' + hour + '_' + minute + '_' + seconds
 }
 
 /**

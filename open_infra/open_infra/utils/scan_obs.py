@@ -150,9 +150,10 @@ class EipTools(object):
         return sensitive_dict_data
 
     @classmethod
-    def check_bucket_info(cls, obs_client, bucket_name, account):
+    def check_bucket_info(cls, obs_client, bucket_name, account, zone):
         list_result, list_anonymous_bucket, list_anonymous_data = list(), list(), list()
         is_anonymous = False
+
         # first to judge bucket policy
         policy_content = cls.get_bucket_policy(obs_client, bucket_name)
         if policy_content:
@@ -273,7 +274,7 @@ def single_scan_obs(ak, sk, account):
         with ObsClientConn(ak, sk, url) as obs_client:
             for bucket_name in bucket_name_list:
                 ret_temp, list_anonymous_bucket_temp, list_anonymous_data_temp = eip_tools.check_bucket_info(
-                    obs_client, bucket_name, account)
+                    obs_client, bucket_name, account, location)
                 list_anonymous_file.extend(ret_temp or [])
                 list_anonymous_bucket.extend(list_anonymous_bucket_temp or [])
                 list_anonymous_data.extend(list_anonymous_data_temp or [])

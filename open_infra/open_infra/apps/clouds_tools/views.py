@@ -63,10 +63,10 @@ class SingleScanPortView(AuthView):
     def post(self, request):
         """output a file"""
         dict_data = json.loads(request.body)
-        ak = dict_data.get("ak")
-        sk = dict_data.get("sk")
-        zone = dict_data.get("zone")
-        project_id = dict_data.get("project_id")
+        ak = dict_data.get("ak").strip()
+        sk = dict_data.get("sk").strip()
+        zone = dict_data.get("zone").strip()
+        project_id = dict_data.get("project_id").strip()
         logger.info("SingleScanPortView collect:{}".format(dict_data["project_id"]))
         single_scan_ports = SingleScanPorts()
         result = single_scan_ports.start_collect_thread(ak, sk, zone, project_id)
@@ -79,10 +79,10 @@ class SingleScanPortView(AuthView):
 class SingleScanPortProgressView(AuthView):
     def post(self, request):
         dict_data = json.loads(request.body)
-        ak = dict_data.get("ak")
-        sk = dict_data.get("sk")
-        zone = dict_data.get("zone")
-        project_id = dict_data.get("project_id")
+        ak = dict_data.get("ak").strip()
+        sk = dict_data.get("sk").strip()
+        zone = dict_data.get("zone").strip()
+        project_id = dict_data.get("project_id").strip()
         single_scan_ports = SingleScanPorts()
         progress, data = single_scan_ports.query_progress(ak, sk, project_id, zone)
         if progress == 0:
@@ -104,9 +104,9 @@ class SingleScanObsView(AuthView):
     def post(self, request):
         """output a file"""
         dict_data = json.loads(request.body)
-        ak = dict_data.get("ak")
-        sk = dict_data.get("sk")
-        account = dict_data.get("account")
+        ak = dict_data.get("ak").strip()
+        sk = dict_data.get("sk").strip()
+        account = dict_data.get("account").strip()
         logger.info("ScanObsView collect:{}".format(account))
         single_scan_obs = SingleScanObs()
         result = single_scan_obs.start_collect_thread(ak, sk, account)
@@ -119,9 +119,9 @@ class SingleScanObsView(AuthView):
 class SingleScanObsProgressView(AuthView):
     def post(self, request):
         dict_data = json.loads(request.body)
-        ak = dict_data.get("ak")
-        sk = dict_data.get("sk")
-        account = dict_data.get("account")
+        ak = dict_data.get("ak").strip()
+        sk = dict_data.get("sk").strip()
+        account = dict_data.get("account").strip()
         single_scan_obs = SingleScanObs()
         progress, data = single_scan_obs.query_progress(ak, sk, account)
         if progress == 0:
