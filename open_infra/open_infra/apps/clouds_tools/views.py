@@ -65,11 +65,8 @@ class SingleScanPortView(AuthView):
         dict_data = json.loads(request.body)
         ak = dict_data.get("ak").strip()
         sk = dict_data.get("sk").strip()
-        zone = dict_data.get("zone").strip()
-        project_id = dict_data.get("project_id").strip()
-        logger.info("SingleScanPortView collect:{}".format(dict_data["project_id"]))
         single_scan_ports = SingleScanPorts()
-        result = single_scan_ports.start_collect_thread(ak, sk, zone, project_id)
+        result = single_scan_ports.start_collect_thread(ak, sk)
         if result:
             return assemble_api_result(ErrCode.STATUS_SUCCESS)
         else:
@@ -81,21 +78,17 @@ class SingleScanPortProgressView(AuthView):
         dict_data = json.loads(request.body)
         ak = dict_data.get("ak").strip()
         sk = dict_data.get("sk").strip()
-        zone = dict_data.get("zone").strip()
-        project_id = dict_data.get("project_id").strip()
         single_scan_ports = SingleScanPorts()
-        progress, data = single_scan_ports.query_progress(ak, sk, project_id, zone)
-        if progress == 0:
-            return assemble_api_result(ErrCode.STATUS_SCAN_ING)
-        elif progress == 1:
-            res = HttpResponse(content=data, content_type="application/octet-stream")
+        progress, data = single_scan_ports.query_progress(ak, sk)
+        res = HttpResponse(content=data, content_type="application/octet-stream")
+        if progress == 1:
             now_date = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
             filename = settings.EXCEL_NAME.format(now_date)
             res["Content-Disposition"] = 'attachment;filename="{}"'.format(filename)
             res['charset'] = 'utf-8'
             return res
         else:
-            return assemble_api_result(ErrCode.STATUS_SCAN_FAILED)
+            return assemble_api_result(ErrCode.STATUS_SCAN_ING)
 
 
 # noinspection DuplicatedCode

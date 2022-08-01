@@ -53,6 +53,7 @@ huaweicloudsdkelb==3.0.92
 huaweicloudsdknat==3.0.92
 huaweicloudsdkrds==3.0.92
 huaweicloudsdkvpc==3.0.91
+huaweicloudsdkiam==3.0.100
 icalendar==4.0.9
 idna==2.8
 idna-ssl==1.1.0
@@ -125,4 +126,3 @@ yarl==1.7.2
 zipp==3.6.0
 uwsgi
 cocoNLP==0.0.11
-apscheduler

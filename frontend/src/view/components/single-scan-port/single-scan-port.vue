@@ -1,21 +1,15 @@
 <template>
   <Form ref="formValidate" :model="formValidate" :rules="ruleValidate" :label-width="100">
-    <FormItem label="PROJECT_ID" prop="project_id">
-      <Input v-model="formValidate.project_id" placeholder="Enter the project id of Huawei cloud"></Input>
-    </FormItem>
-    <FormItem label="ZONE" prop="zone">
-      <Input v-model="formValidate.zone" placeholder="Enter the zone of Huawei cloud"></Input>
-    </FormItem>
     <FormItem label="AK" prop="ak">
-      <Input v-model="formValidate.ak" placeholder="Enter the ak of Huawei cloud"></Input>
+      <Input v-model="formValidate.ak" placeholder="Enter the ak of Huawei cloud" class="scan-port-input"></Input>
     </FormItem>
     <FormItem label="SK" prop="sk">
-      <Input v-model="formValidate.sk" placeholder="Enter the sk of Huawei cloud"></Input>
+      <Input v-model="formValidate.sk" placeholder="Enter the sk of Huawei cloud" class="scan-port-input"></Input>
     </FormItem>
     <FormItem>
-      <Button type="primary" @click="handleSubmit('formValidate')">Submit</Button>
-      <Button @click="handleReset('formValidate')" style="margin-left: 8px">Reset</Button>
-      <Progress :percent="progressValue" :stroke-width="32" status="active" :text-inside="true" CLASS="progress"/>
+      <Button type="primary" @click="handleSubmit('formValidate')">导出</Button>
+      <!--      <Button @click="handleReset('formValidate')" style="margin-left: 8px">Reset</Button>-->
+      <Progress :percent="scanPortProgressValue" :stroke-width="28" status="active" :text-inside="true"/>
     </FormItem>
   </Form>
 </template>
@@ -23,16 +17,15 @@
 import { downloadSingleScanPortExcelApi, queryProgressSingleScanPortApi } from '@/api/tools'
 import { blobDownload } from '@/libs/download.js'
 import { getStrDate } from '@/libs/tools.js'
+
 export default {
   data () {
     return {
       timer: null,
-      progressValue: 0,
+      scanPortProgressValue: 0,
       formValidate: {
         ak: '',
-        sk: '',
-        project_id: '',
-        zone: ''
+        sk: ''
       },
       ruleValidate: {
         ak: [
@@ -40,12 +33,6 @@ export default {
         ],
         sk: [
           { required: true, message: 'The sk cannot be empty', trigger: 'blur' }
-        ],
-        project_id: [
-          { required: true, message: 'The project_id cannot be empty', trigger: 'blur' }
-        ],
-        zone: [
-          { required: true, message: 'The zone cannot be empty', trigger: 'blur' }
         ]
       }
     }
@@ -54,8 +41,7 @@ export default {
     if (this.timer) {
       clearInterval(this.timer)
       this.timer = null
-      this.loading = false
-      this.progressValue = 0
+      this.scanPortProgressValue = 0
     }
   },
   methods: {
@@ -64,19 +50,17 @@ export default {
         if (valid) {
           let ak = this.formValidate.ak
           let sk = this.formValidate.sk
-          let project_id = this.formValidate.project_id
-          let zone = this.formValidate.zone
-          downloadSingleScanPortExcelApi(ak, sk, project_id, zone).then(res => {
+          this.scanPortProgressValue = 0
+          downloadSingleScanPortExcelApi(ak, sk).then(res => {
             if (res.data.err_code !== 0) {
               this.$Message.info(res.data.description)
             } else {
               this.startTimer()
-              this.loading = true
-              this.$Message.success('Success')
+              this.$Message.success('成功')
             }
           })
         } else {
-          this.$Message.error('Param fault')
+          this.$Message.error('参数错误，请重新输入')
         }
       })
     },
@@ -86,12 +70,10 @@ export default {
     queryExcel () {
       let ak = this.formValidate.ak
       let sk = this.formValidate.sk
-      let project_id = this.formValidate.project_id
-      let zone = this.formValidate.zone
-      queryProgressSingleScanPortApi(ak, sk, project_id, zone).then(res => {
-        this.progressValue = this.progressValue + 3
-        if (this.progressValue > 99) {
-          this.progressValue = 99
+      queryProgressSingleScanPortApi(ak, sk).then(res => {
+        this.scanPortProgressValue = this.scanPortProgressValue + 3
+        if (this.scanPortProgressValue > 99) {
+          this.scanPortProgressValue = 99
         }
         if (res.headers['content-type'] === 'application/octet-stream') {
           let strDate = getStrDate()
@@ -100,8 +82,7 @@ export default {
           if (this.timer) {
             clearInterval(this.timer)
             this.timer = null
-            this.loading = false
-            this.progressValue = 100
+            this.scanPortProgressValue = 100
           }
         }
       })
@@ -119,8 +100,11 @@ export default {
 }
 </script>
 <style>
-.progress {
-  margin-top: 20px;
+.ivu-progress-outer {
+  margin-top: 32px;
 }
 
+.scan-port-input {
+  width: 500px;
+}
 </style>

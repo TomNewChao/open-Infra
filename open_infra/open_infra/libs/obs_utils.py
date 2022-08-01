@@ -6,11 +6,19 @@
 
 import json
 import os.path
+from collections import defaultdict
 
 from obs import ObsClient
 from logging import getLogger
 from django.conf import settings
+
+from open_infra.utils.common import convert_yaml
 from open_infra.utils.crypto import AESCrypt
+from huaweicloudsdkcore.auth.credentials import GlobalCredentials
+from huaweicloudsdkiam.v3.region.iam_region import IamRegion
+from huaweicloudsdkcore.exceptions import exceptions
+from huaweicloudsdkiam.v3 import IamClient, KeystoneListProjectsRequest
+from huaweicloudsdkcore.http.http_config import HttpConfig
 
 logger = getLogger("django")
 
@@ -76,6 +84,10 @@ class ObsLib(object):
                     logger.error('errorCode:{}'.format(resp.errorCode))
                     logger.error('errorMessage:{}'.format(resp.errorMessage))
                     raise Exception("get object failed：{}....".format(download_key))
+                now_account_info_list = convert_yaml(content)
+                for account_info in now_account_info_list:
+                    account_info["project_info"] = HuaweiCloud.get_project_zone(account_info["ak"], account_info["sk"])
+                content = json.dumps(now_account_info_list)
                 # 2.encrypt data
                 crypt_data = self.aes_crypt.encrypt(content)
                 # 3. write to file
@@ -85,4 +97,36 @@ class ObsLib(object):
                 with open(full_path, "r") as f:
                     decrypt_data = f.read()
                 content = self.aes_crypt.decrypt(decrypt_data)
-            return content
+                now_account_info_list = json.loads(content)
+            return now_account_info_list
+
+
+class HuaweiCloud(object):
+    @staticmethod
+    def get_iam_config():
+        config = HttpConfig.get_default_config()
+        config.ignore_ssl_verification = True
+        return config
+
+    @staticmethod
+    def get_project_zone(ak, sk):
+        list_data = list()
+        try:
+            credentials = GlobalCredentials(ak, sk)
+            config = HuaweiCloud.get_iam_config()
+            client = IamClient.new_builder().with_http_config(config)\
+                .with_credentials(credentials) \
+                .with_region(IamRegion.value_of("ap-southeast-1")) \
+                .build()
+            request = KeystoneListProjectsRequest()
+            response = client.keystone_list_projects(request)
+            for info in response.projects:
+                if info.name in settings.IGNORE_ZONE:
+                    continue
+                list_data.append({"zone": info.name, "project_id": info.id})
+            logger.info("[get_project_zone] collect project total:{}".format(len(list_data)))
+            return list_data
+        except exceptions.ClientRequestException as e:
+            logger.error("ak:{}, sk:{} get project zone failed".format(ak[:5], sk[:5]))
+            logger.error(e.status_code, e.request_id, e.error_code, e.error_msg)
+            return list_data

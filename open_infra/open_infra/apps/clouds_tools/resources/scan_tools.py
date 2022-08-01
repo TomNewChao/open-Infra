@@ -3,8 +3,12 @@
 # @Author  : Tom_zc
 # @FileName: scan_tools.py
 # @Software: PyCharm
+import traceback
+from functools import wraps
+
 from open_infra.libs.obs_utils import ObsLib
-from open_infra.utils.common import convert_yaml, output_scan_port_excel, output_scan_obs_excel
+from open_infra.utils.common import output_scan_port_excel, output_scan_obs_excel
+from open_infra.utils.lock_util import RWLock
 from open_infra.utils.scan_port import single_scan_port
 from open_infra.utils.scan_obs import single_scan_obs
 from django.conf import settings
@@ -19,8 +23,54 @@ logger = getLogger("django")
 
 class LockObj(object):
     cloud_config = Lock()
-    scan_port_lock = Lock()
-    scan_obs_lock = Lock()
+    scan_port_rw_lock = RWLock()
+    scan_obs_rw_lock = RWLock()
+
+
+def scan_port_lock_decorate(rw=0):
+    """
+    :param rw:  0为读锁，1为写锁.
+    :return:
+    """
+
+    def outer(func):
+        @wraps(func)
+        def inner(*args, **kwargs):
+            try:
+                if rw == 0:
+                    LockObj.scan_port_rw_lock.acquire_read()
+                elif rw == 1:
+                    LockObj.scan_port_rw_lock.acquire_write()
+                return func(*args, **kwargs)
+            finally:
+                LockObj.scan_port_rw_lock.release()
+
+        return inner
+
+    return outer
+
+
+def scan_obs_lock_decorate(rw=0):
+    """
+    :param rw:  0为读锁，1为写锁.
+    :return:
+    """
+
+    def outer(func):
+        @wraps(func)
+        def inner(*args, **kwargs):
+            try:
+                if rw == 0:
+                    LockObj.scan_obs_rw_lock.acquire_read()
+                elif rw == 1:
+                    LockObj.scan_obs_rw_lock.acquire_write()
+                return func(*args, **kwargs)
+            finally:
+                LockObj.scan_obs_rw_lock.release()
+
+        return inner
+
+    return outer
 
 
 class BaseStatus(object):
@@ -91,7 +141,7 @@ class ScanBaseTools(object):
         for account_info in account_list:
             account_temp = dict()
             account_temp["account"] = account_info["account"]
-            zone_list = [settings.ZONE_ALIAS_DICT.get(project_temp["zone"], "UNKNOWN") for project_temp in
+            zone_list = [settings.ZONE_ALIAS_DICT.get(project_temp["zone"], project_temp['zone']) for project_temp in
                          account_info["project_info"]]
             account_temp["zone"] = "，".join(zone_list)
             ret_list.append(account_temp)
@@ -101,8 +151,15 @@ class ScanBaseTools(object):
     def get_cloud_config():
         obs_lib = ObsLib(settings.AK, settings.SK, settings.URL)
         content = obs_lib.get_obs_data(settings.DOWNLOAD_BUCKET_NAME, settings.DOWNLOAD_KEY_NAME)
-        now_account_info_list = convert_yaml(content)
-        return now_account_info_list
+        return content
+
+    @staticmethod
+    def get_project_info(ak, sk):
+        clouds_config = ScanBaseTools.get_cloud_config()
+        for cloud_info in clouds_config:
+            if cloud_info["ak"] == ak and cloud_info["sk"] == sk:
+                return cloud_info["project_info"]
+        return list()
 
     def query_data(self, account_list):
         raise NotImplemented()
@@ -113,9 +170,6 @@ class ScanPorts(ScanBaseTools):
         """query progress"""
         tcp_info, udp_info, tcp_server_info = dict(), dict(), dict()
         config_obj = self.get_cloud_config()
-        print("#########################1:{}".format(config_obj))
-        print("#########################2:{}".format(account_list))
-        print("#########################3:{}".format(ScanPortInfo._data))
         for config_info in config_obj:
             if config_info["account"] not in account_list:
                 continue
@@ -125,7 +179,6 @@ class ScanPorts(ScanBaseTools):
                 project_id = project_temp["project_id"]
                 zone = project_temp["zone"]
                 key = (ak, sk, project_id, zone)
-                print("#########################4:{}".format(key))
                 scan_port_info = ScanPortInfo.get(key)
                 if scan_port_info:
                     tcp_info.update(scan_port_info["data"]["tcp_info"])
@@ -165,50 +218,67 @@ class SingleScanPorts(ScanBaseTools):
             "udp_info": udp_ret_dict,
             "tcp_server_info": tcp_server_info
         }
-        logger.info("collect_thread single scan port：{}".format(dict_data))
         key = (ak, sk, project_id, zone)
+        logger.info("[collect_thread] collect single scan port: key:({}, {}, {}, {}), data:{}".format(ak[:5], sk[:5],
+                                                                                                      project_id, zone,
+                                                                                                      dict_data))
         ScanPortInfo.set({key: {"status": ScanPortStatus.finish, "data": dict_data}})
 
-    def start_collect_thread(self, ak, sk, zone, project_id):
+    @scan_port_lock_decorate(rw=1)
+    def start_collect_thread(self, ak, sk):
         """start a collect thread"""
-        with LockObj.scan_port_lock:
-            eip_tools = ScanPortEipTools()
+        eip_tools = ScanPortEipTools()
+        try:
+            project_info = ScanBaseTools.get_project_info(ak, sk)
+            if not project_info:
+                raise Exception("[start_collect_thread] Get empty project info, Failed")
+            for project_obj in project_info:
+                eip_tools.get_data_list(project_obj["project_id"], project_obj["zone"], ak, sk)
+                break
+        except Exception as e:
+            logger.error("[start_collect_thread] connect:{}, {}".format(e, traceback.format_exc()))
+            return False
+        for project_obj in project_info:
             try:
-                eip_tools.get_data_list(project_id, zone, ak, sk)
+                # 1.judge status
+                project_id = project_obj["project_id"]
+                zone = project_obj["zone"]
+                key = (ak, sk, project_id, zone)
+                single_scan_port_info = ScanPortInfo.get(key)
+                if single_scan_port_info is not None:
+                    continue
+                # 2.start a thread to collect data
+                th = Thread(target=self.collect_thread, args=(ak, sk, zone, project_id))
+                th.start()
+                # 3.set status to handler
+                ScanPortInfo.set({key: {"status": ScanPortStatus.handler, "data": dict()}})
             except Exception as e:
-                logger.error("param invalid:{}".format(e))
-                return False
-            # 1.judge status
-            key = (ak, sk, project_id, zone)
-            single_scan_port_info = ScanPortInfo.get(key)
-            if single_scan_port_info is not None:
-                return True
-            # 2.start a thread to collect data
-            th = Thread(target=self.collect_thread, args=(ak, sk, zone, project_id))
-            th.start()
-            # 3.set status to handler
-            ScanPortInfo.set({key: {"status": ScanPortStatus.handler, "data": dict()}})
-            return True
+                logger.error(
+                    "[start_collect_thread] collect data failed:{}, traceback:{}".format(e, traceback.format_exc()))
+        return True
 
     # noinspection PyMethodMayBeStatic
-    def query_progress(self, ak, sk, project_id, zone):
+    @scan_port_lock_decorate(rw=0)
+    def query_progress(self, ak, sk):
         """query progress"""
+        tcp_info, udp_info, tcp_server_info = dict(), dict(), dict()
         content = str()
-        key = (ak, sk, project_id, zone)
-        single_scan_port_info = ScanPortInfo.get(key)
-        print(key)
-        print(ScanPortInfo._data)
-        if single_scan_port_info is not None and single_scan_port_info["status"] == ScanPortStatus.handler:
+        project_info = ScanBaseTools.get_project_info(ak, sk)
+        if not project_info:
             return 0, content
-        elif single_scan_port_info is not None and single_scan_port_info["status"] == ScanPortStatus.finish:
-            tcp_info = single_scan_port_info["data"]["tcp_info"]
-            udp_info = single_scan_port_info["data"]["udp_info"]
-            tcp_server_info = single_scan_port_info["data"]["tcp_server_info"]
-            content = output_scan_port_excel(tcp_info, udp_info, tcp_server_info)
-            return 1, content
-        else:
-            logger.info("single scan port query_progress query no result")
-            return 2, content
+        for project_obj in project_info:
+            project_id = project_obj["project_id"]
+            zone = project_obj["zone"]
+            key = (ak, sk, project_id, zone)
+            single_scan_port_info = ScanPortInfo.get(key)
+            if single_scan_port_info is not None and single_scan_port_info["status"] == ScanObsStatus.handler:
+                return 0, content
+            elif single_scan_port_info is not None and single_scan_port_info["status"] == ScanPortStatus.finish:
+                tcp_info.update(single_scan_port_info["data"]["tcp_info"])
+                udp_info.update(single_scan_port_info["data"]["udp_info"])
+                tcp_server_info.update(single_scan_port_info["data"]["tcp_server_info"])
+        content = output_scan_port_excel(tcp_info, udp_info, tcp_server_info)
+        return 1, content
 
 
 class SingleScanObs(ScanBaseTools):
@@ -224,41 +294,42 @@ class SingleScanObs(ScanBaseTools):
             "anonymous_data": list_anonymous_data or []
         }
         key = (ak, sk, account)
-        logger.info("collect single scan_obs:{}".format(key))
+        logger.info("[SingleScanObs] collect single scan_obs: key({},{},{}), data:{}".format(ak[:5], sk[:5], account,
+                                                                                             dict_data))
         ScanObsInfo.set({key: {"status": ScanObsStatus.finish, "data": dict_data}})
 
+    @scan_obs_lock_decorate(rw=1)
     def start_collect_thread(self, ak, sk, account):
         """start a collect thread"""
-        with LockObj.scan_obs_lock:
-            try:
-                eip_tools = ScanObsEipTools()
-                eip_tools.get_all_bucket(ak, sk, settings.OBS_BASE_URL, inhibition_fault=False)
-            except Exception as e:
-                logger.error("start_collect_thread invalid param:{}".format(e))
-                return False
-            key = (ak, sk, account)
-            # 1.judge status
-            single_scan_obs_info = ScanObsInfo.get(key)
-            if single_scan_obs_info is not None:
-                return True
-            # 2.start a thread to collect data
-            th = Thread(target=self.collect_thread, args=(ak, sk, account))
-            th.start()
-            # 3.set status to handler
-            ScanObsInfo.set({key: {"status": ScanObsStatus.handler, "data": dict()}})
+        try:
+            eip_tools = ScanObsEipTools()
+            eip_tools.get_all_bucket(ak, sk, settings.OBS_BASE_URL, inhibition_fault=False)
+        except Exception as e:
+            logger.error("[SingleScanObs] start_collect_thread connect:{}, {}".format(e, traceback.format_exc()))
+            return False
+        key = (ak, sk, account)
+        # 1.judge status
+        single_scan_obs_info = ScanObsInfo.get(key)
+        if single_scan_obs_info is not None:
             return True
+        # 2.start a thread to collect data
+        th = Thread(target=self.collect_thread, args=(ak, sk, account))
+        th.start()
+        # 3.set status to handler
+        ScanObsInfo.set({key: {"status": ScanObsStatus.handler, "data": dict()}})
+        return True
 
     # noinspection PyMethodMayBeStatic
+    @scan_obs_lock_decorate(rw=0)
     def query_progress(self, ak, sk, account):
         """query progress"""
         content = str()
         key = (ak, sk, account)
-        print(key)
-        print(ScanObsInfo._data)
+        logger.info("now collect obs data:{}".format(key))
         single_scan_obs_info = ScanObsInfo.get(key)
         if single_scan_obs_info is not None and single_scan_obs_info["status"] == ScanObsStatus.handler:
             return 0, content
-        elif single_scan_obs_info is not None and single_scan_obs_info["status"] == ScanObsStatus.finish:
+        if single_scan_obs_info is not None and single_scan_obs_info["status"] == ScanObsStatus.finish:
             anonymous_file_list = single_scan_obs_info["data"]["anonymous_file"]
             anonymous_bucket_list = single_scan_obs_info["data"]["anonymous_bucket"]
             anonymous_data_data = single_scan_obs_info["data"]["anonymous_data"]

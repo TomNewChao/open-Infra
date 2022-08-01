@@ -29,7 +29,7 @@ sys.path.insert(0, os.path.join(BASE_DIR, "apps"))
 SECRET_KEY = os.getenv("secret")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ["*"]
 
@@ -84,21 +84,14 @@ WSGI_APPLICATION = 'open_infra.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-#     }
-# }
-
 DATABASES = {
     'default': {  # 写（主机）
         'ENGINE': 'django.db.backends.mysql',  # 数据库引擎
-        'HOST': '127.0.0.1',  # 数据库主机
-        'PORT': 3306,  # 数据库端口
-        'USER': 'root',  # 数据库用户名
-        'PASSWORD': '123456',  # 数据库用户密码
-        'NAME': 'open-infra'  # 数据库名字
+        'HOST': os.getenv("mysql_host", '127.0.0.1'),  # 数据库主机
+        'PORT': os.getenv("mysql_port", 3306),  # 数据库端口
+        'USER': os.getenv("mysql_user", 'root'),  # 数据库用户名
+        'PASSWORD': os.getenv("mysql_password", '123456'),  # 数据库用户密码
+        'NAME': 'open_infra'  # 数据库名字
     }
 }
 # DATABASE_ROUTERS = ['meiduo_mall.utils.db_router.MasterSlaveDBRouter']
@@ -148,6 +141,10 @@ CACHES = {
         }
     }
 }
+
+IS_RUNSERVER = False
+if len(sys.argv) > 1 and sys.argv[1] == "runserver":
+    IS_RUNSERVER = True
 
 # log and lib path setting
 if platform.system() == "Windows":
@@ -202,7 +199,6 @@ LOGGING = {
 
 AUTH_USER_MODEL = 'users.User'
 
-
 # jwt settings
 JWT_AUTH = {
     'JWT_EXPIRATION_DELTA': datetime.timedelta(minutes=30),  # 30minutes
@@ -242,9 +238,9 @@ CORS_ALLOW_HEADERS = (
 )
 
 # obs setting
-AK = os.getenv("ak")
-SK = os.getenv("sk")
-URL = os.getenv("url")
+AK = os.getenv("obs_ak")
+SK = os.getenv("obs_sk")
+URL = os.getenv("obs_url")
 DOWNLOAD_BUCKET_NAME = "obs-for-openeuler-developer"
 DOWNLOAD_KEY_NAME = "secret-files/collect_elastic_public_ip.yaml"
 
@@ -272,12 +268,20 @@ ZONE_ALIAS_DICT = {
 
 # scan port setting
 DEFAULT_SHEET_NAME = "Sheet"
-EXCEL_NAME = "IP端口扫描统计表_{}_{}.xlsx"
+EXCEL_NAME = "IP高危端口扫描统计表_{}.xlsx"
 EXCEL_TITLE = ["弹性公网IP", "端口", "状态", "链接协议", "传输协议"]
 EXCEL_SERVER_TITLE = ["弹性公网IP", "端口", "服务器版本信息"]
 EXCEL_TCP_PAGE_NAME = "TCP"
 EXCEL_UDP_PAGE_NAME = "UDP"
 EXCEL_SERVER_PAGE_NAME = "TCP_SERVER_INFO"
+# HIGH_RISK_PORT empty list is all
+HIGH_RISK_PORT = [21, 22, 23, 69, 135, 137, 138, 139, 161, 177, 389, 445, 513, 873, 1025, 1099, 1433, 1521, 2082, 2083, 2222, 2601, 2604, 3128, 3306, 3312, 3311,
+                  3389, 4440, 4848, 4899, 5432, 6379, 7001, 7002, 7778, 8080, 8649, 8083, 8649, 9000, 9200, 9043, 10000, 27017, 50060, 50030]
+HIGH_RISK_PORT.extend(range(6000, 6064))
+HIGH_RISK_PORT.extend(range(50000, 50051))
+
+
+IGNORE_ZONE = ["cn-northeast-1", "MOS", "ap-southeast-1_tryme", "cn-north-1_1"]
 
 # scan obs setting
 OBS_URL = "https://obs.{}.myhuaweicloud.com"
@@ -288,11 +292,12 @@ OBS_FILE_POSTFIX = ["sh", "java", "jsp", "sql", "conf", "cer",
                     "py", "rb", "vb", "vbs", "vba", "h", "jar", "properties",
                     "config", "class"]
 # "log"
-
-SCAN_OBS_EXCEL_NAME = "对象系统扫描统计表_{}_{}.xlsx"
-SCAN_OBS_EXCEL_BUCKET_TITLE = ["account", "bucket"]
-SCAN_OBS_EXCEL_DATA_TITLE = ["account", "bucket", "path", "data"]
-SCAN_OBS_EXCEL_FILE_TITLE = ["account", "bucket", "path"]
+SCAN_OBS_EXCEL_NAME = "对象系统扫描统计表_{}.xlsx"
+SCAN_OBS_EXCEL_BUCKET_TITLE = ["account", "bucket", "url"]
+SCAN_OBS_EXCEL_DATA_TITLE = ["account", "bucket", "url", "path", "data"]
+SCAN_OBS_EXCEL_FILE_TITLE = ["account", "bucket", "url", "path"]
 OBS_ANONYMOUS_BUCKET_PAGE_NAME = "scan_obs_anonymous_bucket"
 OBS_SENSITIVE_FILE_PAGE_NAME = "scan_obs_sensitive_file"
 OBS_ANONYMOUS_DATA_PAGE_NAME = "scan_obs_sensitive_data"
+OBS_BUCKET_URL = "https://{}.obs.{}.myhuaweicloud.com"
+OBS_FILE_URL = "https://{}.obs.{}.myhuaweicloud.com/{}"

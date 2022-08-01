@@ -171,25 +171,27 @@ class EipTools(object):
                     is_anonymous = True
                     break
         if is_anonymous:
-            anonymous_bucket = "{}:{}".format(account, bucket_name)
-            logger.info("collect anonymous bucket:{}".format(anonymous_bucket))
-            list_anonymous_bucket.append([account, bucket_name])
+            logger.info("collect account:{}, bucket_name:{}".format(account, bucket_name))
+            bucket_url = settings.OBS_BUCKET_URL.format(bucket_name, zone)
+            list_anonymous_bucket.append([account, bucket_name, bucket_url])
             bucket_info_list = cls.get_bucket_obj(obs_client, bucket_name)
             for bucket_info in bucket_info_list:
                 file_name = bucket_info["key"]
                 file_name_list = file_name.rsplit(sep=".", maxsplit=1)
                 if len(file_name_list) >= 2:
                     if file_name_list[-1] in settings.OBS_FILE_POSTFIX:
-                        file_temp = "{}:{}--->{}".format(account, bucket_name, file_name)
-                        logger.info("collect sensitive file:{}".format(file_temp))
-                        list_result.append([account, bucket_name, file_name])
+                        logger.info("collect account:{}, bucket_name:{},sensitive file:{}".format(account, bucket_name,
+                                                                                                  file_name))
+                        file_url = settings.OBS_FILE_URL.format(bucket_name, zone, file_name)
+                        list_result.append([account, bucket_name, file_url, file_name])
                         content = cls.download_obs_data(obs_client, bucket_name, file_name)
                         if content:
                             sensitive_data = cls.get_sensitive_data(content)
                             if sensitive_data:
-                                data_temp = "{}:{}--->{}--->{}".format(account, bucket_name, file_name, str(sensitive_data))
-                                logger.info("collect sensitive data:{}".format(data_temp))
-                                list_anonymous_data.append([account, bucket_name, file_name, str(sensitive_data)])
+                                logger.info("collect account:{}, bucket_name:{},file_name:{},sensitive data:{}".format(
+                                    account, bucket_name, file_name, str(sensitive_data)))
+                                list_anonymous_data.append(
+                                    [account, bucket_name, file_url, file_name, str(sensitive_data)])
         return list_result, list_anonymous_bucket, list_anonymous_data
 
     @classmethod
@@ -204,11 +206,10 @@ class EipTools(object):
                     if bucket['bucket_type'] == "OBJECT":
                         list_bucket.append(dict(bucket))
             else:
-                logger.info('get_bucket_list: errorCode:', resp.errorCode)
-                logger.info('get_bucket_list: errorMessage:', resp.errorMessage)
-                raise Exception("get bucket list fault")
+                logger.info('[get_bucket_list] errorCode:{},errorMessage:{}'.format(resp.errorCode, resp.errorMessage))
+                raise Exception("Get bucket list fault")
         except Exception as e:
-            logger.info("get_bucket_list:{},{}".format(e, traceback.format_exc()))
+            logger.info("[get_bucket_list]:{},{}".format(e, traceback.format_exc()))
             if not inhibition_fault:
                 raise e
         return list_bucket
@@ -256,7 +257,7 @@ def scan_obs(query_account_list):
             with ObsClientConn(ak, sk, url) as obs_client:
                 for bucket_name in bucket_name_list:
                     ret_temp, list_anonymous_bucket_temp, list_anonymous_data_temp = eip_tools.check_bucket_info(
-                        obs_client, bucket_name, account)
+                        obs_client, bucket_name, account, location)
                     result_list.extend(ret_temp or [])
                     list_anonymous_bucket.extend(list_anonymous_bucket_temp or [])
                     list_anonymous_data.extend(list_anonymous_data_temp or [])

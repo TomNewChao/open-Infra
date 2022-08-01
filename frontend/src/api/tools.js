@@ -36,22 +36,22 @@ export const downloadScanObsExcelApi = account => {
   })
 }
 
-export const downloadSingleScanPortExcelApi = (ak, sk, project_id, zone) => {
+export const downloadSingleScanPortExcelApi = (ak, sk) => {
   return axios.request({
     url: '/api/clouds_tools/single_scan_port',
     method: 'post',
     data: {
-      ak, sk, project_id, zone
+      ak, sk
     }
   })
 }
 
-export const queryProgressSingleScanPortApi = (ak, sk, project_id, zone) => {
+export const queryProgressSingleScanPortApi = (ak, sk) => {
   return axios.request({
     url: '/api/clouds_tools/single_scan_port/progress',
     method: 'post',
     data: {
-      ak, sk, project_id, zone
+      ak, sk
     },
     responseType: 'blob'
   })

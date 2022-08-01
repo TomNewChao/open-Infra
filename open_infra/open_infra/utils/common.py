@@ -31,7 +31,6 @@ except ImportError:
     from io import BytesIO as StringIO
     from urllib.parse import urlencode
 
-
 logger = getLogger("django")
 
 
@@ -43,10 +42,12 @@ def func_retry(tries=3, delay=1):
                 try:
                     return fn(*args, **kwargs)
                 except Exception as e:
-                    print(e)
+                    logger.info("************************")
+                    logger.error(*args, **kwargs)
+                    logger.error("func_retry:{} happen error: {}".format(fn.__name__, traceback.format_exc()))
                     time.sleep(delay)
             else:
-                print("func_retry: {} failed".format(fn.__name__))
+                logger.info("func_retry:{} over tries, failed".format(fn.__name__))
 
         return inner
 
@@ -384,8 +385,10 @@ def output_scan_obs_excel(anonymous_file_list, anonymous_bucket_list, anonymous_
 def runserver_executor(func):
     """运行服务时才执行方法的装饰器v
     """
+
     @wraps(func)
     def wrapper(*args, **kw):
         if settings.IS_RUNSERVER:
             return func(*args, **kw)
+
     return wrapper

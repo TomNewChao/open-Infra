@@ -151,6 +151,8 @@ class EipTools(object):
                                 continue
                             port_str = port.groups()[0].strip()
                             port_content = list(filter(lambda x: x != "", port_str.split('/')))
+                            if settings.HIGH_RISK_PORT and int(port_content[0]) not in settings.HIGH_RISK_PORT:
+                                continue
                             ret_list.append(port_content)
         return ret_list
 
@@ -180,8 +182,8 @@ class EipTools(object):
         return eip_ip_list
 
     @func_retry(tries=1)
-    def get_single_data_list(self, eip_tools, project_id, zone, ak, sk):
-        config = eip_tools.get_eip_config()
+    def get_single_data_list(self, project_id, zone, ak, sk):
+        config = self.get_eip_config()
         credentials = BasicCredentials(ak, sk, project_id)
         if zone in GlobalConfig.eip_v2_zone:
             eip_instance = EipInstanceV2(EipClientV2, config, credentials, EndPoint.vpc_endpoint.format(zone))
@@ -276,7 +278,10 @@ def scan_port(username, config_list):
 def single_scan_port(ak, sk, zone, project_id, username=None):
     eip_tools = EipTools()
     tcp_ret_dict, udp_ret_dict, tcp_server_info = dict(), dict(), dict()
-    ret_temp = eip_tools.get_single_data_list(eip_tools, project_id, zone, ak, sk)
+    ret_temp = eip_tools.get_single_data_list(project_id, zone, ak, sk)
+    if ret_temp is None:
+        logger.info("single_scan_port: There is get eip:{}".format(ret_temp))
+        return tcp_ret_dict, udp_ret_dict, tcp_server_info
     result_list = list(set(ret_temp))
     if not result_list:
         logger.info("single_scan_port: There is no ip:{}".format(zone))
@@ -287,6 +292,7 @@ def single_scan_port(ak, sk, zone, project_id, username=None):
     if not os.path.exists(ip_result_dir):
         os.mkdir(ip_result_dir)
     temp_name = os.path.join(ip_result_dir, GlobalConfig.ip_result_name)
+    logger.info("single_scan_port collect ips:{}".format(result_list))
     for ip in result_list:
         logger.info("1.start to collect tcp:{} info".format(ip))
         ret_code, data = eip_tools.execute_cmd(GlobalConfig.tcp_search_cmd.format(temp_name, ip))
