@@ -22,14 +22,15 @@ docker build -t open-infra:latest .
 3.启动容器
 
 ~~~bash
-docker run -dit -e secret= # django的secret
--e mysql_host=   # mysql的ip
--e mysql_port=  # mysql的端口 
--e mysql_user=  # mysql的用户
--e mysql_password=  # mysql数据库的密码
--e obs_ak=  #华为云obs的ak
--e obs_sk=  #华为云obs的sk
--e obs_url=obs.cn-north-4.myhuaweicloud.com 
---name open-infra open-infra:latest
+docker run -dit 
+--env secret="" # django的secret
+--env mysql_host=""  # mysql的ip
+--env mysql_port="" # mysql的端口 
+--env mysql_user="" # mysql的用户
+--env mysql_password="" # mysql数据库的密码
+--env obs_ak="" #华为云obs的ak
+--env obs_sk="" #华为云obs的sk
+--env obs_url="" #华为云obs的url
+--name open-infra-demo open-infra:latest
 ~~~
 
