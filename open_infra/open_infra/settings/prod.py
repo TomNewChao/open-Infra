@@ -87,10 +87,10 @@ WSGI_APPLICATION = 'open_infra.wsgi.application'
 DATABASES = {
     'default': {  # 写（主机）
         'ENGINE': 'django.db.backends.mysql',  # 数据库引擎
-        'HOST': os.getenv("mysql_host", '127.0.0.1'),  # 数据库主机
-        'PORT': os.getenv("mysql_port", 3306),  # 数据库端口
-        'USER': os.getenv("mysql_user", 'root'),  # 数据库用户名
-        'PASSWORD': os.getenv("mysql_password", '123456'),  # 数据库用户密码
+        'HOST': os.getenv("mysql_host"),  # 数据库主机
+        'PORT': os.getenv("mysql_port"),  # 数据库端口
+        'USER': os.getenv("mysql_user"),  # 数据库用户名
+        'PASSWORD': os.getenv("mysql_password"),  # 数据库用户密码
         'NAME': 'open_infra'  # 数据库名字
     }
 }
@@ -131,6 +131,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 CACHES = {
     "default": {

@@ -13,12 +13,13 @@ RUN yum install -y python3-pip
 RUN yum install -y python3-devel
 RUN yum install -y java-1.8.0-openjdk*
 RUN yum install -y nmap
-RUN chmod 777 /opt/open_infra/docker-entrypoint.sh
 RUN pip3 install -r /opt/open_infra/requirements.txt
+COPY ./docker-entrypoint.sh /usr/local/bin/
+RUN chmod 777 /usr/local/bin/docker-entrypoint.sh
 
 
 ENV LANG=en_US.UTF-8
 ENV PYTHONPATH=/opt/open_infra
-CMD ["/bin/bash", "/opt/open_infra/docker-entrypoint.sh"]
-ENTRYPOINT ["uwsgi", "--ini", "/opt/open_infra/uwsgi.ini"]
+ENTRYPOINT ["docker-entrypoint.sh"]
+CMD ["uwsgi", "--ini", "/opt/open_infra/uwsgi.ini"]
 EXPOSE 80
