@@ -23,7 +23,7 @@ docker build -t open-infra:latest .
 
 ~~~bash
 docker run -dit 
---env secret="" # django的secret
+--env pwd="" # django的secret
 --env mysql_host=""  # mysql的ip
 --env mysql_port="" # mysql的端口 
 --env mysql_user="" # mysql的用户

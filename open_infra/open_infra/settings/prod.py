@@ -146,6 +146,8 @@ CACHES = {
 IS_RUNSERVER = False
 if len(sys.argv) > 1 and sys.argv[1] == "runserver":
     IS_RUNSERVER = True
+elif len(sys.argv) >= 1 and sys.argv[0] == "uwsgi":
+    IS_RUNSERVER = True
 
 # log and lib path setting
 if platform.system() == "Windows":
