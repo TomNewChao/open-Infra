@@ -1,8 +1,9 @@
 from django.apps import AppConfig
 
+import datetime
 from clouds_tools.resources.scan_thread import ScanThreadTools
 from open_infra.utils.common import runserver_executor
-import datetime
+from threading import Thread
 from apscheduler.schedulers.background import BackgroundScheduler
 
 
@@ -20,6 +21,10 @@ class CloudsToolsConfig(AppConfig):
         cls._scheduler.add_job(ScanThreadTools.scan_port, 'cron', hour='2')
         cls._scheduler.start()
 
+    def start_thread(self):
+        th = Thread(target=self._start_thread)
+        th.start()
+
     @runserver_executor
     def ready(self):
-        self._start_thread()
+        self.start_thread()

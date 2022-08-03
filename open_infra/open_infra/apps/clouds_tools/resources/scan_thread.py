@@ -5,7 +5,8 @@
 # @Software: PyCharm
 import os
 from django.conf import settings
-from clouds_tools.resources.scan_tools import ScanPortInfo, ScanObsInfo, ScanObsStatus, LockObj, ScanBaseTools
+from clouds_tools.resources.scan_tools import ScanPortInfo, ScanObsInfo, ScanObsStatus, LockObj, ScanBaseTools, \
+    ScanPortStatus
 from open_infra.utils.scan_port import single_scan_port
 from open_infra.utils.scan_obs import single_scan_obs
 from logging import getLogger
@@ -33,6 +34,10 @@ class ScanThreadTools(object):
                 project_id = project_info.get("project_id")
                 zone = project_info.get("zone")
                 key = (ak, sk, project_id, zone)
+                single_scan_port_info = ScanPortInfo.get(key)
+                if single_scan_port_info is not None:
+                    continue
+                ScanPortInfo.set({key: {"status": ScanPortStatus.new, "data": dict()}})
                 tcp_ret_dict, udp_ret_dict, tcp_server_info = single_scan_port(ak, sk, zone, project_id)
                 dict_data = {
                     "tcp_info": tcp_ret_dict,
@@ -40,7 +45,7 @@ class ScanThreadTools(object):
                     "tcp_server_info": tcp_server_info
                 }
                 logger.info("[ScanThreadTools] scan_port: key:({},{},{},{}), data:{}".format(ak[0:5], sk[0:5], project_id, zone, dict_data))
-                ScanPortInfo.set({key: {"status": ScanObsStatus.finish, "data": dict_data}})
+                ScanPortInfo.set({key: {"status": ScanPortStatus.finish, "data": dict_data}})
         logger.info("----------------finish scan_port-----------------------")
 
     @classmethod
@@ -52,6 +57,10 @@ class ScanThreadTools(object):
             sk = config_item["sk"]
             account = config_item["account"]
             key = (ak, sk, account)
+            single_scan_obs_info = ScanObsInfo.get(key)
+            if single_scan_obs_info is not None:
+                continue
+            ScanObsInfo.set({key: {"status": ScanObsStatus.new, "data": dict()}})
             file_list, bucket_list, data_list = single_scan_obs(ak, sk, account)
             dict_data = {
                 "anonymous_file": file_list or [],

@@ -180,7 +180,8 @@ class ScanPorts(ScanBaseTools):
                 zone = project_temp["zone"]
                 key = (ak, sk, project_id, zone)
                 scan_port_info = ScanPortInfo.get(key)
-                if scan_port_info:
+                logger.error("[ScanPorts:query_data]: key:({}, {}, {}, {}), value:{}".format(ak[:5], sk[:5], project_id, zone, scan_port_info))
+                if scan_port_info and scan_port_info["status"] == ScanPortStatus.finish:
                     tcp_info.update(scan_port_info["data"]["tcp_info"])
                     udp_info.update(scan_port_info["data"]["udp_info"])
                     tcp_server_info.update(scan_port_info["data"]["tcp_server_info"])
@@ -200,7 +201,8 @@ class ScanObs(ScanBaseTools):
             sk = config_info["sk"]
             key = (ak, sk, account)
             scan_obs_info = ScanObsInfo.get(key)
-            if scan_obs_info:
+            logger.error("[ScanObs:query_data]: key:({}, {}, {}), value:{}".format(ak[:5], sk[:5], account, scan_obs_info))
+            if scan_obs_info and scan_obs_info["status"] == ScanObsStatus.finish:
                 anonymous_file_list.extend(scan_obs_info["data"]["anonymous_file"])
                 anonymous_bucket_list.extend(scan_obs_info["data"]["anonymous_bucket"])
                 anonymous_data_data.extend(scan_obs_info["data"]["anonymous_data"])
