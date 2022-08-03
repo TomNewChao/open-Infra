@@ -48,5 +48,6 @@ export default {
   scan_obs: '對象系統掃描',
   single_scan_port: '單賬戶端口掃描',
   single_scan_obs: '單賬戶對象系統掃描',
+  high_risk_port: '高危端口',
   Home: '首頁'
 }

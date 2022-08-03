@@ -48,5 +48,6 @@ export default {
   scan_obs: 'scan_obs',
   single_scan_port: 'single_scan_port',
   single_scan_obs: 'single_scan_obs',
+  high_risk_port: 'high_risk_port',
   Home: 'Home'
 }

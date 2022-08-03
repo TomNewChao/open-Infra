@@ -116,6 +116,15 @@ export default [
           title: '单个对象系统扫描'
         },
         component: () => import('@/view/components/single-scan-obs/single-scan-obs')
+      },
+      {
+        path: 'high_risk_port',
+        name: 'high_risk_port',
+        meta: {
+          icon: 'md-basketball',
+          title: '端口扫描列表'
+        },
+        component: () => import('@/view/components/port-list/port-list')
       }
     ]
   },

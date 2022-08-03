@@ -48,5 +48,6 @@ export default {
   scan_obs: '对象系统扫描',
   single_scan_port: '单账户端口扫描',
   single_scan_obs: '单账户对象系统扫描',
+  high_risk_port: '高危端口',
   Home: '首页'
 }

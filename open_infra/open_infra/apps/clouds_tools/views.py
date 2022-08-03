@@ -9,6 +9,8 @@ from open_infra.utils.api_error_code import ErrCode
 from django.conf import settings
 from logging import getLogger
 
+from open_infra.utils.default_port_list import HighRiskPort
+
 logger = getLogger("django")
 
 
@@ -128,3 +130,15 @@ class SingleScanObsProgressView(AuthView):
             return res
         else:
             return assemble_api_result(ErrCode.STATUS_SCAN_FAILED)
+
+
+class PortsListView(AuthView):
+    def get(self, request):
+        port_dict = HighRiskPort.get_port_dict()
+        ret_list = list()
+        for port_info, port_describe in port_dict.items():
+            ret_list.append({
+                "port": port_info,
+                "describe": port_describe
+            })
+        return assemble_api_result(ErrCode.STATUS_SUCCESS, data=ret_list)

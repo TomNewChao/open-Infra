@@ -77,3 +77,10 @@ export const queryProgressSingleScanObsApi = (ak, sk, account) => {
     responseType: 'blob'
   })
 }
+
+export const queryPortListApi = () => {
+  return axios.request({
+    url: '/api/clouds_tools/port_list',
+    method: 'get'
+  })
+}

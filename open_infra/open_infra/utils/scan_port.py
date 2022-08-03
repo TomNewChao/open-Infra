@@ -25,6 +25,8 @@ from huaweicloudsdkeip.v2 import ListPublicipsRequest as ListPublicipsRequestV2
 from huaweicloudsdkeip.v3 import EipClient as EipClientV3
 from huaweicloudsdkeip.v3 import ListPublicipsRequest as ListPublicipsRequestV3
 
+from open_infra.utils.default_port_list import HighRiskPort
+
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 logger = getLogger("django")
@@ -138,6 +140,7 @@ class EipTools(object):
     @classmethod
     def parse_tcp_result_txt(cls, tcp_content_list):
         ret_list = list()
+        high_risk_port = HighRiskPort.get_port_dict()
         for info in tcp_content_list:
             if "Host:" in info and "Ports:" in info:
                 info_list = info.split("Ports:")
@@ -151,7 +154,7 @@ class EipTools(object):
                                 continue
                             port_str = port.groups()[0].strip()
                             port_content = list(filter(lambda x: x != "", port_str.split('/')))
-                            if settings.HIGH_RISK_PORT and int(port_content[0]) not in settings.HIGH_RISK_PORT:
+                            if high_risk_port and int(port_content[0]) not in high_risk_port.keys():
                                 continue
                             ret_list.append(port_content)
         return ret_list
