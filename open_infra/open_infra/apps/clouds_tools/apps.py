@@ -21,10 +21,6 @@ class CloudsToolsConfig(AppConfig):
         cls._scheduler.add_job(ScanThreadTools.scan_port, 'cron', hour='2')
         cls._scheduler.start()
 
-    def start_thread(self):
-        th = Thread(target=self._start_thread)
-        th.start()
-
     @runserver_executor
     def ready(self):
-        self.start_thread()
+        self._start_thread()
