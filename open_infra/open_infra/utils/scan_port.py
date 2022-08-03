@@ -184,19 +184,21 @@ class EipTools(object):
             eip_ip_list.append(eip_info['public_ip_address'])
         return eip_ip_list
 
-    @func_retry(tries=1)
     def get_single_data_list(self, project_id, zone, ak, sk):
-        config = self.get_eip_config()
-        credentials = BasicCredentials(ak, sk, project_id)
-        if zone in GlobalConfig.eip_v2_zone:
-            eip_instance = EipInstanceV2(EipClientV2, config, credentials, EndPoint.vpc_endpoint.format(zone))
-        else:
-            eip_instance = EipInstanceV3(EipClientV3, config, credentials, EndPoint.vpc_endpoint.format(zone))
-        eip_dict = eip_instance.show_infos()
-        eip_list = eip_instance.parse_response_data(eip_dict)
         eip_ip_list = list()
-        for eip_info in eip_list:
-            eip_ip_list.append(eip_info['public_ip_address'])
+        try:
+            config = self.get_eip_config()
+            credentials = BasicCredentials(ak, sk, project_id)
+            if zone in GlobalConfig.eip_v2_zone:
+                eip_instance = EipInstanceV2(EipClientV2, config, credentials, EndPoint.vpc_endpoint.format(zone))
+            else:
+                eip_instance = EipInstanceV3(EipClientV3, config, credentials, EndPoint.vpc_endpoint.format(zone))
+            eip_dict = eip_instance.show_infos()
+            eip_list = eip_instance.parse_response_data(eip_dict)
+            for eip_info in eip_list:
+                eip_ip_list.append(eip_info['public_ip_address'])
+        except Exception as e:
+            logger.error("[get_single_data_list] get ip failed:({},{},{},{}), e:{}".format(ak[:5], sk[:5], project_id, zone, str(e)))
         return eip_ip_list
 
     @classmethod
@@ -295,16 +297,14 @@ def single_scan_port(ak, sk, zone, project_id, username=None):
     if not os.path.exists(ip_result_dir):
         os.mkdir(ip_result_dir)
     temp_name = os.path.join(ip_result_dir, GlobalConfig.ip_result_name)
-    logger.info("single_scan_port collect ips:{}".format(result_list))
     for ip in result_list:
-        logger.info("1.start to collect tcp:{} info".format(ip))
+        logger.info("[single_scan_port] collect ip:{}".format(ip))
         ret_code, data = eip_tools.execute_cmd(GlobalConfig.tcp_search_cmd.format(temp_name, ip))
         if ret_code != 0:
             logger.error("search tcp:{}, error:{}".format(ip, data))
         else:
             tcp_content_list = eip_tools.read_txt(temp_name)
             tcp_ret_dict[ip] = eip_tools.parse_tcp_result_txt(tcp_content_list)
-        logger.info("2.start to collect udp:{} info".format(ip))
         ret_code, data = eip_tools.execute_cmd(GlobalConfig.udp_search_cmd.format(temp_name, ip))
         if ret_code != 0:
             logger.error("search tcp:{}, error:{}".format(ip, data))
@@ -313,5 +313,5 @@ def single_scan_port(ak, sk, zone, project_id, username=None):
             udp_ret_dict[ip] = eip_tools.parse_tcp_result_txt(udp_content_list)
     shutil.rmtree(ip_result_dir)
     tcp_server_info = EipTools.collect_tcp_server_info(tcp_ret_dict)
-    logger.info("2.return dict file:{}, {}, {}".format(tcp_ret_dict, udp_ret_dict, tcp_server_info))
+    logger.info("check port data:{}, {}, {}".format(tcp_ret_dict, udp_ret_dict, tcp_server_info))
     return tcp_ret_dict, udp_ret_dict, tcp_server_info

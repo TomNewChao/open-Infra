@@ -5,8 +5,7 @@
 # @Software: PyCharm
 import os
 from django.conf import settings
-from clouds_tools.resources.scan_tools import ScanPortInfo, ScanObsInfo, ScanObsStatus, LockObj, ScanBaseTools, \
-    scan_port_lock_decorate, scan_obs_lock_decorate
+from clouds_tools.resources.scan_tools import ScanPortInfo, ScanObsInfo, ScanObsStatus, LockObj, ScanBaseTools
 from open_infra.utils.scan_port import single_scan_port
 from open_infra.utils.scan_obs import single_scan_obs
 from logging import getLogger
@@ -23,7 +22,6 @@ class ScanThreadTools(object):
                 os.remove(full_path)
 
     @classmethod
-    @scan_port_lock_decorate(rw=1)
     def scan_port(cls):
         ScanPortInfo.clear()
         now_account_info_list = ScanBaseTools.get_cloud_config()
@@ -46,7 +44,6 @@ class ScanThreadTools(object):
         logger.info("----------------finish scan_port-----------------------")
 
     @classmethod
-    @scan_obs_lock_decorate(rw=1)
     def scan_obs(cls):
         ScanObsInfo.clear()
         now_account_info_list = ScanBaseTools.get_cloud_config()

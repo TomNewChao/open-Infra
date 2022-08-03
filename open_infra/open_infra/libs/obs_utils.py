@@ -86,6 +86,7 @@ class ObsLib(object):
                     raise Exception("get object failed：{}....".format(download_key))
                 now_account_info_list = convert_yaml(content)
                 for account_info in now_account_info_list:
+                    # if "project_info" not in account_info.keys():
                     account_info["project_info"] = HuaweiCloud.get_project_zone(account_info["ak"], account_info["sk"])
                 content = json.dumps(now_account_info_list)
                 # 2.encrypt data
@@ -106,6 +107,8 @@ class HuaweiCloud(object):
     def get_iam_config():
         config = HttpConfig.get_default_config()
         config.ignore_ssl_verification = True
+        config.retry_times = 1
+        config.timeout = (180, 180)
         return config
 
     @staticmethod
@@ -114,7 +117,7 @@ class HuaweiCloud(object):
         try:
             credentials = GlobalCredentials(ak, sk)
             config = HuaweiCloud.get_iam_config()
-            client = IamClient.new_builder().with_http_config(config)\
+            client = IamClient.new_builder().with_http_config(config) \
                 .with_credentials(credentials) \
                 .with_region(IamRegion.value_of("ap-southeast-1")) \
                 .build()

@@ -224,7 +224,6 @@ class SingleScanPorts(ScanBaseTools):
                                                                                                       dict_data))
         ScanPortInfo.set({key: {"status": ScanPortStatus.finish, "data": dict_data}})
 
-    @scan_port_lock_decorate(rw=1)
     def start_collect_thread(self, ak, sk):
         """start a collect thread"""
         eip_tools = ScanPortEipTools()
@@ -247,6 +246,7 @@ class SingleScanPorts(ScanBaseTools):
                 single_scan_port_info = ScanPortInfo.get(key)
                 if single_scan_port_info is not None:
                     continue
+                ScanPortInfo.set({key: {"status": ScanPortStatus.new, "data": dict()}})
                 # 2.start a thread to collect data
                 th = Thread(target=self.collect_thread, args=(ak, sk, zone, project_id))
                 th.start()
@@ -258,7 +258,6 @@ class SingleScanPorts(ScanBaseTools):
         return True
 
     # noinspection PyMethodMayBeStatic
-    @scan_port_lock_decorate(rw=0)
     def query_progress(self, ak, sk):
         """query progress"""
         tcp_info, udp_info, tcp_server_info = dict(), dict(), dict()
@@ -298,7 +297,6 @@ class SingleScanObs(ScanBaseTools):
                                                                                              dict_data))
         ScanObsInfo.set({key: {"status": ScanObsStatus.finish, "data": dict_data}})
 
-    @scan_obs_lock_decorate(rw=1)
     def start_collect_thread(self, ak, sk, account):
         """start a collect thread"""
         try:
@@ -312,6 +310,7 @@ class SingleScanObs(ScanBaseTools):
         single_scan_obs_info = ScanObsInfo.get(key)
         if single_scan_obs_info is not None:
             return True
+        ScanObsInfo.set({key: {"status": ScanObsStatus.new, "data": dict()}})
         # 2.start a thread to collect data
         th = Thread(target=self.collect_thread, args=(ak, sk, account))
         th.start()
@@ -320,7 +319,6 @@ class SingleScanObs(ScanBaseTools):
         return True
 
     # noinspection PyMethodMayBeStatic
-    @scan_obs_lock_decorate(rw=0)
     def query_progress(self, ak, sk, account):
         """query progress"""
         content = str()
