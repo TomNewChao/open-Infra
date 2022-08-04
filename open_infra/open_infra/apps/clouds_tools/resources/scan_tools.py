@@ -6,7 +6,7 @@
 import traceback
 from functools import wraps
 
-from open_infra.libs.obs_utils import ObsLib
+from open_infra.libs.obs_utils import ObsLib, HuaweiCloud
 from open_infra.utils.common import output_scan_port_excel, output_scan_obs_excel
 from open_infra.utils.lock_util import RWLock
 from open_infra.utils.scan_port import single_scan_port
@@ -154,6 +154,10 @@ class ScanBaseTools(object):
         return content
 
     @staticmethod
+    def get_random_cloud_config(ak, sk):
+        return HuaweiCloud.get_project_zone(ak, sk)
+
+    @staticmethod
     def get_project_info(ak, sk):
         clouds_config = ScanBaseTools.get_cloud_config()
         for cloud_info in clouds_config:
@@ -230,7 +234,7 @@ class SingleScanPorts(ScanBaseTools):
         """start a collect thread"""
         eip_tools = ScanPortEipTools()
         try:
-            project_info = ScanBaseTools.get_project_info(ak, sk)
+            project_info = ScanBaseTools.get_random_cloud_config(ak, sk)
             if not project_info:
                 raise Exception("[start_collect_thread] Get empty project info, Failed")
             for project_obj in project_info:
@@ -264,7 +268,7 @@ class SingleScanPorts(ScanBaseTools):
         """query progress"""
         tcp_info, udp_info, tcp_server_info = dict(), dict(), dict()
         content = str()
-        project_info = ScanBaseTools.get_project_info(ak, sk)
+        project_info = ScanBaseTools.get_random_cloud_config(ak, sk)
         if not project_info:
             return 0, content
         for project_obj in project_info:
@@ -325,7 +329,6 @@ class SingleScanObs(ScanBaseTools):
         """query progress"""
         content = str()
         key = (ak, sk, account)
-        logger.info("now collect obs data:{}".format(key))
         single_scan_obs_info = ScanObsInfo.get(key)
         if single_scan_obs_info is not None and single_scan_obs_info["status"] == ScanObsStatus.handler:
             return 0, content
