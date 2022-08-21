@@ -1,6 +1,6 @@
 from django.conf.urls import url
 from clouds_tools.views import ScanPortView, ScanObsView, SingleScanPortView, SingleScanObsView, \
-    SingleScanPortProgressView, SingleScanObsProgressView, PortsListView
+    SingleScanPortProgressView, SingleScanObsProgressView, PortsListView, EipView
 
 urlpatterns = [
     url(r'^scan_port$', ScanPortView.as_view()),
@@ -12,4 +12,6 @@ urlpatterns = [
     url(r'^single_scan_obs$', SingleScanObsView.as_view()),
 
     url(r'^port_list$', PortsListView.as_view()),
+
+    url(r'^eip$', EipView.as_view()),
 ]

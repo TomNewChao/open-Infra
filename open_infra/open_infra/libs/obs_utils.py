@@ -5,15 +5,12 @@
 # @Software: PyCharm
 
 import json
-import os.path
-from collections import defaultdict
 
 from obs import ObsClient
 from logging import getLogger
 from django.conf import settings
 
 from open_infra.utils.common import convert_yaml
-from open_infra.utils.crypto import AESCrypt
 from huaweicloudsdkcore.auth.credentials import GlobalCredentials
 from huaweicloudsdkiam.v3.region.iam_region import IamRegion
 from huaweicloudsdkcore.exceptions import exceptions
@@ -31,7 +28,6 @@ class ObsLib(object):
                                         server=url)
         else:
             self.obs_client = obs_client
-        self.aes_crypt = AESCrypt()
 
     def upload_obs_data(self, upload_bucket, upload_key, upload_data):
         """Upload obs data"""
@@ -64,45 +60,27 @@ class ObsLib(object):
             raise Exception("upload credentials failed!")
 
     def get_obs_data(self, download_bucket, download_key):
-        from clouds_tools.resources.scan_tools import LockObj
-        with LockObj.cloud_config:
-            full_path = os.path.join(settings.LIB_PATH, "collect_elastic_public_ip.yaml")
-            content = str()
-            if not os.path.exists(full_path):
-                # 1.get data
-                resp = self.obs_client.getObject(download_bucket, download_key, loadStreamInMemory=False)
-                if resp.status < 300:
-                    while True:
-                        chunk = resp.body.response.read(65536)
-                        if not chunk:
-                            break
-                        content = "{}{}".format(content, chunk.decode("utf-8"))
-                    resp.body.response.close()
-                elif resp.errorCode == "NoSuchKey":
-                    logger.info("Key:{} is not exist, need to create".format(download_key))
-                else:
-                    logger.error('errorCode:{}'.format(resp.errorCode))
-                    logger.error('errorMessage:{}'.format(resp.errorMessage))
-                    raise Exception("get object failed：{}....".format(download_key))
-                now_account_info_list = convert_yaml(content)
-                for account_info in now_account_info_list:
-                    # if "project_info" not in account_info.keys():
-                    account_info["project_info"] = HuaweiCloud.get_project_zone(account_info["ak"], account_info["sk"])
-                content = json.dumps(now_account_info_list)
-                # 2.encrypt data
-                crypt_data = self.aes_crypt.encrypt(content)
-                # 3. write to file
-                with open(full_path, "w") as f:
-                    f.write(crypt_data)
-            else:
-                with open(full_path, "r") as f:
-                    decrypt_data = f.read()
-                content = self.aes_crypt.decrypt(decrypt_data)
-                now_account_info_list = json.loads(content)
-            return now_account_info_list
+        content = str()
+        resp = self.obs_client.getObject(download_bucket, download_key, loadStreamInMemory=False)
+        if resp.status < 300:
+            while True:
+                chunk = resp.body.response.read(65536)
+                if not chunk:
+                    break
+                content = "{}{}".format(content, chunk.decode("utf-8"))
+            resp.body.response.close()
+        elif resp.errorCode == "NoSuchKey":
+            logger.info("Key:{} is not exist, need to create".format(download_key))
+            raise Exception("get object failed(no such key):{}...".format(download_key))
+        else:
+            logger.error('errorCode:{}'.format(resp.errorCode))
+            logger.error('errorMessage:{}'.format(resp.errorMessage))
+            raise Exception("get object failed：{}....".format(download_key))
+        now_account_info_list = convert_yaml(content)
+        return now_account_info_list
 
 
-class HuaweiCloud(object):
+class HWCloudIAM(object):
     @staticmethod
     def get_iam_config():
         config = HttpConfig.get_default_config()
@@ -111,12 +89,12 @@ class HuaweiCloud(object):
         config.timeout = (180, 180)
         return config
 
-    @staticmethod
-    def get_project_zone(ak, sk):
+    @classmethod
+    def get_project_zone(cls, ak, sk):
         list_data = list()
         try:
             credentials = GlobalCredentials(ak, sk)
-            config = HuaweiCloud.get_iam_config()
+            config = cls.get_iam_config()
             client = IamClient.new_builder().with_http_config(config) \
                 .with_credentials(credentials) \
                 .with_region(IamRegion.value_of("ap-southeast-1")) \
@@ -130,6 +108,7 @@ class HuaweiCloud(object):
             logger.info("[get_project_zone] collect project total:{}".format(len(list_data)))
             return list_data
         except exceptions.ClientRequestException as e:
-            logger.error("ak:{}, sk:{} get project zone failed".format(ak[:5], sk[:5]))
-            logger.error(e.status_code, e.request_id, e.error_code, e.error_msg)
+            logger.error(
+                "ak:{}, sk:{} get project zone failed:{},{},{},{}".format(ak[:5], sk[:5], e.status_code, e.request_id,
+                                                                          e.error_code, e.error_msg))
             return list_data

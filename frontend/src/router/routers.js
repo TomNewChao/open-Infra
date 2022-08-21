@@ -73,6 +73,35 @@ export default [
     ]
   },
   {
+    path: '/resources',
+    name: 'Resources',
+    meta: {
+      icon: 'logo-buffer',
+      title: '工具'
+    },
+    component: Main,
+    children: [
+      {
+        path: 'ip_info',
+        name: 'ip_info',
+        meta: {
+          icon: 'ios-stats',
+          title: 'ip信息查询'
+        },
+        component: () => import('@/components/tables/tables.vue')
+      },
+      {
+        path: 'ip_info1',
+        name: 'ip_info1',
+        meta: {
+          icon: 'ios-stats',
+          title: 'ip信息查询1'
+        },
+        component: () => import('@/view/components/ip-info/ip-info.vue')
+      },
+    ]
+  },
+  {
     path: '/tools',
     name: 'Tools',
     meta: {
