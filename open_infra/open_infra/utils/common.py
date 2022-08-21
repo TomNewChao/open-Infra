@@ -367,3 +367,70 @@ def runserver_executor(func):
             return func(*args, **kw)
 
     return wrapper
+
+
+def list_param_check_and_trans(params):
+    page, size = params.get("page", "1"), params.get("size", "100")
+    order_type, order_by = params.get('order_type', "0"), params.get('order_by', "create_time")
+    if not page or not size:
+        raise MgrException(ErrCode.STATUS_PARAMETER_ERROR)
+
+    if not page.isdigit() or not size.isdigit():
+        raise MgrException(ErrCode.STATUS_PARAMETER_ERROR)
+
+    if int(page) < 1 or int(size) < 1:
+        raise MgrException(ErrCode.STATUS_PARAMETER_ERROR)
+
+    params['page'], params['size'] = int(page), int(size)
+
+    if order_type:
+        if not order_type.isdigit() or int(order_type) not in [0, 1]:
+            raise MgrException(ErrCode.STATUS_PARAMETER_ERROR)
+        params['order_type'] = int(order_type)
+    # if order_by and order_by not in ["create_time"]:
+    #     raise MgrException(ErrCode.STATUS_PARAMETER_ERROR)
+    filter_name, filter_value = params.get("filter_name"), params.get("filter_value")
+    if filter_name:
+        params["filter_name"] = filter_name
+    if filter_value:
+        params["filter_value"] = filter_value
+    return params
+
+
+def get_max_page(total, size):
+    """
+    获取最大页码数
+    :param total: 总数
+    :param size: 每页展示数量
+    :return: 最大页码数
+    注意：当total为0时，返回最大页码数为1
+    """
+    if total == 0:
+        return 1
+    full_page_num, remain_num = divmod(total, size)
+    if remain_num:
+        max_page = full_page_num + 1
+    else:
+        max_page = full_page_num
+    return max_page
+
+
+def get_suitable_range(total, page, size):
+    """获取合适的页码，对应范围的切片。（合适即传入的页码无对应数据时，返回有数据的最后一页。）
+
+    Example:
+        page, slice_obj = get_suitable_range(total, page, size)
+        new_data = data[slice_obj]
+
+        # 注意 slice_obj 的 start 属性可作为 sql 语句中的 offset 值
+        sql = 'select * from xxx limit {offset}, {limit}'.format(offset=slice_obj.start, limit=size)
+
+    :param total: 数据总量
+    :param page: 页码
+    :param size: 页大小
+    :return: 页码，切片对象
+    """
+    suitable_page = min(get_max_page(total, size), page)
+    start = (suitable_page - 1) * size
+    end = min(start + size, total)
+    return suitable_page, slice(start, end)

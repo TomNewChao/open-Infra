@@ -7,7 +7,7 @@ import traceback
 
 from clouds_tools.models import HWCloudProjectInfo, HWCloudAccount, HWCloudEipInfo
 from open_infra.libs.obs_utils import ObsLib, HWCloudIAM
-from open_infra.utils.common import output_scan_port_excel, output_scan_obs_excel
+from open_infra.utils.common import output_scan_port_excel, output_scan_obs_excel, get_suitable_range
 from open_infra.utils.crypto import AESCrypt
 from open_infra.utils.scan_port import single_scan_port
 from open_infra.utils.scan_obs import single_scan_obs
@@ -350,6 +350,40 @@ class SingleScanObsMgr(ScanToolsMgr):
 
 
 class EipMgr(ScanToolsMgr):
-    def list_eip(self):
-        eip_list = HWCloudEipInfo.objects.all()
-        return [eip_info.to_dict() for eip_info in eip_list]
+
+    # noinspection PyMethodMayBeStatic
+    def list_eip(self, kwargs):
+        page, size = kwargs['page'], kwargs['size']
+        order_type, order_by = kwargs.get("order_type"), kwargs.get("order_by")
+        filter_name = kwargs.get("filter_name")
+        filter_value = kwargs.get("filter_value")
+        if filter_name and filter_name == "eip":
+            eip_list = HWCloudEipInfo.objects.filter(eip__contains=filter_value)
+        elif filter_name and filter_name == "example_id":
+            eip_list = HWCloudEipInfo.objects.filter(example_id__contains=filter_value)
+        elif filter_name and filter_name == "example_name":
+            eip_list = HWCloudEipInfo.objects.filter(example_name__contains=filter_value)
+        elif filter_name and filter_name == "account":
+            eip_list = HWCloudEipInfo.objects.filter(account__contains=filter_value)
+        else:
+            eip_list = HWCloudEipInfo.objects.all()
+        total = len(eip_list)
+        page, slice_obj = get_suitable_range(total, page, size)
+        # 排序, 0-升序
+        order_by = order_by if order_by else "create_time"
+        order_type = order_type if order_type else 0
+
+        if order_type != 0:
+            order_by = "-" + order_by
+
+        eip_list = eip_list.order_by(order_by)
+
+        task_list = [task.to_dict() for task in eip_list[slice_obj]]
+
+        res = {
+            "size": size,
+            "page": page,
+            "total": total,
+            "data": task_list
+        }
+        return res

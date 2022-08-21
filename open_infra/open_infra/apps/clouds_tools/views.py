@@ -3,7 +3,7 @@ from datetime import datetime
 from django.http import HttpResponse
 from clouds_tools.resources.scan_tools import ScanPortsMgr, ScanObsMgr, SingleScanPortsMgr, SingleScanObsMgr, EipMgr
 from open_infra.utils.auth_permisson import AuthView
-from open_infra.utils.common import assemble_api_result
+from open_infra.utils.common import assemble_api_result, list_param_check_and_trans
 from open_infra.utils.api_error_code import ErrCode
 from django.conf import settings
 from logging import getLogger
@@ -144,6 +144,7 @@ class PortsListView(AuthView):
 
 class EipView(AuthView):
     def get(self, request):
+        params_dict = list_param_check_and_trans(request.GET.dict())
         eip_mgr = EipMgr()
-        data = eip_mgr.list_eip()
+        data = eip_mgr.list_eip(params_dict)
         return assemble_api_result(ErrCode.STATUS_SUCCESS, data=data)

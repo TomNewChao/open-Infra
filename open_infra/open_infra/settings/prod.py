@@ -299,3 +299,5 @@ OBS_SENSITIVE_FILE_PAGE_NAME = "scan_obs_sensitive_file"
 OBS_ANONYMOUS_DATA_PAGE_NAME = "scan_obs_sensitive_data"
 OBS_BUCKET_URL = "https://{}.obs.{}.myhuaweicloud.com"
 OBS_FILE_URL = "https://{}.obs.{}.myhuaweicloud.com/{}"
+
+EIP_V2_ZONE = ["cn-south-4", ]
