@@ -44,6 +44,8 @@ export default {
   drag_drawer_page: '可拖動抽屜',
   tree_select_page: '樹狀下拉選擇器',
   Tools: '工具',
+  Eip: 'Eip查詢',
+  Resources: '资源查询',
   scan_port: '端口掃描',
   scan_obs: '對象系統掃描',
   single_scan_port: '單賬戶端口掃描',

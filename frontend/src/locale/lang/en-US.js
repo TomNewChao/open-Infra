@@ -44,6 +44,8 @@ export default {
   drag_drawer_page: 'Draggable Drawer',
   tree_select_page: 'Tree Selector',
   Tools: 'ToolBar',
+  Resources: 'Resources',
+  Eip: 'Eip',
   scan_port: 'scan_port',
   scan_obs: 'scan_obs',
   single_scan_port: 'single_scan_port',
