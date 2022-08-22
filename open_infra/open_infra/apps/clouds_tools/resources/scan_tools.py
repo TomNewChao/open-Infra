@@ -107,13 +107,13 @@ class ScanBaseTools(object):
         content = cls.get_hw_account_from_obs()
         cls.get_hw_project_info_from_obs(content)
         cls.handle_sensitive_data(content)
-        # return content
+        return content
         #  it is for test
-        list_data = list()
-        for data in content:
-            if data["account"] == "hwstaff_zengchen1024":
-                list_data.append(data)
-        return list_data
+        # list_data = list()
+        # for data in content:
+        #     if data["account"] == "hwstaff_zengchen1024":
+        #         list_data.append(data)
+        # return list_data
 
     @classmethod
     def get_hw_account_project_info_from_database(cls):

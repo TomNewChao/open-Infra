@@ -125,8 +125,8 @@ class ScanToolsThread(object):
 
     @classmethod
     def refresh_data(cls):
-        # cls.query_account_info()
-        # cls.scan_eip()
-        # cls.scan_port()
-        # cls.scan_obs()
+        cls.query_account_info()
+        cls.scan_eip()
+        cls.scan_port()
+        cls.scan_obs()
         pass
