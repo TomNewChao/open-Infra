@@ -4,11 +4,11 @@
 # @FileName: scan_tools.py
 # @Software: PyCharm
 import traceback
-from functools import wraps
 
-from open_infra.libs.obs_utils import ObsLib, HuaweiCloud
-from open_infra.utils.common import output_scan_port_excel, output_scan_obs_excel
-from open_infra.utils.lock_util import RWLock
+from clouds_tools.models import HWCloudProjectInfo, HWCloudAccount, HWCloudEipInfo
+from open_infra.libs.obs_utils import ObsLib, HWCloudIAM
+from open_infra.utils.common import output_scan_port_excel, output_scan_obs_excel, get_suitable_range
+from open_infra.utils.crypto import AESCrypt
 from open_infra.utils.scan_port import single_scan_port
 from open_infra.utils.scan_obs import single_scan_obs
 from django.conf import settings
@@ -19,58 +19,6 @@ from open_infra.utils.scan_port import EipTools as ScanPortEipTools
 from open_infra.utils.scan_obs import EipTools as ScanObsEipTools
 
 logger = getLogger("django")
-
-
-class LockObj(object):
-    cloud_config = Lock()
-    scan_port_rw_lock = RWLock()
-    scan_obs_rw_lock = RWLock()
-
-
-def scan_port_lock_decorate(rw=0):
-    """
-    :param rw:  0为读锁，1为写锁.
-    :return:
-    """
-
-    def outer(func):
-        @wraps(func)
-        def inner(*args, **kwargs):
-            try:
-                if rw == 0:
-                    LockObj.scan_port_rw_lock.acquire_read()
-                elif rw == 1:
-                    LockObj.scan_port_rw_lock.acquire_write()
-                return func(*args, **kwargs)
-            finally:
-                LockObj.scan_port_rw_lock.release()
-
-        return inner
-
-    return outer
-
-
-def scan_obs_lock_decorate(rw=0):
-    """
-    :param rw:  0为读锁，1为写锁.
-    :return:
-    """
-
-    def outer(func):
-        @wraps(func)
-        def inner(*args, **kwargs):
-            try:
-                if rw == 0:
-                    LockObj.scan_obs_rw_lock.acquire_read()
-                elif rw == 1:
-                    LockObj.scan_obs_rw_lock.acquire_write()
-                return func(*args, **kwargs)
-            finally:
-                LockObj.scan_obs_rw_lock.release()
-
-        return inner
-
-    return outer
 
 
 class BaseStatus(object):
@@ -124,6 +72,8 @@ class ScanObsInfo(BaseInfo):
 # noinspection PyArgumentList
 class ScanBaseTools(object):
     _instance = None
+    _aes_crypt = AESCrypt()
+    account_info_list = list()
 
     def __new__(cls, *args, **kwargs):
         if cls._instance is None:
@@ -134,9 +84,83 @@ class ScanBaseTools(object):
         pass
 
     @staticmethod
+    def get_hw_account_from_obs():
+        obs_lib = ObsLib(settings.AK, settings.SK, settings.URL)
+        content = obs_lib.get_obs_data(settings.DOWNLOAD_BUCKET_NAME, settings.DOWNLOAD_KEY_NAME)
+        return content
+
+    @classmethod
+    def get_hw_project_info_from_obs(cls, now_account_info_list):
+        if not isinstance(now_account_info_list, list):
+            raise Exception("now_account_info_list must be list")
+        for account_info in now_account_info_list:
+            account_info["project_info"] = HWCloudIAM.get_project_zone(account_info["ak"], account_info["sk"])
+
+    @classmethod
+    def handle_sensitive_data(cls, account_list):
+        for account_info in account_list:
+            account_info["ak"] = cls._aes_crypt.encrypt(account_info["ak"])
+            account_info["sk"] = cls._aes_crypt.encrypt(account_info["sk"])
+
+    @classmethod
+    def get_hw_account_project_info_from_obs(cls):
+        content = cls.get_hw_account_from_obs()
+        cls.get_hw_project_info_from_obs(content)
+        cls.handle_sensitive_data(content)
+        return content
+        #  it is for test
+        # list_data = list()
+        # for data in content:
+        #     if data["account"] == "hwstaff_zengchen1024":
+        #         list_data.append(data)
+        # return list_data
+
+    @classmethod
+    def get_hw_account_project_info_from_database(cls):
+        account_list = list()
+        account_info_list = HWCloudAccount.objects.all()
+        for account_info in account_info_list:
+            account_info_dict = account_info.to_dict()
+            project_info_list = HWCloudProjectInfo.objects.filter(account__id=account_info_dict["id"])
+            account_info_dict["project_info"] = [{"project_id": project_info.id, "zone": project_info.zone} for
+                                                 project_info in project_info_list]
+            account_list.append(account_info_dict)
+        return account_list
+
+    @classmethod
+    def handle_encrypt_data(cls, account_list):
+        for account_info in account_list:
+            account_info["ak"] = cls._aes_crypt.decrypt(account_info["ak"])
+            account_info["sk"] = cls._aes_crypt.decrypt(account_info["sk"])
+
+    @classmethod
+    def get_decrypt_hw_account_project_info_from_database(cls):
+        if not cls.account_info_list:
+            account_list = cls.get_hw_account_project_info_from_database()
+            cls.handle_encrypt_data(account_list)
+            cls.account_info_list = account_list
+        return cls.account_info_list
+
+    @staticmethod
+    def get_random_cloud_config(ak, sk):
+        return HWCloudIAM.get_project_zone(ak, sk)
+
+    @staticmethod
+    def get_project_info(ak, sk):
+        clouds_config = ScanBaseTools.get_decrypt_hw_account_project_info_from_database()
+        for cloud_info in clouds_config:
+            if cloud_info["ak"] == ak and cloud_info["sk"] == sk:
+                return cloud_info["project_info"]
+        return list()
+
+
+class ScanToolsMgr:
+    scan_base_tools = ScanBaseTools()
+
+    @staticmethod
     def get_cloud_account():
         """get all cloud account"""
-        account_list = ScanBaseTools.get_cloud_config()
+        account_list = ScanBaseTools.get_decrypt_hw_account_project_info_from_database()
         ret_list = list()
         for account_info in account_list:
             account_temp = dict()
@@ -147,33 +171,12 @@ class ScanBaseTools(object):
             ret_list.append(account_temp)
         return ret_list
 
-    @staticmethod
-    def get_cloud_config():
-        obs_lib = ObsLib(settings.AK, settings.SK, settings.URL)
-        content = obs_lib.get_obs_data(settings.DOWNLOAD_BUCKET_NAME, settings.DOWNLOAD_KEY_NAME)
-        return content
 
-    @staticmethod
-    def get_random_cloud_config(ak, sk):
-        return HuaweiCloud.get_project_zone(ak, sk)
-
-    @staticmethod
-    def get_project_info(ak, sk):
-        clouds_config = ScanBaseTools.get_cloud_config()
-        for cloud_info in clouds_config:
-            if cloud_info["ak"] == ak and cloud_info["sk"] == sk:
-                return cloud_info["project_info"]
-        return list()
-
-    def query_data(self, account_list):
-        raise NotImplemented()
-
-
-class ScanPorts(ScanBaseTools):
+class ScanPortsMgr(ScanToolsMgr):
     def query_data(self, account_list):
         """query progress"""
         tcp_info, udp_info, tcp_server_info = dict(), dict(), dict()
-        config_obj = self.get_cloud_config()
+        config_obj = self.scan_base_tools.get_decrypt_hw_account_project_info_from_database()
         for config_info in config_obj:
             if config_info["account"] not in account_list:
                 continue
@@ -184,7 +187,9 @@ class ScanPorts(ScanBaseTools):
                 zone = project_temp["zone"]
                 key = (ak, sk, project_id, zone)
                 scan_port_info = ScanPortInfo.get(key)
-                logger.error("[ScanPorts:query_data]: key:({}, {}, {}, {}), value:{}".format(ak[:5], sk[:5], project_id, zone, scan_port_info))
+                logger.error(
+                    "[ScanPorts:query_data]: key:({}, {}, {}, {}), value:{}".format(ak[:5], sk[:5], project_id, zone,
+                                                                                    scan_port_info))
                 if scan_port_info and scan_port_info["status"] == ScanPortStatus.finish:
                     tcp_info.update(scan_port_info["data"]["tcp_info"])
                     udp_info.update(scan_port_info["data"]["udp_info"])
@@ -193,10 +198,10 @@ class ScanPorts(ScanBaseTools):
         return content
 
 
-class ScanObs(ScanBaseTools):
+class ScanObsMgr(ScanToolsMgr):
     def query_data(self, account_list):
         anonymous_file_list, anonymous_bucket_list, anonymous_data_data = list(), list(), list()
-        config_obj = self.get_cloud_config()
+        config_obj = self.scan_base_tools.get_decrypt_hw_account_project_info_from_database()
         for config_info in config_obj:
             account = config_info["account"]
             if account not in account_list:
@@ -205,7 +210,8 @@ class ScanObs(ScanBaseTools):
             sk = config_info["sk"]
             key = (ak, sk, account)
             scan_obs_info = ScanObsInfo.get(key)
-            logger.error("[ScanObs:query_data]: key:({}, {}, {}), value:{}".format(ak[:5], sk[:5], account, scan_obs_info))
+            logger.error(
+                "[ScanObs:query_data]: key:({}, {}, {}), value:{}".format(ak[:5], sk[:5], account, scan_obs_info))
             if scan_obs_info and scan_obs_info["status"] == ScanObsStatus.finish:
                 anonymous_file_list.extend(scan_obs_info["data"]["anonymous_file"])
                 anonymous_bucket_list.extend(scan_obs_info["data"]["anonymous_bucket"])
@@ -213,7 +219,7 @@ class ScanObs(ScanBaseTools):
         return output_scan_obs_excel(anonymous_file_list, anonymous_bucket_list, anonymous_data_data)
 
 
-class SingleScanPorts(ScanBaseTools):
+class SingleScanPortsMgr(ScanToolsMgr):
 
     @staticmethod
     def collect_thread(ak, sk, zone, project_id):
@@ -286,7 +292,7 @@ class SingleScanPorts(ScanBaseTools):
         return 1, content
 
 
-class SingleScanObs(ScanBaseTools):
+class SingleScanObsMgr(ScanToolsMgr):
     _lock = Lock()
 
     @staticmethod
@@ -341,3 +347,43 @@ class SingleScanObs(ScanBaseTools):
         else:
             logger.info("single scan obs query_progress query no result")
             return 2, content
+
+
+class EipMgr(ScanToolsMgr):
+
+    # noinspection PyMethodMayBeStatic
+    def list_eip(self, kwargs):
+        page, size = kwargs['page'], kwargs['size']
+        order_type, order_by = kwargs.get("order_type"), kwargs.get("order_by")
+        filter_name = kwargs.get("filter_name")
+        filter_value = kwargs.get("filter_value")
+        if filter_name and filter_name == "eip":
+            eip_list = HWCloudEipInfo.objects.filter(eip__contains=filter_value)
+        elif filter_name and filter_name == "example_id":
+            eip_list = HWCloudEipInfo.objects.filter(example_id__contains=filter_value)
+        elif filter_name and filter_name == "example_name":
+            eip_list = HWCloudEipInfo.objects.filter(example_name__contains=filter_value)
+        elif filter_name and filter_name == "account":
+            eip_list = HWCloudEipInfo.objects.filter(account__contains=filter_value)
+        else:
+            eip_list = HWCloudEipInfo.objects.all()
+        total = len(eip_list)
+        page, slice_obj = get_suitable_range(total, page, size)
+        # 排序, 0-升序
+        order_by = order_by if order_by else "create_time"
+        order_type = order_type if order_type else 0
+
+        if order_type != 0:
+            order_by = "-" + order_by
+
+        eip_list = eip_list.order_by(order_by)
+
+        task_list = [task.to_dict() for task in eip_list[slice_obj]]
+
+        res = {
+            "size": size,
+            "page": page,
+            "total": total,
+            "data": task_list
+        }
+        return res

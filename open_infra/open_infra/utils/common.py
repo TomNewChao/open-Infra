@@ -4,7 +4,6 @@
 # @FileName: common.py
 # @Software: PyCharm
 
-import os
 import time
 import base64
 import pickle
@@ -42,9 +41,7 @@ def func_retry(tries=3, delay=1):
                 try:
                     return fn(*args, **kwargs)
                 except Exception as e:
-                    logger.info("************************")
-                    logger.error(*args, **kwargs)
-                    logger.error("func_retry:{} happen error: {}".format(fn.__name__, traceback.format_exc()))
+                    logger.error("func_retry:{} e:{} traceback: {}".format(fn.__name__, e, traceback.format_exc()))
                     time.sleep(delay)
             else:
                 logger.info("func_retry:{} over tries, failed".format(fn.__name__))
@@ -283,28 +280,6 @@ def convert_yaml(content, method="load"):
     return yaml_load_method(content, Loader=yaml.FullLoader)
 
 
-def output_excel(excel_path, dict_data, page_name, title_list):
-    if os.path.exists(excel_path):
-        work_book = openpyxl.load_workbook(excel_path)
-    else:
-        work_book = openpyxl.Workbook()
-    if page_name not in work_book.get_sheet_names():
-        work_book.create_sheet(page_name)
-    if settings.DEFAULT_SHEET_NAME in work_book.get_sheet_names():
-        need_remove_sheet = work_book.get_sheet_by_name(settings.DEFAULT_SHEET_NAME)
-        work_book.remove_sheet(need_remove_sheet)
-    table = work_book.get_sheet_by_name(page_name)
-    table.delete_rows(1, 65536)
-    table.append(title_list)
-    for ip, eip_info_list in dict_data.items():
-        for eip_list in eip_info_list:
-            if eip_list:
-                temp_info = [ip]
-                temp_info.extend(eip_list)
-                table.append(temp_info)
-    work_book.save(excel_path)
-
-
 def output_scan_port_excel(tcp_info, udp_info, tcp_server_info):
     work_book = openpyxl.Workbook()
     if settings.EXCEL_TCP_PAGE_NAME not in work_book.get_sheet_names():
@@ -392,3 +367,70 @@ def runserver_executor(func):
             return func(*args, **kw)
 
     return wrapper
+
+
+def list_param_check_and_trans(params):
+    page, size = params.get("page", "1"), params.get("size", "100")
+    order_type, order_by = params.get('order_type', "0"), params.get('order_by', "create_time")
+    if not page or not size:
+        raise MgrException(ErrCode.STATUS_PARAMETER_ERROR)
+
+    if not page.isdigit() or not size.isdigit():
+        raise MgrException(ErrCode.STATUS_PARAMETER_ERROR)
+
+    if int(page) < 1 or int(size) < 1:
+        raise MgrException(ErrCode.STATUS_PARAMETER_ERROR)
+
+    params['page'], params['size'] = int(page), int(size)
+
+    if order_type:
+        if not order_type.isdigit() or int(order_type) not in [0, 1]:
+            raise MgrException(ErrCode.STATUS_PARAMETER_ERROR)
+        params['order_type'] = int(order_type)
+    # if order_by and order_by not in ["create_time"]:
+    #     raise MgrException(ErrCode.STATUS_PARAMETER_ERROR)
+    filter_name, filter_value = params.get("filter_name"), params.get("filter_value")
+    if filter_name:
+        params["filter_name"] = filter_name
+    if filter_value:
+        params["filter_value"] = filter_value
+    return params
+
+
+def get_max_page(total, size):
+    """
+    获取最大页码数
+    :param total: 总数
+    :param size: 每页展示数量
+    :return: 最大页码数
+    注意：当total为0时，返回最大页码数为1
+    """
+    if total == 0:
+        return 1
+    full_page_num, remain_num = divmod(total, size)
+    if remain_num:
+        max_page = full_page_num + 1
+    else:
+        max_page = full_page_num
+    return max_page
+
+
+def get_suitable_range(total, page, size):
+    """获取合适的页码，对应范围的切片。（合适即传入的页码无对应数据时，返回有数据的最后一页。）
+
+    Example:
+        page, slice_obj = get_suitable_range(total, page, size)
+        new_data = data[slice_obj]
+
+        # 注意 slice_obj 的 start 属性可作为 sql 语句中的 offset 值
+        sql = 'select * from xxx limit {offset}, {limit}'.format(offset=slice_obj.start, limit=size)
+
+    :param total: 数据总量
+    :param page: 页码
+    :param size: 页大小
+    :return: 页码，切片对象
+    """
+    suitable_page = min(get_max_page(total, size), page)
+    start = (suitable_page - 1) * size
+    end = min(start + size, total)
+    return suitable_page, slice(start, end)

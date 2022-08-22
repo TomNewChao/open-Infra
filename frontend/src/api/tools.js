@@ -84,3 +84,13 @@ export const queryPortListApi = () => {
     method: 'get'
   })
 }
+
+export const eipListApi = (page, size, order_by, order_type, filter_name, filter_value) => {
+  return axios.request({
+    url: '/api/clouds_tools/eip',
+    method: 'get',
+    params:{
+      page, size, order_by, order_type, filter_name, filter_value
+    }
+  })
+}

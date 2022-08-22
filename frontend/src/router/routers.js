@@ -73,6 +73,26 @@ export default [
     ]
   },
   {
+    path: '/resources',
+    name: 'Resources',
+    meta: {
+      icon: 'ios-analytics',
+      title: '工具'
+    },
+    component: Main,
+    children: [
+      {
+        path: 'eip',
+        name: 'Eip',
+        meta: {
+          icon: 'ios-analytics',
+          title: 'eip信息查询'
+        },
+        component: () => import('@/view/components/eip/eip.vue')
+      }
+    ]
+  },
+  {
     path: '/tools',
     name: 'Tools',
     meta: {

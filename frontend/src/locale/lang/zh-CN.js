@@ -44,6 +44,8 @@ export default {
   drag_drawer_page: '可拖动抽屉',
   tree_select_page: '树状下拉选择器',
   Tools: '工具栏',
+  Resources: '资源查询',
+  Eip: 'Eip查询',
   scan_port: '端口扫描',
   scan_obs: '对象系统扫描',
   single_scan_port: '单账户端口扫描',
