@@ -3,12 +3,17 @@
 # @Author  : Tom_zc
 # @FileName: scan_thread.py
 # @Software: PyCharm
-from clouds_tools.models import HWCloudAccount, HWCloudProjectInfo, HWCloudEipInfo
-from clouds_tools.resources.scan_tools import ScanPortInfo, ScanObsInfo, ScanObsStatus, ScanBaseTools, ScanPortStatus
+from clouds_tools.models import HWCloudAccount, HWCloudProjectInfo, HWCloudEipInfo, HWCloudScanEipPortInfo, \
+    HWCloudScanEipPortStatus, HWCloudScanObsAnonymousStatus, HWCloudScanObsAnonymousBucket, HWCloudScanObsAnonymousFile, \
+    HWCloudHighRiskPort
+from clouds_tools.resources.constants import ScanToolsLock
+from clouds_tools.resources.scan_tools import ScanBaseTools, ScanOrmTools
+from open_infra.utils import scan_obs
 from open_infra.utils.common import func_retry
+from open_infra.utils.default_port_list import HighRiskPort
 from open_infra.utils.scan_eip import get_eip_info
-from open_infra.utils.scan_port import single_scan_port
-from open_infra.utils.scan_obs import single_scan_obs
+from open_infra.utils.scan_port import scan_port
+from open_infra.utils.scan_obs import scan_obs
 from logging import getLogger
 from django.db import transaction
 
@@ -20,7 +25,7 @@ class ScanToolsThread(object):
     @func_retry()
     def query_account_info(cls):
         """query HWCloud account information: include zone and project id, refresh to database"""
-        logger.info("----------------start query_account_info-----------------------")
+        logger.info("----------------1.start query_account_info-----------------------")
         account_info_list = ScanBaseTools.get_hw_account_project_info_from_obs()
         with transaction.atomic():
             # 1.delete data
@@ -38,12 +43,13 @@ class ScanToolsThread(object):
                     HWCloudProjectInfo.objects.create(id=project_id, zone=zone, account=account_obj)
             # 3.clean memcached
             ScanBaseTools.account_info_list = list()
-        logger.info("----------------finish query_account_info-----------------------")
+            ScanBaseTools.sla_yaml_list = list()
+        logger.info("----------------1.finish query_account_info-----------------------")
 
     @classmethod
     @func_retry()
     def scan_eip(cls):
-        logger.info("----------------start scan_eip-----------------------")
+        logger.info("----------------2.start scan_eip-----------------------")
         account_info = ScanBaseTools.get_decrypt_hw_account_project_info_from_database()
         eip_dict = get_eip_info(account_info)
         with transaction.atomic():
@@ -66,67 +72,65 @@ class ScanToolsThread(object):
                         "account": account,
                     }
                     HWCloudEipInfo.objects.create(**dict_data)
-        logger.info("----------------finish scan_eip-----------------------")
+        logger.info("----------------2.finish scan_eip-----------------------")
 
     @classmethod
     @func_retry()
     def scan_port(cls):
-        logger.info("----------------start scan_port-----------------------")
-        ScanPortInfo.clear()
+        logger.info("----------------3.start scan_port-----------------------")
         now_account_info_list = ScanBaseTools.get_decrypt_hw_account_project_info_from_database()
-        for config_item in now_account_info_list:
-            ak = config_item["ak"]
-            sk = config_item["sk"]
-            project_list = config_item["project_info"]
-            for project_info in project_list:
-                project_id = project_info.get("project_id")
-                zone = project_info.get("zone")
-                key = (ak, sk, project_id, zone)
-                single_scan_port_info = ScanPortInfo.get(key)
-                if single_scan_port_info is not None:
-                    continue
-                ScanPortInfo.set({key: {"status": ScanPortStatus.new, "data": dict()}})
-                tcp_ret_dict, udp_ret_dict, tcp_server_info = single_scan_port(ak, sk, zone, project_id)
-                dict_data = {
-                    "tcp_info": tcp_ret_dict,
-                    "udp_info": udp_ret_dict,
-                    "tcp_server_info": tcp_server_info
-                }
-                logger.info(
-                    "[ScanThreadTools] scan_port: key:({},{},{},{}), data:{}".format(ak[0:5], sk[0:5], project_id, zone,
-                                                                                     dict_data))
-                ScanPortInfo.set({key: {"status": ScanPortStatus.finish, "data": dict_data}})
-        logger.info("----------------finish scan_port-----------------------")
+        tcp_info, udp_info, account_list = scan_port(now_account_info_list)
+        with transaction.atomic():
+            HWCloudScanEipPortInfo.objects.all().delete()
+            HWCloudScanEipPortStatus.objects.all().delete()
+            ScanOrmTools.save_scan_eip_port_info_status(tcp_info, udp_info, account_list)
+        logger.info("----------------3.finish scan_port-----------------------")
 
     @classmethod
     @func_retry()
     def scan_obs(cls):
-        logger.info("----------------start scan_obs-----------------------")
-        ScanObsInfo.clear()
+        logger.info("----------------4.start scan_obs-----------------------")
         now_account_info_list = ScanBaseTools.get_decrypt_hw_account_project_info_from_database()
-        for config_item in now_account_info_list:
-            ak = config_item["ak"]
-            sk = config_item["sk"]
-            account = config_item["account"]
-            key = (ak, sk, account)
-            single_scan_obs_info = ScanObsInfo.get(key)
-            if single_scan_obs_info is not None:
-                continue
-            ScanObsInfo.set({key: {"status": ScanObsStatus.new, "data": dict()}})
-            file_list, bucket_list, data_list = single_scan_obs(ak, sk, account)
-            dict_data = {
-                "anonymous_file": file_list or [],
-                "anonymous_bucket": bucket_list or [],
-                "anonymous_data": data_list or []
-            }
-            logger.info("[ScanThreadTools] scan_obs:({},{},{}),data：{}".format(ak[0:5], sk[0:5], account, dict_data))
-            ScanObsInfo.set({key: {"status": ScanObsStatus.finish, "data": dict_data}})
-        logger.info("----------------finish scan_obs-----------------------")
+        list_anonymous_bucket, list_anonymous_file, account_list = scan_obs(now_account_info_list)
+        with transaction.atomic():
+            HWCloudScanObsAnonymousStatus.objects.all().delete()
+            HWCloudScanObsAnonymousBucket.objects.all().delete()
+            HWCloudScanObsAnonymousFile.objects.all().delete()
+            ScanOrmTools.save_scan_obs_info_status(list_anonymous_bucket, list_anonymous_file, account_list)
+        logger.info("----------------4.finish scan_obs-----------------------")
 
     @classmethod
-    def refresh_data(cls):
+    def cron_job(cls):
         cls.query_account_info()
         cls.scan_eip()
-        cls.scan_port()
-        cls.scan_obs()
+        try:
+            ScanToolsLock.scan_port.acquire()
+            cls.scan_port()
+        finally:
+            ScanToolsLock.scan_port.release()
+
+        try:
+            ScanToolsLock.scan_obs.acquire()
+            cls.scan_obs()
+        finally:
+            ScanToolsLock.scan_obs.release()
         pass
+
+    @classmethod
+    @func_retry()
+    def scan_high_level_port(cls):
+        logger.info("----------------1.start scan high level port-----------------")
+        default_port_dict = HighRiskPort.get_port_dict()
+        actual_port_obj_list = HWCloudHighRiskPort.objects.all()
+        default_port_set = set(list(default_port_dict.keys()))
+        actual_port_set = set([actual_info.port for actual_info in actual_port_obj_list])
+        need_create_list = list(default_port_set - actual_port_set)
+        save_list_data = [HWCloudHighRiskPort(port=create_port, desc=default_port_dict[create_port]) for create_port in
+                          need_create_list]
+        with transaction.atomic():
+            HWCloudHighRiskPort.objects.bulk_create(save_list_data)
+        logger.info("----------------1.finish scan high level port-----------------")
+
+    @classmethod
+    def once_job(cls):
+        cls.scan_high_level_port()

@@ -1,7 +1,7 @@
 <template>
   <div>
     <Card>
-      <div class="search-con search-con-top">
+      <div class="eip-search-con search-con-top">
         <Select v-model="searchKey" class="search-col">
           <Option v-for="item in filter_columns" :value="item.key" :key="item.key">{{ item.title }}</Option>
         </Select>
@@ -38,6 +38,8 @@ export default {
       order_type: '0',
       filter_columns: [
         { title: 'IP', key: 'eip' },
+        { title: '状态', key: 'eip_type' },
+        { title: '归属区域', key: 'eip_zone' },
         { title: '实例id', key: 'example_id' },
         { title: '实例名称', key: 'example_name' },
         { title: '账户', key: 'account' }
@@ -46,14 +48,14 @@ export default {
         { title: 'IP', key: 'eip', sortable: true },
         { title: '状态', key: 'eip_status' },
         { title: '类型', key: 'eip_type' },
-        { title: '归属区域', key: 'eip_zone' },
+        { title: '归属区域', key: 'eip_zone', sortable: true },
         { title: '宽带id', key: 'bandwidth_id' },
         { title: '宽带名称', key: 'bandwidth_name' },
-        { title: '宽带size', key: 'bandwidth_size' },
+        { title: '宽带size', key: 'bandwidth_size', sortable: true },
         { title: '实例id', key: 'example_id' },
         { title: '实例名称', key: 'example_name' },
         { title: '实例类型', key: 'example_type' },
-        { title: '账户', key: 'account' },
+        { title: '账户', key: 'account', sortable: true },
         { title: '创建时间', key: 'create_time', sortable: true }
 
       ],

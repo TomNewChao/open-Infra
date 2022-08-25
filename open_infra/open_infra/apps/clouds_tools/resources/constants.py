@@ -3,6 +3,7 @@
 # @Author  : Tom_zc
 # @FileName: scan_thread.py
 # @Software: PyCharm
+from threading import Lock
 
 
 class BaseStatus:
@@ -13,6 +14,14 @@ class BaseStatus:
         for attr, content in cls.__dict__.items():
             if attr.isupper() and isinstance(content, tuple):
                 dict_data[content[0]] = content[1]
+        return dict_data
+
+    @classmethod
+    def get_comment_status(cls):
+        dict_data = dict()
+        for attr, content in cls.__dict__.items():
+            if attr.isupper() and isinstance(content, tuple):
+                dict_data[content[1]] = content[0]
         return dict_data
 
 
@@ -34,3 +43,26 @@ class HWCloudEipStatus(BaseStatus):
 
 class HWCloudEipType(BaseStatus):
     EIP = (0, "全动态BGP")
+
+
+class NetProtocol(object):
+    TCP = 1
+    UDP = 0
+
+
+class BaseStatus(object):
+    handler = 1
+    finish = 2
+
+
+class ScanPortStatus(BaseStatus):
+    pass
+
+
+class ScanObsStatus(BaseStatus):
+    pass
+
+
+class ScanToolsLock:
+    scan_port = Lock()
+    scan_obs = Lock()

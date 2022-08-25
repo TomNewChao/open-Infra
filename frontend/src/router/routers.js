@@ -85,10 +85,19 @@ export default [
         path: 'eip',
         name: 'Eip',
         meta: {
-          icon: 'ios-analytics',
+          icon: 'ios-cloud-circle',
           title: 'eip信息查询'
         },
         component: () => import('@/view/components/eip/eip.vue')
+      },
+      {
+        path: 'sla',
+        name: 'Sla',
+        meta: {
+          icon: 'ios-cloud-outline',
+          title: 'sla信息查询'
+        },
+        component: () => import('@/view/components/sla/sla.vue')
       }
     ]
   },
@@ -102,49 +111,49 @@ export default [
     component: Main,
     children: [
       {
-        path: 'scan_port',
-        name: 'scan_port',
+        path: 'high_risk_port',
+        name: 'high_risk_port',
         meta: {
-          icon: 'ios-stats',
-          title: '端口扫描'
+          icon: 'md-basketball',
+          title: '高危端口扫描'
         },
-        component: () => import('@/view/components/scan-port/scan-port.vue')
+        component: () => import('@/view/components/high_risk_port/high_risk_port.vue')
       },
       {
-        path: 'scan_obs',
-        name: 'scan_obs',
+        path: 'multi_scan_port',
+        name: 'multi_scan_port',
         meta: {
-          icon: 'ios-stats-outline',
-          title: '对象系统扫描'
+          icon: 'ios-basketball-outline',
+          title: '多账户端口扫描'
         },
-        component: () => import('@/view/components/scan-obs/scan-obs.vue')
+        component: () => import('@/view/components/multi-scan-port/multi-scan-port.vue')
       },
       {
         path: 'single_scan_port',
         name: 'single_scan_port',
         meta: {
           icon: 'ios-basketball',
-          title: '单个端口扫描'
+          title: '单账户端口扫描'
         },
         component: () => import('@/view/components/single-scan-port/single-scan-port')
+      },
+      {
+        path: 'multi_scan_obs',
+        name: 'multi_scan_obs',
+        meta: {
+          icon: 'ios-stats-outline',
+          title: '多账户对象系统扫描'
+        },
+        component: () => import('@/view/components/multi-scan-obs/multi-scan-obs.vue')
       },
       {
         path: 'single_scan_obs',
         name: 'single_scan_obs',
         meta: {
-          icon: 'ios-basketball-outline',
-          title: '单个对象系统扫描'
+          icon: 'ios-stats',
+          title: '单账户对象系统扫描'
         },
         component: () => import('@/view/components/single-scan-obs/single-scan-obs')
-      },
-      {
-        path: 'high_risk_port',
-        name: 'high_risk_port',
-        meta: {
-          icon: 'md-basketball',
-          title: '端口扫描列表'
-        },
-        component: () => import('@/view/components/port-list/port-list')
       }
     ]
   },

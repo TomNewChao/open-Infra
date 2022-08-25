@@ -1,13 +1,14 @@
 import json
+import traceback
 from datetime import datetime
 from django.http import HttpResponse
-from clouds_tools.resources.scan_tools import ScanPortsMgr, ScanObsMgr, SingleScanPortsMgr, SingleScanObsMgr, EipMgr
+from clouds_tools.resources.scan_tools import ScanPortsMgr, ScanObsMgr, SingleScanPortsMgr, SingleScanObsMgr, EipMgr, \
+    HighRiskPortMgr, SlaMgr
 from open_infra.utils.auth_permisson import AuthView
 from open_infra.utils.common import assemble_api_result, list_param_check_and_trans
 from open_infra.utils.api_error_code import ErrCode
 from django.conf import settings
 from logging import getLogger
-from open_infra.utils.default_port_list import HighRiskPort
 
 logger = getLogger("django")
 
@@ -65,21 +66,22 @@ class SingleScanPortView(AuthView):
         dict_data = json.loads(request.body)
         ak = dict_data.get("ak").strip()
         sk = dict_data.get("sk").strip()
+        account = dict_data.get("account").strip()
+        logger.info("[SingleScanObsView] collect:{}".format(account))
         single_scan_ports = SingleScanPortsMgr()
-        result = single_scan_ports.start_collect_thread(ak, sk)
-        if result:
-            return assemble_api_result(ErrCode.STATUS_SUCCESS)
-        else:
+        result = single_scan_ports.start_collect_thread(ak, sk, account)
+        if result == 0:
             return assemble_api_result(ErrCode.STATUS_PARAMETER_ERROR)
+        elif result == 1:
+            return assemble_api_result(ErrCode.SYSTEM_BUSY)
+        else:
+            return assemble_api_result(ErrCode.STATUS_SUCCESS)
 
-
-class SingleScanPortProgressView(AuthView):
-    def post(self, request):
-        dict_data = json.loads(request.body)
-        ak = dict_data.get("ak").strip()
-        sk = dict_data.get("sk").strip()
+    def get(self, request):
+        dict_data = request.GET.dict()
+        account = dict_data.get("account").strip()
         single_scan_ports = SingleScanPortsMgr()
-        progress, data = single_scan_ports.query_progress(ak, sk)
+        progress, data = single_scan_ports.query_progress(account)
         res = HttpResponse(content=data, content_type="application/octet-stream")
         if progress == 1:
             now_date = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
@@ -100,23 +102,21 @@ class SingleScanObsView(AuthView):
         ak = dict_data.get("ak").strip()
         sk = dict_data.get("sk").strip()
         account = dict_data.get("account").strip()
-        logger.info("ScanObsView collect:{}".format(account))
+        logger.info("[SingleScanObsView] collect:{}".format(account))
         single_scan_obs = SingleScanObsMgr()
         result = single_scan_obs.start_collect_thread(ak, sk, account)
-        if result:
-            return assemble_api_result(ErrCode.STATUS_SUCCESS)
-        else:
+        if result == 0:
             return assemble_api_result(ErrCode.STATUS_PARAMETER_ERROR)
+        elif result == 1:
+            return assemble_api_result(ErrCode.SYSTEM_BUSY)
+        else:
+            return assemble_api_result(ErrCode.STATUS_SUCCESS)
 
-
-class SingleScanObsProgressView(AuthView):
-    def post(self, request):
-        dict_data = json.loads(request.body)
-        ak = dict_data.get("ak").strip()
-        sk = dict_data.get("sk").strip()
+    def get(self, request):
+        dict_data = request.GET.dict()
         account = dict_data.get("account").strip()
         single_scan_obs = SingleScanObsMgr()
-        progress, data = single_scan_obs.query_progress(ak, sk, account)
+        progress, data = single_scan_obs.query_progress(account)
         if progress == 0:
             return assemble_api_result(ErrCode.STATUS_SCAN_ING)
         elif progress == 1:
@@ -132,14 +132,41 @@ class SingleScanObsProgressView(AuthView):
 
 class PortsListView(AuthView):
     def get(self, request):
-        port_dict = HighRiskPort.get_port_dict()
-        ret_list = list()
-        for port_info, port_describe in port_dict.items():
-            ret_list.append({
-                "port": port_info,
-                "describe": port_describe
-            })
-        return assemble_api_result(ErrCode.STATUS_SUCCESS, data=ret_list)
+        params_dict = list_param_check_and_trans(request.GET.dict(), order_type="1", order_by="port")
+        port_mgr = HighRiskPortMgr()
+        data = port_mgr.list(params_dict)
+        return assemble_api_result(ErrCode.STATUS_SUCCESS, data=data)
+
+    def post(self, request):
+        dict_data = json.loads(request.body)
+        port = dict_data.get("port").strip()
+        desc = dict_data.get("desc").strip()
+        if not port.isdigit() or len(desc) > 255:
+            logger.info("valid port:{} or desc:{}".format(port, desc))
+            return assemble_api_result(ErrCode.STATUS_PARAMETER_ERROR)
+        try:
+            port = int(port)
+        except ValueError as e:
+            logger.info("port is valid:{}".format(port))
+            return assemble_api_result(ErrCode.STATUS_PARAMETER_ERROR)
+        port_mgr = HighRiskPortMgr()
+        ret = port_mgr.create(port, desc)
+        if ret == 0:
+            return assemble_api_result(ErrCode.STATUS_SUCCESS)
+        else:
+            return assemble_api_result(ErrCode.STATUS_PORT_EXIST)
+
+
+class PortsListDeleteView(AuthView):
+    def post(self, request):
+        dict_data = json.loads(request.body)
+        port_list = dict_data.get("port_list")
+        logger.info("[PortsListDeleteView] receive data:{}".format(port_list))
+        if not isinstance(port_list, list):
+            return ErrCode.STATUS_PARAMETER_ERROR
+        port_mgr = HighRiskPortMgr()
+        port_mgr.delete(port_list)
+        return assemble_api_result(ErrCode.STATUS_SUCCESS)
 
 
 class EipView(AuthView):
@@ -148,3 +175,45 @@ class EipView(AuthView):
         eip_mgr = EipMgr()
         data = eip_mgr.list_eip(params_dict)
         return assemble_api_result(ErrCode.STATUS_SUCCESS, data=data)
+
+
+class SlaView(AuthView):
+    def get(self, request):
+        dict_data = request.GET.dict()
+        params_dict = list_param_check_and_trans(dict_data, order_by="sla_year_remain")
+        sla_date = dict_data.get("sla_date")
+        try:
+            if not isinstance(sla_date, str):
+                return assemble_api_result(ErrCode.STATUS_PARAMETER_ERROR)
+            sla_date_list = sla_date.split("-")
+            year = int(sla_date_list[0])
+            month = int(sla_date_list[1])
+            day = int(sla_date_list[2].split("T")[0])
+        except Exception as e:
+            logger.error("[SlaView] e:{}".format(e))
+            return assemble_api_result(ErrCode.STATUS_PARAMETER_ERROR)
+        try:
+            params_dict["year"] = year
+            params_dict["month"] = month
+            params_dict["day"] = day
+            logger.info("[SlaView] get year:{} month:{} day:{}".format(year, month, day))
+            sla_mgr = SlaMgr()
+            data = sla_mgr.list(params_dict)
+        except Exception as e:
+            logger.error("[SlaView] e:{}, traceback：{}".format(e, traceback.format_exc()))
+            return assemble_api_result(ErrCode.INTERNAL_ERROR)
+        return assemble_api_result(ErrCode.STATUS_SUCCESS, data=data)
+
+
+class SlaExportView(AuthView):
+    def get(self, request):
+        sla_mgr = SlaMgr()
+        data = sla_mgr.export()
+        res = HttpResponse(content=data, content_type="application/octet-stream")
+        now_date = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+        filename = settings.CLA_EXCEL_NAME.format(now_date)
+        res["Content-Disposition"] = 'attachment;filename="{}"'.format(filename)
+        res['charset'] = 'utf-8'
+        return res
+
+

@@ -131,6 +131,11 @@ class EipTools(object):
             raise Exception("get object failed：{}....".format(obs_key))
         return content
 
+    @classmethod
+    def get_obs_data(cls, ak, sk, url, bucket_name, obs_key):
+        with ObsClientConn(ak, sk, url) as obs_client:
+            return cls.download_obs_data(obs_client, bucket_name, obs_key)
+
     # noinspection PyBroadException
     @classmethod
     def get_sensitive_data(cls, content):
@@ -151,9 +156,8 @@ class EipTools(object):
 
     @classmethod
     def check_bucket_info(cls, obs_client, bucket_name, account, zone):
-        list_result, list_anonymous_bucket, list_anonymous_data = list(), list(), list()
+        list_anonymous_file, list_anonymous_bucket = list(), list()
         is_anonymous = False
-
         # first to judge bucket policy
         policy_content = cls.get_bucket_policy(obs_client, bucket_name)
         if policy_content:
@@ -171,7 +175,7 @@ class EipTools(object):
                     is_anonymous = True
                     break
         if is_anonymous:
-            logger.info("collect account:{}, bucket_name:{}".format(account, bucket_name))
+            logger.info("[check_bucket_info] collect obs account:{}, bucket_name:{}".format(account, bucket_name))
             bucket_url = settings.OBS_BUCKET_URL.format(bucket_name, zone)
             list_anonymous_bucket.append([account, bucket_name, bucket_url])
             bucket_info_list = cls.get_bucket_obj(obs_client, bucket_name)
@@ -180,19 +184,15 @@ class EipTools(object):
                 file_name_list = file_name.rsplit(sep=".", maxsplit=1)
                 if len(file_name_list) >= 2:
                     if file_name_list[-1] in settings.OBS_FILE_POSTFIX:
-                        logger.info("collect account:{}, bucket_name:{},sensitive file:{}".format(account, bucket_name,
-                                                                                                  file_name))
                         file_url = settings.OBS_FILE_URL.format(bucket_name, zone, file_name)
-                        list_result.append([account, bucket_name, file_url, file_name])
                         content = cls.download_obs_data(obs_client, bucket_name, file_name)
+                        sensitive_data = str()
                         if content:
                             sensitive_data = cls.get_sensitive_data(content)
-                            if sensitive_data:
-                                logger.info("collect account:{}, bucket_name:{},file_name:{},sensitive data:{}".format(
-                                    account, bucket_name, file_name, str(sensitive_data)))
-                                list_anonymous_data.append(
-                                    [account, bucket_name, file_url, file_name, str(sensitive_data)])
-        return list_result, list_anonymous_bucket, list_anonymous_data
+                        logger.info("[check_bucket_info] collect obs account:{}, bucket_name:{},file_name:{},sensitive data:{}".format(
+                            account, bucket_name, file_name, str(sensitive_data)))
+                        list_anonymous_file.append([account, bucket_name, file_url, file_name, str(sensitive_data)])
+        return list_anonymous_bucket, list_anonymous_file
 
     @classmethod
     def get_bucket_list(cls, obs_client, inhibition_fault=True):
@@ -244,39 +244,21 @@ def scan_obs(query_account_list):
     3.输出到txt中
     """
     eip_tools = EipTools()
-    logger.info("############1.start to collect and output to txt######")
-    result_list, list_anonymous_bucket, list_anonymous_data = list(), list(), list()
+    logger.info("############1.start to collect obs anonymous bucket######")
+    list_anonymous_file, list_anonymous_bucket, account_list = list(), list(), list()
     for config_item in query_account_list:
         ak = config_item["ak"]
         sk = config_item["sk"]
         account = config_item["account"]
+        account_list.append(account)
         location_bucket = eip_tools.get_all_bucket(ak, sk, settings.OBS_BASE_URL)
-        logger.info("scan_obs:{}".format(location_bucket))
+        logger.info("[scan_obs] scan obs bucket: {}".format(location_bucket))
         for location, bucket_name_list in location_bucket.items():
             url = settings.OBS_URL.format(location)
             with ObsClientConn(ak, sk, url) as obs_client:
                 for bucket_name in bucket_name_list:
-                    ret_temp, list_anonymous_bucket_temp, list_anonymous_data_temp = eip_tools.check_bucket_info(
-                        obs_client, bucket_name, account, location)
-                    result_list.extend(ret_temp or [])
+                    list_anonymous_bucket_temp, ret_anonymous_file_temp = eip_tools.check_bucket_info(obs_client, bucket_name, account, location)
                     list_anonymous_bucket.extend(list_anonymous_bucket_temp or [])
-                    list_anonymous_data.extend(list_anonymous_data_temp or [])
-    return result_list, list_anonymous_bucket, list_anonymous_data
-
-
-# noinspection DuplicatedCode
-def single_scan_obs(ak, sk, account):
-    eip_tools = EipTools()
-    list_anonymous_file, list_anonymous_bucket, list_anonymous_data = list(), list(), list()
-    single_location_bucket = eip_tools.get_all_bucket(ak, sk, settings.OBS_BASE_URL)
-    logger.info("single_scan_obs:{}".format(single_location_bucket))
-    for location, bucket_name_list in single_location_bucket.items():
-        url = settings.OBS_URL.format(location)
-        with ObsClientConn(ak, sk, url) as obs_client:
-            for bucket_name in bucket_name_list:
-                ret_temp, list_anonymous_bucket_temp, list_anonymous_data_temp = eip_tools.check_bucket_info(
-                    obs_client, bucket_name, account, location)
-                list_anonymous_file.extend(ret_temp or [])
-                list_anonymous_bucket.extend(list_anonymous_bucket_temp or [])
-                list_anonymous_data.extend(list_anonymous_data_temp or [])
-    return list_anonymous_file, list_anonymous_bucket, list_anonymous_data
+                    list_anonymous_file.extend(ret_anonymous_file_temp or [])
+    logger.info("############2.finish to collect obs anonymous bucket:{}######".format(",".join(account_list)))
+    return list_anonymous_bucket, list_anonymous_file, account_list

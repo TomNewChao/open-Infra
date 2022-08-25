@@ -1,5 +1,35 @@
 import axios from '@/libs/api.request'
 
+export const highRiskPortApiList = (page, size, order_by, order_type, filter_name, filter_value) => {
+  return axios.request({
+    url: '/api/clouds_tools/high_risk_port',
+    method: 'get',
+    params: {
+      page, size, order_by, order_type, filter_name, filter_value
+    }
+  })
+}
+
+export const highRiskPortApiPost = (port, desc) => {
+  return axios.request({
+    url: '/api/clouds_tools/high_risk_port',
+    method: 'post',
+    data: {
+      port, desc
+    }
+  })
+}
+
+export const highRiskPortApiDeletePost = (port_list) => {
+  return axios.request({
+    url: '/api/clouds_tools/bulk_high_risk_port',
+    method: 'post',
+    data: {
+      port_list
+    }
+  })
+}
+
 export const scanPortApi = () => {
   return axios.request({
     url: '/api/clouds_tools/scan_port',
@@ -14,6 +44,25 @@ export const downloadScanPortExcelApi = account => {
     data: {
       account
     },
+    responseType: 'blob'
+  })
+}
+
+export const downloadSingleScanPortExcelApi = (ak, sk, account) => {
+  return axios.request({
+    url: '/api/clouds_tools/single_scan_port',
+    method: 'post',
+    data: {
+      ak, sk, account
+    }
+  })
+}
+
+export const queryProgressSingleScanPortApi = (account) => {
+  return axios.request({
+    url: '/api/clouds_tools/single_scan_port/progress',
+    method: 'get',
+    params: {account},
     responseType: 'blob'
   })
 }
@@ -36,27 +85,6 @@ export const downloadScanObsExcelApi = account => {
   })
 }
 
-export const downloadSingleScanPortExcelApi = (ak, sk) => {
-  return axios.request({
-    url: '/api/clouds_tools/single_scan_port',
-    method: 'post',
-    data: {
-      ak, sk
-    }
-  })
-}
-
-export const queryProgressSingleScanPortApi = (ak, sk) => {
-  return axios.request({
-    url: '/api/clouds_tools/single_scan_port/progress',
-    method: 'post',
-    data: {
-      ak, sk
-    },
-    responseType: 'blob'
-  })
-}
-
 export const downloadSingleScanObsExcelApi = (ak, sk, account) => {
   return axios.request({
     url: '/api/clouds_tools/single_scan_obs',
@@ -67,21 +95,12 @@ export const downloadSingleScanObsExcelApi = (ak, sk, account) => {
   })
 }
 
-export const queryProgressSingleScanObsApi = (ak, sk, account) => {
+export const queryProgressSingleScanObsApi = (account) => {
   return axios.request({
     url: '/api/clouds_tools/single_scan_obs/progress',
-    method: 'post',
-    data: {
-      ak, sk, account
-    },
+    method: 'get',
+    params: {account},
     responseType: 'blob'
-  })
-}
-
-export const queryPortListApi = () => {
-  return axios.request({
-    url: '/api/clouds_tools/port_list',
-    method: 'get'
   })
 }
 
@@ -89,8 +108,26 @@ export const eipListApi = (page, size, order_by, order_type, filter_name, filter
   return axios.request({
     url: '/api/clouds_tools/eip',
     method: 'get',
-    params:{
+    params: {
       page, size, order_by, order_type, filter_name, filter_value
     }
+  })
+}
+
+export const slaListApi = (page, size, order_by, order_type, filter_name, filter_value, sla_date) => {
+  return axios.request({
+    url: '/api/clouds_tools/sla',
+    method: 'get',
+    params: {
+      page, size, order_by, order_type, filter_name, filter_value, sla_date
+    }
+  })
+}
+
+export const exportSlaData = () => {
+  return axios.request({
+    url: '/api/clouds_tools/sla_export',
+    method: 'get',
+    responseType: 'blob'
   })
 }
