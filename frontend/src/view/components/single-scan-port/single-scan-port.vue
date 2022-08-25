@@ -1,5 +1,9 @@
 <template>
   <Form ref="formValidate" :model="formValidate" :rules="ruleValidate" :label-width="100">
+    <FormItem label="ACCOUNT" prop="account">
+      <Input v-model="formValidate.account" placeholder="Enter the account of Huawei cloud"
+             class="scan-port-input"></Input>
+    </FormItem>
     <FormItem label="AK" prop="ak">
       <Input v-model="formValidate.ak" placeholder="Enter the ak of Huawei cloud" class="scan-port-input"></Input>
     </FormItem>
@@ -25,7 +29,8 @@ export default {
       scanPortProgressValue: 0,
       formValidate: {
         ak: '',
-        sk: ''
+        sk: '',
+        account: ''
       },
       ruleValidate: {
         ak: [
@@ -33,6 +38,9 @@ export default {
         ],
         sk: [
           { required: true, message: 'The sk cannot be empty', trigger: 'blur' }
+        ],
+        account: [
+          { required: true, message: 'The account cannot be empty', trigger: 'blur' }
         ]
       }
     }
@@ -50,8 +58,9 @@ export default {
         if (valid) {
           let ak = this.formValidate.ak
           let sk = this.formValidate.sk
+          let account = this.formValidate.account
           this.scanPortProgressValue = 0
-          downloadSingleScanPortExcelApi(ak, sk).then(res => {
+          downloadSingleScanPortExcelApi(ak, sk, account).then(res => {
             if (res.data.err_code !== 0) {
               this.$Message.info(res.data.description)
             } else {
@@ -68,16 +77,15 @@ export default {
       this.$refs[name].resetFields()
     },
     queryExcel () {
-      let ak = this.formValidate.ak
-      let sk = this.formValidate.sk
-      queryProgressSingleScanPortApi(ak, sk).then(res => {
+      let account = this.formValidate.account
+      queryProgressSingleScanPortApi(account).then(res => {
         this.scanPortProgressValue = this.scanPortProgressValue + 3
         if (this.scanPortProgressValue > 99) {
           this.scanPortProgressValue = 99
         }
         if (res.headers['content-type'] === 'application/octet-stream') {
           let strDate = getStrDate()
-          const fileName = 'IP端口扫描统计表_' + strDate + '.xlsx'
+          const fileName = 'IP高危端口扫描统计表_' + strDate + '.xlsx'
           blobDownload(res.data, fileName)
           if (this.timer) {
             clearInterval(this.timer)

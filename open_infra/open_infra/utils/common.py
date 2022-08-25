@@ -280,59 +280,39 @@ def convert_yaml(content, method="load"):
     return yaml_load_method(content, Loader=yaml.FullLoader)
 
 
-def output_scan_port_excel(tcp_info, udp_info, tcp_server_info):
+def output_scan_port_excel(tcp_info, udp_info):
     work_book = openpyxl.Workbook()
     if settings.EXCEL_TCP_PAGE_NAME not in work_book.get_sheet_names():
         work_book.create_sheet(settings.EXCEL_TCP_PAGE_NAME)
     if settings.EXCEL_UDP_PAGE_NAME not in work_book.get_sheet_names():
         work_book.create_sheet(settings.EXCEL_UDP_PAGE_NAME)
-    if settings.EXCEL_SERVER_PAGE_NAME not in work_book.get_sheet_names():
-        work_book.create_sheet(settings.EXCEL_SERVER_PAGE_NAME)
     if settings.DEFAULT_SHEET_NAME in work_book.get_sheet_names():
         need_remove_sheet = work_book.get_sheet_by_name(settings.DEFAULT_SHEET_NAME)
         work_book.remove_sheet(need_remove_sheet)
     table = work_book.get_sheet_by_name(settings.EXCEL_TCP_PAGE_NAME)
     table.delete_rows(1, 65536)
     table.append(settings.EXCEL_TITLE)
-    for ip, eip_info_list in tcp_info.items():
-        for eip_list in eip_info_list:
-            if eip_list:
-                temp_info = [ip]
-                temp_info.extend(eip_list)
-                table.append(temp_info)
+    for eip_info_list in tcp_info:
+        table.append(eip_info_list)
+
     table = work_book.get_sheet_by_name(settings.EXCEL_UDP_PAGE_NAME)
     table.delete_rows(1, 65536)
     table.append(settings.EXCEL_TITLE)
-    for ip, eip_info_list in udp_info.items():
-        for eip_list in eip_info_list:
-            if eip_list:
-                temp_info = [ip]
-                temp_info.extend(eip_list)
-                table.append(temp_info)
+    for eip_info_list in udp_info:
+        table.append(eip_info_list)
 
-    table = work_book.get_sheet_by_name(settings.EXCEL_SERVER_PAGE_NAME)
-    table.delete_rows(1, 65536)
-    table.append(settings.EXCEL_SERVER_TITLE)
-    for ip, eip_info_list in tcp_server_info.items():
-        for eip_list in eip_info_list:
-            if eip_list:
-                temp_info = [ip]
-                temp_info.extend(eip_list)
-                table.append(temp_info)
     buf = StringIO()
     work_book.save(buf)
     buf.seek(0)
     return buf.read()
 
 
-def output_scan_obs_excel(anonymous_file_list, anonymous_bucket_list, anonymous_data_data):
+def output_scan_obs_excel(anonymous_file_list, anonymous_bucket_list):
     work_book = openpyxl.Workbook()
     if settings.OBS_ANONYMOUS_BUCKET_PAGE_NAME not in work_book.get_sheet_names():
         work_book.create_sheet(settings.OBS_ANONYMOUS_BUCKET_PAGE_NAME)
     if settings.OBS_SENSITIVE_FILE_PAGE_NAME not in work_book.get_sheet_names():
         work_book.create_sheet(settings.OBS_SENSITIVE_FILE_PAGE_NAME)
-    if settings.OBS_ANONYMOUS_DATA_PAGE_NAME not in work_book.get_sheet_names():
-        work_book.create_sheet(settings.OBS_ANONYMOUS_DATA_PAGE_NAME)
     if settings.DEFAULT_SHEET_NAME in work_book.get_sheet_names():
         need_remove_sheet = work_book.get_sheet_by_name(settings.DEFAULT_SHEET_NAME)
         work_book.remove_sheet(need_remove_sheet)
@@ -346,11 +326,24 @@ def output_scan_obs_excel(anonymous_file_list, anonymous_bucket_list, anonymous_
     table.append(settings.SCAN_OBS_EXCEL_FILE_TITLE)
     for file_list in anonymous_file_list:
         table.append(file_list)
-    table = work_book.get_sheet_by_name(settings.OBS_ANONYMOUS_DATA_PAGE_NAME)
+    buf = StringIO()
+    work_book.save(buf)
+    buf.seek(0)
+    return buf.read()
+
+
+def output_cla_excel(list_data):
+    work_book = openpyxl.Workbook()
+    if settings.CLA_EXCEL_PAGE_NAME not in work_book.get_sheet_names():
+        work_book.create_sheet(settings.CLA_EXCEL_PAGE_NAME)
+    if settings.DEFAULT_SHEET_NAME in work_book.get_sheet_names():
+        need_remove_sheet = work_book.get_sheet_by_name(settings.DEFAULT_SHEET_NAME)
+        work_book.remove_sheet(need_remove_sheet)
+    table = work_book.get_sheet_by_name(settings.CLA_EXCEL_PAGE_NAME)
     table.delete_rows(1, 65536)
-    table.append(settings.SCAN_OBS_EXCEL_DATA_TITLE)
-    for data_list in anonymous_data_data:
-        table.append(data_list)
+    table.append(settings.CLA_EXCEL_TITLE)
+    for bucket_dict in list_data:
+        table.append(list(bucket_dict.values()))
     buf = StringIO()
     work_book.save(buf)
     buf.seek(0)
@@ -369,9 +362,9 @@ def runserver_executor(func):
     return wrapper
 
 
-def list_param_check_and_trans(params):
+def list_param_check_and_trans(params, order_type=0, order_by="account"):
     page, size = params.get("page", "1"), params.get("size", "100")
-    order_type, order_by = params.get('order_type', "0"), params.get('order_by', "create_time")
+    order_type, order_by = params.get('order_type', order_type), params.get('order_by', order_by)
     if not page or not size:
         raise MgrException(ErrCode.STATUS_PARAMETER_ERROR)
 

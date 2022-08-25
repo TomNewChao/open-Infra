@@ -1,14 +1,14 @@
 <template>
   <Form ref="formValidate" :model="formValidate" :rules="ruleValidate" :label-width="100">
+    <FormItem label="ACCOUNT" prop="account">
+      <Input v-model="formValidate.account" placeholder="Enter the account of Huawei cloud"
+             class="scan-obs-input"></Input>
+    </FormItem>
     <FormItem label="AK" prop="ak">
       <Input v-model="formValidate.ak" placeholder="Enter the ak of Huawei cloud" class="scan-obs-input"></Input>
     </FormItem>
     <FormItem label="SK" prop="sk">
       <Input v-model="formValidate.sk" placeholder="Enter the sk of Huawei cloud" class="scan-obs-input"></Input>
-    </FormItem>
-    <FormItem label="ACCOUNT" prop="account">
-      <Input v-model="formValidate.account" placeholder="Enter the account of Huawei cloud"
-             class="scan-obs-input"></Input>
     </FormItem>
     <FormItem>
       <Button type="primary" @click="handleSubmit('formValidate')">导出</Button>
@@ -77,17 +77,15 @@ export default {
       this.$refs[name].resetFields()
     },
     queryExcel () {
-      let ak = this.formValidate.ak
-      let sk = this.formValidate.sk
       let account = this.formValidate.account
-      queryProgressSingleScanObsApi(ak, sk, account).then(res => {
+      queryProgressSingleScanObsApi(account).then(res => {
         this.scanObsProgressValue = this.scanObsProgressValue + 1
         if (this.scanObsProgressValue > 99) {
           this.scanObsProgressValue = 99
         }
         if (res.headers['content-type'] === 'application/octet-stream') {
           let strDate = getStrDate()
-          const fileName = '对象系统扫描统计表_' + strDate + '.xlsx'
+          const fileName = '对象系统匿名桶统计表_' + strDate + '.xlsx'
           blobDownload(res.data, fileName)
           if (this.timer) {
             clearInterval(this.timer)
@@ -112,8 +110,8 @@ export default {
 </script>
 <style>
 .ivu-progress-outer {
-  margin-top: 28px;
-  width: 1000px;
+  margin-top: 32px;
+  /*width: 1000px;*/
 }
 
 .scan-obs-input {

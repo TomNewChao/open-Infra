@@ -10,15 +10,15 @@
       </i-col>
     </Row>
     <Row>
-      <Carousel autoplay loop autoplay-speed="5000">
+      <Carousel autoplay loop :autoplay-speed=5000>
         <CarouselItem>
           <div class="home-carousel">
-            <img :src="teamWork" alt="图片文本描述" class="img-style">
+            <img :src="teamWork" alt="devOps" class="img-style">
           </div>
         </CarouselItem>
         <CarouselItem>
           <div class="home-carousel">
-            <img :src="teamResp" alt="图片文本描述" class="img-style">
+            <img :src="teamResp" alt="DevOpsResp" class="img-style">
           </div>
         </CarouselItem>
       </Carousel>
@@ -104,7 +104,7 @@ export default {
 
 .img-style {
   margin: 0 auto;
-  margin-left: 300px;
+  margin-left: 380px;
   width: 50%;
   height: 50%;
 }

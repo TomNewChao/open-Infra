@@ -3,70 +3,129 @@
 # @Author  : Tom_zc
 # @FileName: scan_tools.py
 # @Software: PyCharm
+import datetime
+import time
 import traceback
 
-from clouds_tools.models import HWCloudProjectInfo, HWCloudAccount, HWCloudEipInfo
+from django.db import transaction
+
+from clouds_tools.models import HWCloudProjectInfo, HWCloudAccount, HWCloudEipInfo, HWCloudScanEipPortInfo, \
+    HWCloudScanEipPortStatus, HWCloudScanObsAnonymousBucket, HWCloudScanObsAnonymousFile, HWCloudScanObsAnonymousStatus, \
+    HWCloudHighRiskPort
+from clouds_tools.resources.constants import NetProtocol, ScanToolsLock, ScanPortStatus, ScanObsStatus, HWCloudEipStatus
 from open_infra.libs.obs_utils import ObsLib, HWCloudIAM
-from open_infra.utils.common import output_scan_port_excel, output_scan_obs_excel, get_suitable_range
+from open_infra.utils.common import output_scan_port_excel, output_scan_obs_excel, get_suitable_range, convert_yaml, \
+    output_cla_excel
 from open_infra.utils.crypto import AESCrypt
-from open_infra.utils.scan_port import single_scan_port
-from open_infra.utils.scan_obs import single_scan_obs
+from open_infra.utils.scan_port import scan_port
+from open_infra.utils.scan_obs import EipTools as ScanObsEipTools, scan_obs
 from django.conf import settings
 from threading import Thread, Lock
-from collections import defaultdict
 from logging import getLogger
-from open_infra.utils.scan_port import EipTools as ScanPortEipTools
-from open_infra.utils.scan_obs import EipTools as ScanObsEipTools
+
+from open_infra.utils.scan_sla import scan_cla
 
 logger = getLogger("django")
 
 
-class BaseStatus(object):
-    new = 0
-    handler = 1
-    finish = 2
+class ScanOrmTools(object):
+    @staticmethod
+    def save_scan_eip_port_info_status(tcp_info, udp_info, account_list, creating=True):
+        if not isinstance(account_list, list):
+            raise Exception("[save_scan_eip_port_info_status] account_list must be list")
+        for ip, port_list in tcp_info.items():
+            for port_info in port_list:
+                dict_data = {
+                    "eip": ip,
+                    "port": port_info[0],
+                    "status": port_info[1],
+                    "link_protocol": port_info[2],
+                    "transport_protocol": port_info[3],
+                    "account": port_info[4],
+                    "region": port_info[5],
+                    "service_info": port_info[6],
+                    "protocol": NetProtocol.TCP
+                }
+                HWCloudScanEipPortInfo.objects.create(**dict_data)
+        for ip, port_list in udp_info.items():
+            for port_info in port_list:
+                dict_data = {
+                    "eip": ip,
+                    "port": port_info[0],
+                    "status": port_info[1],
+                    "link_protocol": port_info[2],
+                    "transport_protocol": port_info[3],
+                    "account": port_info[4],
+                    "region": port_info[5],
+                    "service_info": "",
+                    "protocol": NetProtocol.UDP
+                }
+                HWCloudScanEipPortInfo.objects.create(**dict_data)
+        logger.error("scan_port save data is:{}".format(str(account_list)))
+        if creating:
+            status_list = [HWCloudScanEipPortStatus(account=account, status=ScanPortStatus.finish)
+                           for account in account_list]
+            HWCloudScanEipPortStatus.objects.bulk_create(status_list)
+        else:
+            HWCloudScanEipPortStatus.objects.filter(account__in=account_list).update(status=ScanPortStatus.finish)
 
+    @staticmethod
+    def query_scan_eip_port_status(account):
+        try:
+            return HWCloudScanEipPortStatus.objects.get(account=account)
+        except HWCloudScanEipPortStatus.DoesNotExist as e:
+            logger.error("[query_scan_eip_status] dont find account:{}".format(account))
+            return None
 
-class ScanPortStatus(BaseStatus):
-    pass
+    @staticmethod
+    def save_scan_eip_port_status(account, status):
+        return HWCloudScanEipPortStatus.objects.create(account=account, status=status)
 
+    @staticmethod
+    def save_scan_obs_info_status(list_anonymous_bucket, list_anonymous_file, account_list, creating=True):
+        for anonymous_data in list_anonymous_bucket:
+            dict_data = {
+                "account": anonymous_data[0],
+                "bucket": anonymous_data[1],
+                "url": anonymous_data[2],
+            }
+            HWCloudScanObsAnonymousBucket.objects.create(**dict_data)
+        for anonymous_data in list_anonymous_file:
+            dict_data = {
+                "account": anonymous_data[0],
+                "bucket": anonymous_data[1],
+                "url": anonymous_data[2],
+                "path": anonymous_data[3],
+                "data": anonymous_data[4],
+            }
+            HWCloudScanObsAnonymousFile.objects.create(**dict_data)
+        if creating:
+            status_list = [HWCloudScanObsAnonymousStatus(account=account, status=ScanObsStatus.finish)
+                           for account in account_list]
+            HWCloudScanObsAnonymousStatus.objects.bulk_create(status_list)
+        else:
+            HWCloudScanObsAnonymousStatus.objects.filter(account__in=account_list).update(
+                status=ScanObsStatus.finish)
 
-class ScanObsStatus(BaseStatus):
-    pass
+    @staticmethod
+    def query_scan_obs_status(account):
+        try:
+            return HWCloudScanObsAnonymousStatus.objects.get(account=account)
+        except HWCloudScanObsAnonymousStatus.DoesNotExist as e:
+            logger.error("[query_scan_obs_status] dont find account:{}".format(account))
+            return None
 
+    @staticmethod
+    def save_scan_obs_status(account, status):
+        return HWCloudScanObsAnonymousStatus.objects.create(account=account, status=status)
 
-class BaseInfo(object):
-    _lock = Lock()
-    _data = defaultdict(dict)
-
-    @classmethod
-    def set(cls, dict_data):
-        with cls._lock:
-            cls._data.update(dict_data)
-
-    @classmethod
-    def get(cls, key):
-        with cls._lock:
-            return cls._data.get(key)
-
-    @classmethod
-    def clear(cls):
-        with cls._lock:
-            cls._data = defaultdict(dict)
-
-    @classmethod
-    def delete_key(cls, key):
-        with cls._lock:
-            if key in cls._data.keys():
-                del cls._data[key]
-
-
-class ScanPortInfo(BaseInfo):
-    pass
-
-
-class ScanObsInfo(BaseInfo):
-    pass
+    @staticmethod
+    def query_high_risk_port(port):
+        try:
+            return HWCloudHighRiskPort.objects.get(port=port)
+        except HWCloudHighRiskPort.DoesNotExist as e:
+            logger.error("[query_high_risk_port] dont find port:{}".format(port))
+            return None
 
 
 # noinspection PyArgumentList
@@ -74,6 +133,7 @@ class ScanBaseTools(object):
     _instance = None
     _aes_crypt = AESCrypt()
     account_info_list = list()
+    sla_yaml_list = list()
 
     def __new__(cls, *args, **kwargs):
         if cls._instance is None:
@@ -82,6 +142,14 @@ class ScanBaseTools(object):
 
     def __init__(self, *args, **kwargs):
         pass
+
+    @classmethod
+    def get_sla_yaml_config(cls):
+        if not cls.sla_yaml_list:
+            ak, sk, url, bucket_name, obs_key = settings.AK, settings.SK, settings.URL, settings.DOWNLOAD_BUCKET_NAME, settings.DOWNLOAD_SLA_KEY_NAME
+            content = ScanObsEipTools.get_obs_data(ak, sk, url, bucket_name, obs_key)
+            cls.sla_yaml_list = convert_yaml(content)
+        return cls.sla_yaml_list
 
     @staticmethod
     def get_hw_account_from_obs():
@@ -111,7 +179,7 @@ class ScanBaseTools(object):
         #  it is for test
         # list_data = list()
         # for data in content:
-        #     if data["account"] == "hwstaff_zengchen1024":
+        #     if data["account"] == "hwstaff_h00223369":
         #         list_data.append(data)
         # return list_data
 
@@ -153,6 +221,44 @@ class ScanBaseTools(object):
                 return cloud_info["project_info"]
         return list()
 
+    @staticmethod
+    def parse_scan_eip_query_info(eip_list):
+        tcp_list, udp_list = list(), list()
+        for eip_info in eip_list:
+            if eip_info.protocol == NetProtocol.TCP:
+                tcp_list.append(list(eip_info.to_dict().values())[1:-1])
+            elif eip_info.protocol == NetProtocol.UDP:
+                udp_list.append(list(eip_info.to_dict().values())[1:-1])
+        logger.error(tcp_list)
+        logger.error(udp_list)
+        content = output_scan_port_excel(tcp_list, udp_list)
+        return content
+
+    @staticmethod
+    def parse_scan_obs_query_info(query_account):
+        anonymous_bucket_list, anonymous_file_list, anonymous_data_list = list(), list(), list()
+        if isinstance(query_account, list):
+            anonymous_bucket_temp = HWCloudScanObsAnonymousBucket.objects.filter(account__in=query_account)
+            anonymous_file_temp = HWCloudScanObsAnonymousFile.objects.filter(account__in=query_account)
+        else:
+            anonymous_bucket_temp = HWCloudScanObsAnonymousBucket.objects.filter(account=query_account)
+            anonymous_file_temp = HWCloudScanObsAnonymousFile.objects.filter(account=query_account)
+        anonymous_bucket_list.extend([list(data.to_dict().values())[1:] for data in anonymous_bucket_temp])
+        anonymous_file_list.extend([list(data.to_dict().values())[1:] for data in anonymous_file_temp])
+        return output_scan_obs_excel(anonymous_file_list, anonymous_bucket_list)
+
+    @staticmethod
+    def get_account_dict(ak, sk, account):
+        account_dict = dict()
+        project_info = ScanBaseTools.get_random_cloud_config(ak, sk)
+        if not project_info:
+            raise Exception("[start_collect_thread] Get empty project info, Failed")
+        account_dict["account"] = account
+        account_dict["ak"] = ak
+        account_dict["sk"] = sk
+        account_dict["project_info"] = project_info
+        return account_dict
+
 
 class ScanToolsMgr:
     scan_base_tools = ScanBaseTools()
@@ -175,178 +281,115 @@ class ScanToolsMgr:
 class ScanPortsMgr(ScanToolsMgr):
     def query_data(self, account_list):
         """query progress"""
-        tcp_info, udp_info, tcp_server_info = dict(), dict(), dict()
         config_obj = self.scan_base_tools.get_decrypt_hw_account_project_info_from_database()
+        query_account = list()
         for config_info in config_obj:
-            if config_info["account"] not in account_list:
-                continue
-            ak = config_info["ak"]
-            sk = config_info["sk"]
-            for project_temp in config_info["project_info"]:
-                project_id = project_temp["project_id"]
-                zone = project_temp["zone"]
-                key = (ak, sk, project_id, zone)
-                scan_port_info = ScanPortInfo.get(key)
-                logger.error(
-                    "[ScanPorts:query_data]: key:({}, {}, {}, {}), value:{}".format(ak[:5], sk[:5], project_id, zone,
-                                                                                    scan_port_info))
-                if scan_port_info and scan_port_info["status"] == ScanPortStatus.finish:
-                    tcp_info.update(scan_port_info["data"]["tcp_info"])
-                    udp_info.update(scan_port_info["data"]["udp_info"])
-                    tcp_server_info.update(scan_port_info["data"]["tcp_server_info"])
-        content = output_scan_port_excel(tcp_info, udp_info, tcp_server_info)
-        return content
-
-
-class ScanObsMgr(ScanToolsMgr):
-    def query_data(self, account_list):
-        anonymous_file_list, anonymous_bucket_list, anonymous_data_data = list(), list(), list()
-        config_obj = self.scan_base_tools.get_decrypt_hw_account_project_info_from_database()
-        for config_info in config_obj:
-            account = config_info["account"]
-            if account not in account_list:
-                continue
-            ak = config_info["ak"]
-            sk = config_info["sk"]
-            key = (ak, sk, account)
-            scan_obs_info = ScanObsInfo.get(key)
-            logger.error(
-                "[ScanObs:query_data]: key:({}, {}, {}), value:{}".format(ak[:5], sk[:5], account, scan_obs_info))
-            if scan_obs_info and scan_obs_info["status"] == ScanObsStatus.finish:
-                anonymous_file_list.extend(scan_obs_info["data"]["anonymous_file"])
-                anonymous_bucket_list.extend(scan_obs_info["data"]["anonymous_bucket"])
-                anonymous_data_data.extend(scan_obs_info["data"]["anonymous_data"])
-        return output_scan_obs_excel(anonymous_file_list, anonymous_bucket_list, anonymous_data_data)
+            if config_info["account"] in account_list:
+                query_account.append(config_info["account"])
+        eip_list = HWCloudScanEipPortInfo.objects.filter(account__in=query_account)
+        return ScanBaseTools.parse_scan_eip_query_info(eip_list)
 
 
 class SingleScanPortsMgr(ScanToolsMgr):
 
     @staticmethod
-    def collect_thread(ak, sk, zone, project_id):
+    def collect_thread(account_list):
         """collect data"""
-        tcp_ret_dict, udp_ret_dict, tcp_server_info = single_scan_port(ak, sk, zone, project_id)
-        dict_data = {
-            "tcp_info": tcp_ret_dict,
-            "udp_info": udp_ret_dict,
-            "tcp_server_info": tcp_server_info
-        }
-        key = (ak, sk, project_id, zone)
-        logger.info("[collect_thread] collect single scan port: key:({}, {}, {}, {}), data:{}".format(ak[:5], sk[:5],
-                                                                                                      project_id, zone,
-                                                                                                      dict_data))
-        ScanPortInfo.set({key: {"status": ScanPortStatus.finish, "data": dict_data}})
+        tcp_info, udp_info, account_name_list = scan_port(account_list)
+        with transaction.atomic():
+            ScanOrmTools.save_scan_eip_port_info_status(tcp_info, udp_info, account_name_list, creating=False)
+        logger.info("[collect_thread] collect high risk port, account:{}".format(account_list[0]["account"]))
 
-    def start_collect_thread(self, ak, sk):
+    def start_collect_thread(self, ak, sk, account):
         """start a collect thread"""
-        eip_tools = ScanPortEipTools()
         try:
-            project_info = ScanBaseTools.get_random_cloud_config(ak, sk)
-            if not project_info:
-                raise Exception("[start_collect_thread] Get empty project info, Failed")
-            for project_obj in project_info:
-                eip_tools.get_data_list(project_obj["project_id"], project_obj["zone"], ak, sk)
-                break
+            account_dict = ScanBaseTools.get_account_dict(ak, sk, account)
         except Exception as e:
             logger.error("[start_collect_thread] connect:{}, {}".format(e, traceback.format_exc()))
-            return False
-        for project_obj in project_info:
-            try:
-                # 1.judge status
-                project_id = project_obj["project_id"]
-                zone = project_obj["zone"]
-                key = (ak, sk, project_id, zone)
-                single_scan_port_info = ScanPortInfo.get(key)
-                if single_scan_port_info is not None:
-                    continue
-                ScanPortInfo.set({key: {"status": ScanPortStatus.new, "data": dict()}})
-                # 2.start a thread to collect data
-                th = Thread(target=self.collect_thread, args=(ak, sk, zone, project_id))
-                th.start()
-                # 3.set status to handler
-                ScanPortInfo.set({key: {"status": ScanPortStatus.handler, "data": dict()}})
-            except Exception as e:
-                logger.error(
-                    "[start_collect_thread] collect data failed:{}, traceback:{}".format(e, traceback.format_exc()))
-        return True
+            return 0
+        is_blocking = ScanToolsLock.scan_port.acquire(blocking=False)
+        if not is_blocking:
+            return 1
+        try:
+            account_status = ScanOrmTools.query_scan_eip_port_status(account)
+            if account_status:
+                return 2
+            ScanOrmTools.save_scan_eip_port_status(account=account, status=ScanPortStatus.handler)
+            th = Thread(target=self.collect_thread, args=([account_dict],))
+            th.start()
+            return 2
+        finally:
+            ScanToolsLock.scan_port.release()
 
     # noinspection PyMethodMayBeStatic
-    def query_progress(self, ak, sk):
+    def query_progress(self, account):
         """query progress"""
-        tcp_info, udp_info, tcp_server_info = dict(), dict(), dict()
         content = str()
-        project_info = ScanBaseTools.get_random_cloud_config(ak, sk)
-        if not project_info:
+        account_status = ScanOrmTools.query_scan_eip_port_status(account)
+        if not account_status:
             return 0, content
-        for project_obj in project_info:
-            project_id = project_obj["project_id"]
-            zone = project_obj["zone"]
-            key = (ak, sk, project_id, zone)
-            single_scan_port_info = ScanPortInfo.get(key)
-            if single_scan_port_info is not None and single_scan_port_info["status"] == ScanObsStatus.handler:
-                return 0, content
-            elif single_scan_port_info is not None and single_scan_port_info["status"] == ScanPortStatus.finish:
-                tcp_info.update(single_scan_port_info["data"]["tcp_info"])
-                udp_info.update(single_scan_port_info["data"]["udp_info"])
-                tcp_server_info.update(single_scan_port_info["data"]["tcp_server_info"])
-        content = output_scan_port_excel(tcp_info, udp_info, tcp_server_info)
+        if account_status.status == ScanPortStatus.handler:
+            return 0, content
+        eip_list = HWCloudScanEipPortInfo.objects.filter(account=account)
+        content = ScanBaseTools.parse_scan_eip_query_info(eip_list)
         return 1, content
 
 
+class ScanObsMgr(ScanToolsMgr):
+    def query_data(self, account_list):
+        config_obj = self.scan_base_tools.get_decrypt_hw_account_project_info_from_database()
+        query_account = list()
+        for config_info in config_obj:
+            account = config_info["account"]
+            if account in account_list:
+                query_account.append(account)
+        return ScanBaseTools.parse_scan_obs_query_info(query_account)
+
+
 class SingleScanObsMgr(ScanToolsMgr):
-    _lock = Lock()
 
     @staticmethod
-    def collect_thread(ak, sk, account):
+    def collect_thread(account_dict_list):
         """collect data"""
-        list_sensitive_file, list_anonymous_bucket, list_anonymous_data = single_scan_obs(ak, sk, account)
-        dict_data = {
-            "anonymous_file": list_sensitive_file or [],
-            "anonymous_bucket": list_anonymous_bucket or [],
-            "anonymous_data": list_anonymous_data or []
-        }
-        key = (ak, sk, account)
-        logger.info("[SingleScanObs] collect single scan_obs: key({},{},{}), data:{}".format(ak[:5], sk[:5], account,
-                                                                                             dict_data))
-        ScanObsInfo.set({key: {"status": ScanObsStatus.finish, "data": dict_data}})
+        list_anonymous_bucket, list_sensitive_file, account_list = scan_obs(account_dict_list)
+        with transaction.atomic():
+            ScanOrmTools.save_scan_obs_info_status(list_anonymous_bucket, list_sensitive_file, account_list,
+                                                   creating=False)
 
     def start_collect_thread(self, ak, sk, account):
         """start a collect thread"""
         try:
             eip_tools = ScanObsEipTools()
             eip_tools.get_all_bucket(ak, sk, settings.OBS_BASE_URL, inhibition_fault=False)
+            account_dict = ScanBaseTools.get_account_dict(ak, sk, account)
         except Exception as e:
             logger.error("[SingleScanObs] start_collect_thread connect:{}, {}".format(e, traceback.format_exc()))
-            return False
-        key = (ak, sk, account)
-        # 1.judge status
-        single_scan_obs_info = ScanObsInfo.get(key)
-        if single_scan_obs_info is not None:
-            return True
-        ScanObsInfo.set({key: {"status": ScanObsStatus.new, "data": dict()}})
-        # 2.start a thread to collect data
-        th = Thread(target=self.collect_thread, args=(ak, sk, account))
-        th.start()
-        # 3.set status to handler
-        ScanObsInfo.set({key: {"status": ScanObsStatus.handler, "data": dict()}})
-        return True
+            return 0
+        is_blocking = ScanToolsLock.scan_obs.acquire(blocking=False)
+        if not is_blocking:
+            return 1
+        try:
+            account_status = ScanOrmTools.query_scan_obs_status(account)
+            if account_status:
+                return 2
+            ScanOrmTools.save_scan_obs_status(account, ScanObsStatus.handler)
+            th = Thread(target=self.collect_thread, args=([account_dict],))
+            th.start()
+            return 2
+        finally:
+            ScanToolsLock.scan_obs.release()
 
     # noinspection PyMethodMayBeStatic
-    def query_progress(self, ak, sk, account):
+    def query_progress(self, account):
         """query progress"""
         content = str()
-        key = (ak, sk, account)
-        single_scan_obs_info = ScanObsInfo.get(key)
-        if single_scan_obs_info is not None and single_scan_obs_info["status"] == ScanObsStatus.handler:
+        account_status = ScanOrmTools.query_scan_obs_status(account)
+        if not account_status:
             return 0, content
-        if single_scan_obs_info is not None and single_scan_obs_info["status"] == ScanObsStatus.finish:
-            anonymous_file_list = single_scan_obs_info["data"]["anonymous_file"]
-            anonymous_bucket_list = single_scan_obs_info["data"]["anonymous_bucket"]
-            anonymous_data_data = single_scan_obs_info["data"]["anonymous_data"]
-            content = output_scan_obs_excel(anonymous_file_list, anonymous_bucket_list, anonymous_data_data)
-            return 1, content
-        else:
-            logger.info("single scan obs query_progress query no result")
-            return 2, content
+        if account_status.status == ScanObsStatus.handler:
+            return 0, content
+        content = ScanBaseTools.parse_scan_obs_query_info(account)
+        return 1, content
 
 
 class EipMgr(ScanToolsMgr):
@@ -365,6 +408,11 @@ class EipMgr(ScanToolsMgr):
             eip_list = HWCloudEipInfo.objects.filter(example_name__contains=filter_value)
         elif filter_name and filter_name == "account":
             eip_list = HWCloudEipInfo.objects.filter(account__contains=filter_value)
+        elif filter_name and filter_name == "eip_type":
+            filter_value = HWCloudEipStatus.get_comment_status().get(filter_value)
+            eip_list = HWCloudEipInfo.objects.filter(eip_status__contains=filter_value)
+        elif filter_name and filter_name == "eip_zone":
+            eip_list = HWCloudEipInfo.objects.filter(eip_zone__contains=filter_value)
         else:
             eip_list = HWCloudEipInfo.objects.all()
         total = len(eip_list)
@@ -387,3 +435,120 @@ class EipMgr(ScanToolsMgr):
             "data": task_list
         }
         return res
+
+
+# noinspection PyMethodMayBeStatic
+class HighRiskPortMgr(ScanToolsMgr):
+    _create_lock = Lock()
+
+    def list(self, kwargs):
+        page, size = kwargs['page'], kwargs['size']
+        order_type, order_by = kwargs.get("order_type"), kwargs.get("order_by")
+        filter_name = kwargs.get("filter_name")
+        filter_value = kwargs.get("filter_value")
+        if filter_name and filter_name == "port":
+            eip_list = HWCloudHighRiskPort.objects.filter(port__contains=filter_value)
+        else:
+            eip_list = HWCloudHighRiskPort.objects.all()
+        total = len(eip_list)
+        page, slice_obj = get_suitable_range(total, page, size)
+        order_by = order_by if order_by else "create_time"
+        order_type = order_type if order_type else 0
+        if order_type != 0:
+            order_by = "-" + order_by
+        eip_list = eip_list.order_by(order_by)
+        task_list = [task.to_dict() for task in eip_list[slice_obj]]
+        res = {
+            "size": size,
+            "page": page,
+            "total": total,
+            "data": task_list
+        }
+        return res
+
+    def create(self, port, desc):
+        with HighRiskPortMgr._create_lock:
+            if ScanOrmTools.query_high_risk_port(port):
+                return 1
+            HWCloudHighRiskPort.objects.create(port=port, desc=desc)
+            return 0
+
+    def delete(self, port_list):
+        return HWCloudHighRiskPort.objects.filter(port__in=port_list).delete()
+
+
+# noinspection PyMethodMayBeStatic
+class SlaMgr:
+    def list(self, kwargs):
+        page, size = kwargs['page'], kwargs['size']
+        order_type, order_by = kwargs.get("order_type"), kwargs.get("order_by")
+        sla_detail_list = scan_cla(kwargs["year"], kwargs["month"], kwargs["day"])
+        sla_info_list = ScanBaseTools.get_sla_yaml_config()
+        sla_info_dict = {sla_info["name"]: sla_info["introduce"] for sla_info in sla_info_list}
+        ret_list = list()
+        for sla_temp in sla_detail_list:
+            ret_dict = dict()
+            del sla_temp[0]
+            sla_data = sla_info_dict.get(sla_temp[0], "unknown introduce")
+            if sla_temp[0] in ["Ascend-repo", "openEuler Jenkins ISO", "Ptadapter Jenkins"]:
+                continue
+            ret_dict["service_name"] = sla_temp[0]
+            ret_dict["introduce"] = sla_data
+            ret_dict["sla_url"] = sla_temp[-1]
+            ret_dict["sla_zone"] = settings.CLA_EXPLAIN.get(sla_temp[3].lower())
+            ret_dict["month_exp_min"] = sla_temp[4]
+            ret_dict["year_exp_min"] = sla_temp[5]
+            ret_dict["month_sla"] = sla_temp[6]
+            ret_dict["year_sla"] = sla_temp[7]
+            ret_dict["sla_year_remain"] = round(sla_temp[8], 4)
+            ret_list.append(ret_dict)
+        # filter
+        filter_name = kwargs.get("filter_name")
+        filter_value = kwargs.get("filter_value")
+        if filter_name and filter_name == "service_name":
+            ret_list = [i for i in ret_list if i["service_name"] == filter_value]
+        # 排序, 0-升序
+        if order_type == 0:
+            ret_list = sorted(ret_list, key=lambda keys: keys[order_by])
+        else:
+            ret_list = sorted(ret_list, key=lambda keys: keys[order_by], reverse=True)
+        total = len(ret_list)
+        page, slice_obj = get_suitable_range(total, page, size)
+        task_list = [task for task in ret_list[slice_obj]]
+        res = {
+            "size": size,
+            "page": page,
+            "total": total,
+            "data": task_list
+        }
+        return res
+
+    def export(self):
+        cur_date = datetime.datetime.now()
+        year = cur_date.year
+        month = cur_date.month
+        day = cur_date.day
+        sla_detail_list = scan_cla(year, month, day)
+        sla_info_list = ScanBaseTools.get_sla_yaml_config()
+        sla_info_dict = {sla_info["name"]: sla_info["introduce"] for sla_info in sla_info_list}
+        ret_list = list()
+        for sla_temp in sla_detail_list:
+            ret_dict = dict()
+            del sla_temp[0]
+            sla_data = sla_info_dict.get(sla_temp[0], "unknown introduce")
+            if sla_temp[0] in ["Ascend-repo", "openEuler Jenkins ISO", "Ptadapter Jenkins"]:
+                continue
+            ret_dict["service_name"] = sla_temp[0]
+            ret_dict["introduce"] = sla_data
+            ret_dict["sla_url"] = sla_temp[-1]
+            ret_dict["sla_zone"] = settings.CLA_EXPLAIN.get(sla_temp[3].lower())
+            ret_dict["month_exp_min"] = sla_temp[4]
+            ret_dict["year_exp_min"] = sla_temp[5]
+            ret_dict["month_sla"] = sla_temp[6]
+            ret_dict["year_sla"] = sla_temp[7]
+            ret_dict["sla_year_remain"] = round(sla_temp[8], 4)
+            ret_list.append(ret_dict)
+        ret_list = sorted(ret_list, key=lambda keys: keys["sla_year_remain"])
+        return output_cla_excel(ret_list)
+
+

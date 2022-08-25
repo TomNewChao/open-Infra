@@ -4,14 +4,13 @@
       <tables ref="tables" editable searchable search-place="top" v-model="tableData" :columns="columns"
               @on-delete="handleDelete"/>
       <Button style="margin: 10px 2px 2px;" type="primary" @click="exportExcel">导出</Button>
-
     </Card>
   </div>
 </template>
 
 <script>
 import Tables from '_c/tables'
-import { downloadScanPortExcelApi, scanPortApi } from '@/api/tools'
+import { scanObsApi, downloadScanObsExcelApi } from '@/api/tools'
 import { blobDownload } from '@/libs/download.js'
 import { getStrDate } from '@/libs/tools.js'
 
@@ -64,17 +63,17 @@ export default {
       if (selectName.length === 0) {
         this.$Message.info('请至少选择一个Account。')
       } else {
-        downloadScanPortExcelApi(selectName).then(res => {
+        downloadScanObsExcelApi(selectName).then(res => {
           if (res.headers['content-type'] === 'application/octet-stream') {
-            const strDate = getStrDate()
-            const fileName = 'IP端口扫描统计表_' + strDate + '.xlsx'
+            let strDate = getStrDate()
+            const fileName = '对象系统匿名桶统计表_' + strDate + '.xlsx'
             blobDownload(res.data, fileName)
           }
         })
       }
     },
     scanPort () {
-      scanPortApi().then(res => {
+      scanObsApi().then(res => {
         this.tableData = res.data.data
       })
     }

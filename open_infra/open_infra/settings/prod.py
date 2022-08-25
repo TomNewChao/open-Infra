@@ -17,7 +17,7 @@ import sys
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-LOG_PATH = "/var/log/open_infra"
+LOG_PATH = "/var/log/open-infra"
 LIB_PATH = "/var/lib/open-infra"
 
 sys.path.insert(0, os.path.join(BASE_DIR, "apps"))
@@ -246,6 +246,7 @@ SK = os.getenv("obs_sk")
 URL = os.getenv("obs_url")
 DOWNLOAD_BUCKET_NAME = "obs-for-openeuler-developer"
 DOWNLOAD_KEY_NAME = "secret-files/collect_elastic_public_ip.yaml"
+DOWNLOAD_SLA_KEY_NAME = "secret-files/sla.yaml"
 
 ZONE_ALIAS_DICT = {
     "cn-north-1": "华北-北京一",
@@ -269,15 +270,13 @@ ZONE_ALIAS_DICT = {
     "ru-northwest-2": "俄罗斯-莫斯科二",
 }
 
+ALIAS_ZONE_DICT = {value: key for key, value in ZONE_ALIAS_DICT.items()}
 # scan port setting
 DEFAULT_SHEET_NAME = "Sheet"
 EXCEL_NAME = "IP高危端口扫描统计表_{}.xlsx"
-EXCEL_TITLE = ["弹性公网IP", "端口", "状态", "链接协议", "传输协议"]
-EXCEL_SERVER_TITLE = ["弹性公网IP", "端口", "服务器版本信息"]
+EXCEL_TITLE = ["弹性公网IP", "端口", "状态", "链接协议", "传输协议", "账户", "区域", "服务器版本信息"]
 EXCEL_TCP_PAGE_NAME = "TCP"
 EXCEL_UDP_PAGE_NAME = "UDP"
-EXCEL_SERVER_PAGE_NAME = "TCP_SERVER_INFO"
-
 
 IGNORE_ZONE = ["cn-northeast-1", "MOS", "ap-southeast-1_tryme", "cn-north-1_1"]
 
@@ -292,12 +291,22 @@ OBS_FILE_POSTFIX = ["sh", "java", "jsp", "sql", "conf", "cer",
 # "log"
 SCAN_OBS_EXCEL_NAME = "对象系统扫描统计表_{}.xlsx"
 SCAN_OBS_EXCEL_BUCKET_TITLE = ["account", "bucket", "url"]
-SCAN_OBS_EXCEL_DATA_TITLE = ["account", "bucket", "url", "path", "data"]
-SCAN_OBS_EXCEL_FILE_TITLE = ["account", "bucket", "url", "path"]
+SCAN_OBS_EXCEL_FILE_TITLE = ["account", "bucket", "url", "path", "data"]
 OBS_ANONYMOUS_BUCKET_PAGE_NAME = "scan_obs_anonymous_bucket"
 OBS_SENSITIVE_FILE_PAGE_NAME = "scan_obs_sensitive_file"
-OBS_ANONYMOUS_DATA_PAGE_NAME = "scan_obs_sensitive_data"
 OBS_BUCKET_URL = "https://{}.obs.{}.myhuaweicloud.com"
 OBS_FILE_URL = "https://{}.obs.{}.myhuaweicloud.com/{}"
 
 EIP_V2_ZONE = ["cn-south-4", ]
+
+CLA_API_KEY = os.getenv("uptime_robot_api_key")
+CLA_EXCEL_TITLE = ["服务名", "服务介绍", "访问地址", "社区", "月度异常累计时间(min)", "年度异常累计时间(min)", "月度SLA", "年度SLA", "年度剩余SLA配额"]
+CLA_EXCEL_NAME = "Sla数据统计表_{}.xlsx"
+CLA_EXCEL_PAGE_NAME = "Sla"
+CLA_EXPLAIN = {
+    "osinfra": "基础设施通用服务",
+    "openeuler": "openEuler",
+    "mindspore": "MindSpore",
+    "opengauss": "openGuass",
+    "openlookeng": "openLooKeng",
+}

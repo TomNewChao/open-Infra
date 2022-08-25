@@ -1,17 +1,24 @@
 from django.conf.urls import url
-from clouds_tools.views import ScanPortView, ScanObsView, SingleScanPortView, SingleScanObsView, \
-    SingleScanPortProgressView, SingleScanObsProgressView, PortsListView, EipView
+from clouds_tools.views import ScanPortView, ScanObsView, SingleScanPortView, SingleScanObsView, PortsListView, EipView, \
+    PortsListDeleteView, SlaView, SlaExportView
 
 urlpatterns = [
+    # query/create/delete high level port
+    url(r'^high_risk_port$', PortsListView.as_view()),
+    url(r'^bulk_high_risk_port$', PortsListDeleteView.as_view()),
     url(r'^scan_port$', ScanPortView.as_view()),
-    url(r'^scan_obs$', ScanObsView.as_view()),
-
-    url(r'^single_scan_port/progress$', SingleScanPortProgressView.as_view()),
     url(r'^single_scan_port$', SingleScanPortView.as_view()),
-    url(r'^single_scan_obs/progress$', SingleScanObsProgressView.as_view()),
+    url(r'^single_scan_port/progress$', SingleScanPortView.as_view()),
+
+    # scan obs anonymous bucket
+    url(r'^scan_obs$', ScanObsView.as_view()),
     url(r'^single_scan_obs$', SingleScanObsView.as_view()),
+    url(r'^single_scan_obs/progress$', SingleScanObsView.as_view()),
 
-    url(r'^port_list$', PortsListView.as_view()),
-
+    #  query eip
     url(r'^eip$', EipView.as_view()),
+
+    #  query cla
+    url(r'^sla$', SlaView.as_view()),
+    url(r'^sla_export$', SlaExportView.as_view()),
 ]

@@ -59,6 +59,7 @@ class ErrCode(object):
     STATUS_SCAN_ING = STATUS_SEREVITY_ERROR + STATUS_CLOUDS_TOOLS_BASE + 1
     STATUS_SCAN_FAILED = STATUS_SEREVITY_ERROR + STATUS_CLOUDS_TOOLS_BASE + 2
     STATUS_SCAN_CLEAN = STATUS_SEREVITY_ERROR + STATUS_CLOUDS_TOOLS_BASE + 3
+    STATUS_PORT_EXIST = STATUS_SEREVITY_ERROR + STATUS_CLOUDS_TOOLS_BASE + 4
 
     _en_err_desc = {
         STATUS_SUCCESS: "Successfully",
@@ -83,15 +84,16 @@ class ErrCode(object):
         STATUS_SCAN_ING: "Scanning, Please wait.",
         STATUS_SCAN_FAILED: "No result, please try again.",
         STATUS_SCAN_CLEAN: "The background is trying again later, Please wait.",
+        STATUS_PORT_EXIST: "The port is exist, Operation failed.",
 
     }
 
     _cn_err_desc = {
         # reserved error codes which will be handled specifically by front-end
-        STATUS_SUCCESS: "成功。",
+        STATUS_SUCCESS: "操作成功。",
         STATUS_PARTIAL_SUCCESS: "部分成功，数据可能不完整，请检查集群是否存在异常。",
         STATUS_PARAMETER_ERROR: "参数错误。",
-        STATUS_FAILED: "失败。",
+        STATUS_FAILED: "操作失败。",
         INTERNAL_ERROR: '系统内部错误，请稍后重试。',
         SYSTEM_BUSY: "系统繁忙，请稍后重试。",
         NAME_NOT_STANDARD: "名称不规范。",
@@ -110,6 +112,7 @@ class ErrCode(object):
         STATUS_SCAN_ING: "正在扫描，请稍等。",
         STATUS_SCAN_FAILED: "查无结果，请重试。",
         STATUS_SCAN_CLEAN: "后台正在清理，请稍后重试。",
+        STATUS_PORT_EXIST: "高危端口已存在，操作失败。",
 
     }
 
