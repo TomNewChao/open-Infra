@@ -94,6 +94,7 @@ DATABASES = {
         'NAME': 'open_infra'  # 数据库名字
     }
 }
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 # DATABASE_ROUTERS = ['meiduo_mall.utils.db_router.MasterSlaveDBRouter']
 
 # Password validation
