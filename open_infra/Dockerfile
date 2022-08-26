@@ -22,5 +22,6 @@ RUN mkdir /var/log/open-infra/
 ENV LANG=en_US.UTF-8
 ENV PYTHONPATH=/opt/open_infra
 ENTRYPOINT ["docker-entrypoint.sh"]
-CMD ["uwsgi", "--ini", "/opt/open_infra/uwsgi.ini"]
+#CMD ["uwsgi", "--ini", "/opt/open_infra/uwsgi.ini"]
+CMD ["python3", "manage.py", "runserver","0.0.0.0:80", "--noreload"]
 EXPOSE 80
