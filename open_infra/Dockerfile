@@ -16,6 +16,7 @@ RUN yum install -y nmap
 RUN pip3 install -r /opt/open_infra/requirements.txt
 COPY ./docker-entrypoint.sh /usr/local/bin/
 RUN chmod 777 /usr/local/bin/docker-entrypoint.sh
+RUN mkdir /var/log/open-infra/
 
 
 ENV LANG=en_US.UTF-8
