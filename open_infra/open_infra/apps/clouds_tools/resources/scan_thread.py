@@ -122,11 +122,11 @@ class ScanToolsThread(object):
         logger.info("----------------1.start scan high level port-----------------")
         default_port_dict = HighRiskPort.get_port_dict()
         actual_port_obj_list = HWCloudHighRiskPort.objects.all()
-        default_port_set = set(list(default_port_dict.keys()))
-        actual_port_set = set([actual_info.port for actual_info in actual_port_obj_list])
-        need_create_list = list(default_port_set - actual_port_set)
+        if len(actual_port_obj_list) != 0:
+            return
+        default_port_list = list(default_port_dict.keys())
         save_list_data = [HWCloudHighRiskPort(port=create_port, desc=default_port_dict[create_port]) for create_port in
-                          need_create_list]
+                          default_port_list]
         with transaction.atomic():
             HWCloudHighRiskPort.objects.bulk_create(save_list_data)
         logger.info("----------------1.finish scan high level port-----------------")

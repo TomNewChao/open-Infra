@@ -43,13 +43,32 @@ export default {
   org_tree_page: 'Org Tree',
   drag_drawer_page: 'Draggable Drawer',
   tree_select_page: 'Tree Selector',
-  Tools: 'ToolBar',
-  Resources: 'Resources',
-  Eip: 'Eip',
-  scan_port: 'multi_scan_port',
-  scan_obs: 'multi_scan_obs',
+
+  // home
+  Home: 'Home',
+
+  // tools
+  Tools: 'ApplicationsTools',
+  multi_scan_port: 'multi_scan_port',
+  multi_scan_obs: 'multi_scan_obs',
   single_scan_port: 'single_scan_port',
   single_scan_obs: 'single_scan_obs',
   high_risk_port: 'high_risk_port',
-  Home: 'Home'
+
+  // resources
+  Resources: 'DeviceResources',
+  Eip: 'Eip',
+  Sla: 'Sla',
+
+  // alarm
+  Alarm: 'AlarmNotification',
+  alarm: 'Alarm',
+  alarm_email: 'AlarmEmail',
+
+  // monitor
+  Monitor: "Monitor",
+  prometheus: "Prometheus",
+  grafana: "Grafana",
+
+
 }

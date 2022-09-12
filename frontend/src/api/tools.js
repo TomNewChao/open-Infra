@@ -1,5 +1,5 @@
 import axios from '@/libs/api.request'
-
+// ToolBar
 export const highRiskPortApiList = (page, size, order_by, order_type, filter_name, filter_value) => {
   return axios.request({
     url: '/api/clouds_tools/high_risk_port',
@@ -104,6 +104,7 @@ export const queryProgressSingleScanObsApi = (account) => {
   })
 }
 
+// Resources
 export const eipListApi = (page, size, order_by, order_type, filter_name, filter_value) => {
   return axios.request({
     url: '/api/clouds_tools/eip',
@@ -129,5 +130,48 @@ export const exportSlaData = () => {
     url: '/api/clouds_tools/sla_export',
     method: 'get',
     responseType: 'blob'
+  })
+}
+
+// Alarm
+export const alarmEmailPostApi = (email, desc) => {
+  return axios.request({
+    url: '/api/alarm/alarm_email',
+    method: 'post',
+    data: {
+      email, desc
+    }
+  })
+}
+
+
+export const alarmEmailDeletePostApi = (email_list) => {
+  return axios.request({
+    url: '/api/alarm/alarm_email_list',
+    method: 'post',
+    data: {
+      email_list
+    }
+  })
+}
+
+export const alarmEmailListApi = (page, size, order_by, order_type, filter_name, filter_value) => {
+  return axios.request({
+    url: '/api/alarm/alarm_email_list',
+    method: 'get',
+    params: {
+      page, size, order_by, order_type, filter_name, filter_value
+    }
+  })
+}
+
+
+export const AlarmListApi = (page, size, order_by, order_type, filter_name, filter_value) => {
+  return axios.request({
+    url: '/api/alarm/alarm',
+    method: 'get',
+    params: {
+      page, size, order_by, order_type, filter_name, filter_value
+    }
   })
 }

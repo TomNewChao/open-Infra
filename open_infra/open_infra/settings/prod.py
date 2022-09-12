@@ -31,7 +31,7 @@ SECRET_KEY = os.getenv("pwd")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = ["*", ]
 
 # Application definition
 
@@ -47,7 +47,8 @@ INSTALLED_APPS = [
 
     # owner apps
     'clouds_tools.apps.CloudsToolsConfig',
-    'users.apps.UsersConfig'
+    'users.apps.UsersConfig',
+    'alarm.apps.AlarmConfig',
 ]
 
 MIDDLEWARE = [
@@ -186,7 +187,7 @@ LOGGING = {
         'file': {  # 向文件中输出日志
             'level': 'INFO',
             'class': 'logging.handlers.RotatingFileHandler',
-            'filename': os.path.join(os.path.dirname(BASE_DIR), os.path.join(LOG_PATH, "open_infra.log")),  # 日志文件的位置
+            'filename': os.path.join(os.path.dirname(BASE_DIR), os.path.join(LOG_PATH, "open-infra.log")),  # 日志文件的位置
             'maxBytes': 300 * 1024 * 1024,
             'backupCount': 10,
             'formatter': 'verbose'
@@ -241,7 +242,7 @@ CORS_ALLOW_HEADERS = (
     'x-requested-with'
 )
 
-# obs setting
+# obs account setting
 AK = os.getenv("obs_ak")
 SK = os.getenv("obs_sk")
 URL = os.getenv("obs_url")
@@ -249,6 +250,7 @@ DOWNLOAD_BUCKET_NAME = "obs-for-openeuler-developer"
 DOWNLOAD_KEY_NAME = "secret-files/collect_elastic_public_ip.yaml"
 DOWNLOAD_SLA_KEY_NAME = "secret-files/sla.yaml"
 
+# hw account
 ZONE_ALIAS_DICT = {
     "cn-north-1": "华北-北京一",
     "cn-north-4": "华北-北京四",
@@ -270,15 +272,14 @@ ZONE_ALIAS_DICT = {
     "la-south-2": "拉美-圣地亚哥",
     "ru-northwest-2": "俄罗斯-莫斯科二",
 }
-
 ALIAS_ZONE_DICT = {value: key for key, value in ZONE_ALIAS_DICT.items()}
-# scan port setting
+
+# scan port
 DEFAULT_SHEET_NAME = "Sheet"
 EXCEL_NAME = "IP高危端口扫描统计表_{}.xlsx"
 EXCEL_TITLE = ["弹性公网IP", "端口", "状态", "链接协议", "传输协议", "账户", "区域", "服务器版本信息"]
 EXCEL_TCP_PAGE_NAME = "TCP"
 EXCEL_UDP_PAGE_NAME = "UDP"
-
 IGNORE_ZONE = ["cn-northeast-1", "MOS", "ap-southeast-1_tryme", "cn-north-1_1"]
 
 # scan obs setting
@@ -289,7 +290,6 @@ OBS_FILE_POSTFIX = ["sh", "java", "jsp", "sql", "conf", "cer",
                     "c", "cc", "cpp", "cs", "go", "lua", "perl", "pl",
                     "py", "rb", "vb", "vbs", "vba", "h", "jar", "properties",
                     "config", "class"]
-# "log"
 SCAN_OBS_EXCEL_NAME = "对象系统扫描统计表_{}.xlsx"
 SCAN_OBS_EXCEL_BUCKET_TITLE = ["account", "bucket", "url"]
 SCAN_OBS_EXCEL_FILE_TITLE = ["account", "bucket", "url", "path", "data"]
@@ -298,8 +298,10 @@ OBS_SENSITIVE_FILE_PAGE_NAME = "scan_obs_sensitive_file"
 OBS_BUCKET_URL = "https://{}.obs.{}.myhuaweicloud.com"
 OBS_FILE_URL = "https://{}.obs.{}.myhuaweicloud.com/{}"
 
+# scan eip
 EIP_V2_ZONE = ["cn-south-4", ]
 
+# scan cla
 CLA_API_KEY = os.getenv("uptime_robot_api_key")
 CLA_EXCEL_TITLE = ["服务名", "服务介绍", "访问地址", "社区", "月度异常累计时间(min)", "年度异常累计时间(min)", "月度SLA", "年度SLA", "年度剩余SLA配额"]
 CLA_EXCEL_NAME = "Sla数据统计表_{}.xlsx"
@@ -311,3 +313,14 @@ CLA_EXPLAIN = {
     "opengauss": "openGuass",
     "openlookeng": "openLooKeng",
 }
+
+# alarm email config
+ALARM_EMAIL_SUBJECT = "Open-ops.osinfra.cn: alarm notify"
+ALARM_EMAIL_DEFAULT_LEVEL = 1  # le 1
+ALARM_EMAIL_SENDER_EMAIL = "353712216@qq.com"
+ALARM_EMAIL_SENDER_NAME = "朱超"
+ALARM_EMAIL_SENDER_SERVER = ""
+ALARM_EMAIL_SENDER_PORT = 25
+EMAIL_USERNAME = "353712216@qq.com"
+EMAIL_PWD = "353712216@qq.com"
+IS_SSL = False

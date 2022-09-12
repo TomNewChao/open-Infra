@@ -76,7 +76,7 @@ export default [
     path: '/resources',
     name: 'Resources',
     meta: {
-      icon: 'ios-analytics',
+      icon: 'logo-buffer',
       title: '工具'
     },
     component: Main,
@@ -85,7 +85,7 @@ export default [
         path: 'eip',
         name: 'Eip',
         meta: {
-          icon: 'ios-cloud-circle',
+          icon: 'md-arrow-round-forward',
           title: 'eip信息查询'
         },
         component: () => import('@/view/components/eip/eip.vue')
@@ -94,7 +94,7 @@ export default [
         path: 'sla',
         name: 'Sla',
         meta: {
-          icon: 'ios-cloud-outline',
+          icon: 'md-arrow-round-forward',
           title: 'sla信息查询'
         },
         component: () => import('@/view/components/sla/sla.vue')
@@ -114,7 +114,7 @@ export default [
         path: 'high_risk_port',
         name: 'high_risk_port',
         meta: {
-          icon: 'md-basketball',
+          icon: 'md-arrow-round-forward',
           title: '高危端口扫描'
         },
         component: () => import('@/view/components/high_risk_port/high_risk_port.vue')
@@ -123,7 +123,7 @@ export default [
         path: 'multi_scan_port',
         name: 'multi_scan_port',
         meta: {
-          icon: 'ios-basketball-outline',
+          icon: 'md-arrow-round-forward',
           title: '多账户端口扫描'
         },
         component: () => import('@/view/components/multi-scan-port/multi-scan-port.vue')
@@ -132,7 +132,7 @@ export default [
         path: 'single_scan_port',
         name: 'single_scan_port',
         meta: {
-          icon: 'ios-basketball',
+          icon: 'md-arrow-round-forward',
           title: '单账户端口扫描'
         },
         component: () => import('@/view/components/single-scan-port/single-scan-port')
@@ -141,7 +141,7 @@ export default [
         path: 'multi_scan_obs',
         name: 'multi_scan_obs',
         meta: {
-          icon: 'ios-stats-outline',
+          icon: 'md-arrow-round-forward',
           title: '多账户对象系统扫描'
         },
         component: () => import('@/view/components/multi-scan-obs/multi-scan-obs.vue')
@@ -150,13 +150,73 @@ export default [
         path: 'single_scan_obs',
         name: 'single_scan_obs',
         meta: {
-          icon: 'ios-stats',
+          icon: 'md-arrow-round-forward',
           title: '单账户对象系统扫描'
         },
         component: () => import('@/view/components/single-scan-obs/single-scan-obs')
       }
     ]
   },
+  {
+    path: '/alarm',
+    name: 'Alarm',
+    meta: {
+      icon: 'logo-buffer',
+      title: '报警'
+    },
+    component: Main,
+    children: [
+      {
+        path: 'alarm',
+        name: 'alarm',
+        meta: {
+          icon: 'md-arrow-round-forward',
+          title: '报警信息'
+        },
+        component: () => import('@/view/components/alarm/alarm.vue')
+      },
+      {
+        path: 'alarm_email',
+        name: 'alarm_email',
+        meta: {
+          icon: 'md-arrow-round-forward',
+          title: '报警邮件'
+        },
+        component: () => import('@/view/components/alarm-email/alarm-email.vue')
+      }
+    ]
+  },
+  {
+    path: '/monitor',
+    name: 'Monitor',
+    meta: {
+      icon: 'logo-buffer',
+      title: '性能监控'
+    },
+    component: Main,
+    children: [
+      {
+        path: 'prometheus',
+        name: 'prometheus',
+        meta: {
+          icon: 'md-arrow-round-forward',
+          title: 'prometheus'
+        },
+        component: () => import('@/view/components/prometheus/prometheus.vue')
+      },
+      {
+        path: 'grafana',
+        name: 'grafana',
+        meta: {
+          icon: 'md-arrow-round-forward',
+          title: 'grafana'
+        },
+        component: () => import('@/view/components/grafana/grafana.vue')
+      }
+    ]
+  },
+
+
   {
     path: '/argu',
     name: 'argu',
