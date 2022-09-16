@@ -382,9 +382,9 @@ def list_param_check_and_trans(params, order_type=0, order_by="account"):
         params['order_type'] = int(order_type)
     filter_name, filter_value = params.get("filter_name"), params.get("filter_value")
     if filter_name:
-        params["filter_name"] = filter_name
+        params["filter_name"] = filter_name.strip()
     if filter_value:
-        params["filter_value"] = filter_value
+        params["filter_value"] = filter_value.strip()
     return params
 
 

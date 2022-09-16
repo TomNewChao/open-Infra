@@ -299,9 +299,8 @@ def get_eip_info(config_list):
         ak = config_item["ak"]
         sk = config_item["sk"]
         project_info = config_item["project_info"]
-        logger.info("Collect the username of info:{}".format(username))
         for project_temp in project_info:
-            logger.info("Collect the zone of info:{}".format(project_temp["zone"]))
+            logger.info("Collect the username:{}, zone of info:{}".format(username, project_temp["zone"]))
             ret_temp = eip_tools.get_data_list(project_temp, ak, sk)
             result_list.extend(ret_temp or [])
         ret_dict[username] = result_list

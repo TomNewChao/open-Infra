@@ -107,20 +107,17 @@ class AlarmEmailTool(object):
             server_address = settings.ALARM_EMAIL_SENDER_SERVER
             server_port = int(settings.ALARM_EMAIL_SENDER_PORT)
             message = MIMEText(email_content, 'html', 'utf-8')
-            message['From'] = "{0}<{1}>".format(sender_name, sender_email)
+            message['From'] = r'{0} <{1}>'.format(sender_name, sender_email)
             message['To'] = ';'.join(email_receivers)
             message['Subject'] = Header(email_subject, 'utf-8')
             if not settings.IS_SSL:
                 smt_obj = smtplib.SMTP(server_address, port=int(server_port))
-                smt_obj.login(settings.EMAIL_USERNAME, settings.EMAIL_PWD)
-                smt_obj.ehlo()
-                smt_obj.login(settings.EMAIL_USERNAME, settings.EMAIL_PWD)
+                smt_obj.login(settings.ALARM_EMAIL_USERNAME, settings.ALARM_EMAIL_PWD)
                 smt_obj.starttls()
                 smt_obj.sendmail(sender_email, email_receivers, message.as_string())
             else:
                 smt_obj = smtplib.SMTP_SSL(server_address, port=int(server_port))
-                smt_obj.ehlo()
-                smt_obj.login(settings.EMAIL_USERNAME, settings.EMAIL_PWD)
+                smt_obj.login(settings.ALARM_EMAIL_USERNAME, settings.ALARM_EMAIL_PWD)
                 smt_obj.sendmail(sender_email, email_receivers, message.as_string())
             logger.info("[_send_email] send email success!")
         except Exception as e:
@@ -128,7 +125,7 @@ class AlarmEmailTool(object):
 
     @classmethod
     def send_alarm_email(cls, alarm, alarm_type):
-        if int(alarm.get('alarm_level')) > int(settings["ALARM_EMAIL_DEFAULT_LEVEL"]):
+        if int(alarm.get('alarm_level')) > int(settings.ALARM_EMAIL_DEFAULT_LEVEL):
             return
         alarm_email_obj_list = AlarmEmail.objects.all()
         alarm_email_list = [email_obj["email"] for email_obj in alarm_email_obj_list]
@@ -136,7 +133,7 @@ class AlarmEmailTool(object):
             return
         email_conf = dict()
         email_conf['email_receivers'] = alarm_email_list
-        email_conf['email_subject'] = settings["ALARM_EMAIL_SUBJECT"]
+        email_conf['email_subject'] = settings.ALARM_EMAIL_SUBJECT
         email_conf['email_content'] = cls._get_alarm_email_content(alarm, alarm_type)
         threading.Thread(target=cls._send_email, args=(email_conf,)).start()
         logger.info('[send_alarm_email] send alarm {} email succeed.'.format(alarm_type))
@@ -157,7 +154,7 @@ class AlarmServer(object):
         @return:
         """
         # 1.start to modify mysql
-        Alarm.objects.filter(md5_id=md5_id).update(is_recover=True, alarm_recover_time=datetime.datetime.now())
+        Alarm.objects.filter(md5_id=md5_id).filter(is_recover=False).update(is_recover=True, alarm_recover_time=datetime.datetime.now())
         # 2.send email?
         return True
 
@@ -168,10 +165,11 @@ class AlarmServer(object):
         @return:
         """
         md5_id = params["md5"]
-        alarm_list = Alarm.objects.filter(md5_id=md5_id)
+        alarm_list = Alarm.objects.filter(alarm_md5=md5_id).filter(is_recover=False)
         if len(alarm_list):
-            Alarm.objects.filter(md5_id=md5_id).update(alarm_refresh_time=datetime.datetime.now())
+            Alarm.objects.filter(alarm_md5=md5_id).update(alarm_refresh_time=datetime.datetime.now())
         else:
+            logger.info("[appear_alarm] params:{}, alarm:{}".format(params, len(alarm_list)))
             dict_data = self.alarm_server_tools.get_format_alarm(params)
             Alarm.objects.create(**dict_data)
             self.alarm_email_tools.send_alarm_email(dict_data, AlarmType.ALARM)

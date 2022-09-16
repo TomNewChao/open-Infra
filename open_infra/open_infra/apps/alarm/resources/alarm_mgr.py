@@ -39,10 +39,14 @@ class AlarmMgr:
         order_type, order_by = kwargs.get("order_type"), kwargs.get("order_by")
         filter_name = kwargs.get("filter_name")
         filter_value = kwargs.get("filter_value")
-        if filter_name and filter_name == "email":
-            eip_list = Alarm.objects.filter(email__contains=filter_value)
+        if filter_name and filter_name == "alarm_name":
+            eip_list = Alarm.objects.filter(alarm_name__contains=filter_value).filter(is_recover=False)
+        elif filter_name and filter_name == "alarm_module":
+            eip_list = Alarm.objects.filter(alarm_module__contains=filter_value).filter(is_recover=False)
+        elif filter_name and filter_name == "alarm_details":
+            eip_list = Alarm.objects.filter(alarm_details__contains=filter_value).filter(is_recover=False)
         else:
-            eip_list = Alarm.objects.all()
+            eip_list = Alarm.objects.all().filter(is_recover=False)
         total = len(eip_list)
         page, slice_obj = get_suitable_range(total, page, size)
         order_by = order_by if order_by else "create_time"

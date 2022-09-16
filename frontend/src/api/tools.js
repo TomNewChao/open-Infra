@@ -175,3 +175,14 @@ export const AlarmListApi = (page, size, order_by, order_type, filter_name, filt
     }
   })
 }
+
+
+export const batchDeleteAlarmPostApi = (alarm_ids) => {
+  return axios.request({
+    url: '/api/alarm/alarm',
+    method: 'post',
+    data: {
+      alarm_ids
+    }
+  })
+}

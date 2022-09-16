@@ -92,7 +92,8 @@ DATABASES = {
         'PORT': os.getenv("mysql_port"),  # 数据库端口
         'USER': os.getenv("mysql_user"),  # 数据库用户名
         'PASSWORD': os.getenv("mysql_password"),  # 数据库用户密码
-        'NAME': 'open_infra'  # 数据库名字
+        'NAME': 'open_infra',  # 数据库名字
+        'TIME_ZONE': 'Asia/Shanghai'
     }
 }
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
@@ -121,7 +122,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'zh-hans'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Shanghai'
 
 USE_I18N = True
 
@@ -319,8 +320,8 @@ ALARM_EMAIL_SUBJECT = "Open-ops.osinfra.cn: alarm notify"
 ALARM_EMAIL_DEFAULT_LEVEL = 1  # le 1
 ALARM_EMAIL_SENDER_EMAIL = "353712216@qq.com"
 ALARM_EMAIL_SENDER_NAME = "朱超"
-ALARM_EMAIL_SENDER_SERVER = ""
-ALARM_EMAIL_SENDER_PORT = 25
-EMAIL_USERNAME = "353712216@qq.com"
-EMAIL_PWD = "353712216@qq.com"
-IS_SSL = False
+ALARM_EMAIL_SENDER_SERVER = "smtp.qq.com"
+ALARM_EMAIL_SENDER_PORT = 465
+IS_SSL = True
+ALARM_EMAIL_USERNAME = "353712216@qq.com"
+ALARM_EMAIL_PWD = os.getenv("alarm_email_pwd")

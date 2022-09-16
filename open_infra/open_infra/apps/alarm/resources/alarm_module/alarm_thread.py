@@ -77,7 +77,7 @@ class AlarmTools(object):
             run_time = task_dict['run_time']
             if now_time >= run_time and not task_dict['run_status']:
                 func_obj = task_dict['func_obj']
-                logger.info('[handle_alarm_task] func_name:{}'.format(func_obj.__func__.__name__))
+                # logger.info('[handle_alarm_task] func_name:{}'.format(func_obj.__func__.__name__))
                 args = task_dict['args']
                 if args:
                     args = args[1:]
@@ -379,7 +379,7 @@ class AlarmClient(threading.Thread):
                             status = False
                             min_next_run_time = run_time
                 if status:
-                    logger.warning("[AlarmClient] tasks are all in progress，try again")
+                    # logger.warning("[AlarmClient] tasks are all in progress，try again")
                     time.sleep(1)
                     continue
                 min_run_time_interval_ret = base_obj.get_run_min_interval(min_next_run_time)
@@ -392,7 +392,7 @@ class AlarmClient(threading.Thread):
                     if AlarmGlobalConfig.MAX_RUNNING_TIME < min_run_time_interval:
                         logger.warning('[AlarmClient] max wait:{} second'.format(min_run_time_interval))
                         min_run_time_interval = AlarmGlobalConfig.MAX_RUNNING_TIME
-                    logger.info('[AlarmClient] wait:{} second'.format(min_run_time_interval))
+                    # logger.info('[AlarmClient] wait:{} second'.format(min_run_time_interval))
                     time.sleep(min_run_time_interval)
                     base_obj.handle_alarm_task()
                 else:

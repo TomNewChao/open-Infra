@@ -12,7 +12,7 @@
         </Button>
         <Button type="primary" @click="slaHandleSubmit" class="sla-export">导出所有数据</Button>
       </div>
-      <tables ref="tables" search-place="top" v-model="slaTableData" :columns="slaColumns"/>
+      <tables ref="tables" search-place="top" :no-data-text="loadingText ? loadingText : '暂无数据'" v-model="slaTableData" :columns="slaColumns"/>
       <Page :total="slaPageTotal" :current="slaPageNum" :page-size="slaPageSize" show-sizer show-total
             @on-change="slaHandlerPage"
             @on-page-size-change="slaHandlerPageSize"/>
@@ -42,6 +42,7 @@ export default {
       slaPageSize: 10,
       order_by: 'sla_year_remain',
       order_type: '0',
+      loadingText: '',
       slaFilterColumns: [
         { title: '服务名', key: 'service_name' }
       ],
@@ -83,8 +84,9 @@ export default {
       this.querySlaList()
     },
     querySlaList () {
+      this.loadingText = '数据正在加载中'
       slaListApi(this.slaPageNum, this.slaPageSize, this.order_by, this.order_type, this.slaSearchKey, this.slaSearchValue, this.slaDate).then(res => {
-        console.log(this.slaDate)
+        this.loadingText = ''
         if (res.data.err_code !== 0) {
           this.$Message.info(res.data.description)
         } else {

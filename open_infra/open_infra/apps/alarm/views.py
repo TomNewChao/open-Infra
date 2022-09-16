@@ -18,7 +18,7 @@ class AlarmView(AuthView):
         params_dict = list_param_check_and_trans(request.GET.dict(), order_by="create_time")
         alarm_mgr = AlarmMgr()
         data = alarm_mgr.list(params_dict)
-        return assemble_api_result(ErrCode.STATUS_SUCCESS, data)
+        return assemble_api_result(ErrCode.STATUS_SUCCESS, data=data)
 
     def post(self, request):
         dict_data = json.loads(request.body)

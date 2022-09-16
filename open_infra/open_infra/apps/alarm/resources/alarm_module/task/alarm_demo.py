@@ -4,7 +4,9 @@ import logging
 import time
 import traceback
 
+from alarm.resources.alarm_module.alarm_code import AlarmCode
 from alarm.resources.alarm_module.alarm_thread import active_alarm
+from alarm.resources.alarm_module.constants import AlarmType
 from alarm.resources.alarm_module.task import BaseAlarm, AlarmTask
 
 logger = logging.getLogger("django")
@@ -23,8 +25,14 @@ class DemoAlarm(BaseAlarm):
     @AlarmTask(exec_interval=1 * 30)
     def alarm(self):
         """框架定时报警1"""
-        print("collect_time:{}".format(int(time.time())))
-        return dict()
+        alarm_info_dict = {
+            "alarm_type": AlarmType.ALARM,
+            "alarm_info_dict": {
+                "alarm_id": AlarmCode.MONITOR_DESC_CODE_NODE_CPU_OVERFLOW,
+                "des_var": ["hwstaff_hongkong_node10", "{}%".format(80)],
+            }
+        }
+        return alarm_info_dict
 
     # @BaseAlarm.add()
     # @AlarmTask(exec_interval=60 * 60)
