@@ -56,8 +56,8 @@ export default {
         { title: '实例名称', key: 'example_name' },
         { title: '实例类型', key: 'example_type' },
         { title: '账户', key: 'account', sortable: true },
-        { title: '创建时间', key: 'create_time', sortable: true }
-
+        { title: '创建时间', key: 'create_time', sortable: true },
+        { title: '刷新时间', key: 'refresh_time', sortable: true }
       ],
       tableData: []
     }

@@ -380,13 +380,11 @@ def list_param_check_and_trans(params, order_type=0, order_by="account"):
         if not order_type.isdigit() or int(order_type) not in [0, 1]:
             raise MgrException(ErrCode.STATUS_PARAMETER_ERROR)
         params['order_type'] = int(order_type)
-    # if order_by and order_by not in ["create_time"]:
-    #     raise MgrException(ErrCode.STATUS_PARAMETER_ERROR)
     filter_name, filter_value = params.get("filter_name"), params.get("filter_value")
     if filter_name:
-        params["filter_name"] = filter_name
+        params["filter_name"] = filter_name.strip()
     if filter_value:
-        params["filter_value"] = filter_value
+        params["filter_value"] = filter_value.strip()
     return params
 
 

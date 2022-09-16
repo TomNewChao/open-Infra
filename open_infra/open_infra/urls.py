@@ -21,4 +21,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     url(r'^api/clouds_tools/', include("clouds_tools.urls")),
     url(r'^api/users/', include("users.urls")),
+    url(r'^api/alarm/', include("alarm.urls")),
 ]

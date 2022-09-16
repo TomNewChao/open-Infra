@@ -61,6 +61,14 @@ class ErrCode(object):
     STATUS_SCAN_CLEAN = STATUS_SEREVITY_ERROR + STATUS_CLOUDS_TOOLS_BASE + 3
     STATUS_PORT_EXIST = STATUS_SEREVITY_ERROR + STATUS_CLOUDS_TOOLS_BASE + 4
 
+    # sub module: alarm_email
+    STATUS_CLOUDS_ALARM = STATUS_FACILITY_DASHBOARD + 300
+    STATUS_ALARM_EMAIL_NOT_EXIST = STATUS_SEREVITY_ERROR + STATUS_CLOUDS_ALARM + 1
+    STATUS_ALARM_EMAIL_IS_EXIST = STATUS_SEREVITY_ERROR + STATUS_CLOUDS_ALARM + 1
+    # STATUS_SCAN_FAILED = STATUS_SEREVITY_ERROR + STATUS_CLOUDS_ALARM + 2
+    # STATUS_SCAN_CLEAN = STATUS_SEREVITY_ERROR + STATUS_CLOUDS_ALARM + 3
+    # STATUS_PORT_EXIST = STATUS_SEREVITY_ERROR + STATUS_CLOUDS_ALARM + 4
+
     _en_err_desc = {
         STATUS_SUCCESS: "Successfully",
         STATUS_PARTIAL_SUCCESS: "Partially successful, data may be incomplete, please check the cluster for exceptions",
@@ -85,6 +93,10 @@ class ErrCode(object):
         STATUS_SCAN_FAILED: "No result, please try again.",
         STATUS_SCAN_CLEAN: "The background is trying again later, Please wait.",
         STATUS_PORT_EXIST: "The port is exist, Operation failed.",
+
+        # for alarm
+        STATUS_ALARM_EMAIL_NOT_EXIST: "The email is not exist, Operation failed.",
+        STATUS_ALARM_EMAIL_IS_EXIST: "The email is exist, Operation failed.",
 
     }
 
@@ -113,6 +125,10 @@ class ErrCode(object):
         STATUS_SCAN_FAILED: "查无结果，请重试。",
         STATUS_SCAN_CLEAN: "后台正在清理，请稍后重试。",
         STATUS_PORT_EXIST: "高危端口已存在，操作失败。",
+
+        # for alarm
+        STATUS_ALARM_EMAIL_NOT_EXIST: "邮件不存在，操作失败。",
+        STATUS_ALARM_EMAIL_IS_EXIST: "邮件存在，操作失败。",
 
     }
 

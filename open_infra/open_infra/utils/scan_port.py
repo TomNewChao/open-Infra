@@ -15,7 +15,7 @@ from abc import abstractmethod
 
 from huaweicloudsdkcore.exceptions.exceptions import ClientRequestException, ConnectionException
 
-from open_infra.utils.common import func_retry
+from clouds_tools.models import HWCloudEipInfo
 from collections import defaultdict
 from logging import getLogger
 from django.conf import settings
@@ -143,7 +143,7 @@ class EipTools(object):
     @classmethod
     def parse_tcp_result_txt(cls, tcp_content_list, account=None, region=None):
         ret_list = list()
-        high_risk_port = HighRiskPort.get_port_dict()
+        high_risk_port = HighRiskPort.get_cur_port_dict()
         for info in tcp_content_list:
             if "Host:" in info and "Ports:" in info:
                 info_list = info.split("Ports:")
@@ -244,6 +244,55 @@ class EipTools(object):
             ip_info_list.append(server_info)
 
 
+def scan_ip_list(ret_lists, eip_tools, temp_name, account, zone, tcp_ret_dict, udp_ret_dict):
+    for ip in ret_lists:
+        logger.info("[scan_ip_list] 1.start to collect tcp:{} info".format(ip))
+        ret_code, data = eip_tools.execute_cmd(GlobalConfig.tcp_search_cmd.format(temp_name, ip))
+        if ret_code != 0:
+            logger.error("[scan_ip_list] search tcp:{}, error:{}".format(ip, data))
+        else:
+            tcp_content_list = eip_tools.read_txt(temp_name)
+            tcp_port_list = eip_tools.parse_tcp_result_txt(tcp_content_list, account=account, region=zone)
+            EipTools.collect_tcp_server_info(ip, tcp_port_list)
+            if tcp_port_list:
+                tcp_ret_dict[ip] = tcp_port_list
+        logger.info("[scan_ip_list] 2.start to collect udp:{} info".format(ip))
+        ret_code, data = eip_tools.execute_cmd(GlobalConfig.udp_search_cmd.format(temp_name, ip))
+        if ret_code != 0:
+            logger.error("[scan_ip_list] search tcp:{}, error:{}".format(ip, data))
+        else:
+            udp_content_list = eip_tools.read_txt(temp_name)
+            udp_port_list = eip_tools.parse_tcp_result_txt(udp_content_list, account=account, region=zone)
+            if udp_port_list:
+                udp_ret_dict[ip] = udp_port_list
+
+
+def scan_ip_dict_list(ret_lists, eip_tools, temp_name, tcp_ret_dict, udp_ret_dict):
+    for dict_data in ret_lists:
+        ip = dict_data["ip"]
+        zone = dict_data["zone"]
+        account = dict_data["account"]
+        logger.info("[scan_ip_list] 1.start to collect tcp:{} info".format(ip))
+        ret_code, data = eip_tools.execute_cmd(GlobalConfig.tcp_search_cmd.format(temp_name, ip))
+        if ret_code != 0:
+            logger.error("[scan_ip_list] search tcp:{}, error:{}".format(ip, data))
+        else:
+            tcp_content_list = eip_tools.read_txt(temp_name)
+            tcp_port_list = eip_tools.parse_tcp_result_txt(tcp_content_list, account=account, region=zone)
+            EipTools.collect_tcp_server_info(ip, tcp_port_list)
+            if tcp_port_list:
+                tcp_ret_dict[ip] = tcp_port_list
+        logger.info("[scan_ip_list] 2.start to collect udp:{} info".format(ip))
+        ret_code, data = eip_tools.execute_cmd(GlobalConfig.udp_search_cmd.format(temp_name, ip))
+        if ret_code != 0:
+            logger.error("[scan_ip_list] search tcp:{}, error:{}".format(ip, data))
+        else:
+            udp_content_list = eip_tools.read_txt(temp_name)
+            udp_port_list = eip_tools.parse_tcp_result_txt(udp_content_list, account=account, region=zone)
+            if udp_port_list:
+                udp_ret_dict[ip] = udp_port_list
+
+
 # noinspection DuplicatedCode
 def scan_port(config_list, username=None):
     eip_tools = EipTools()
@@ -259,6 +308,21 @@ def scan_port(config_list, username=None):
         for config_item in config_list:
             account = config_item["account"]
             account_list.append(account)
+            # 1.look for mysql
+            eip_obj_list = HWCloudEipInfo.objects.filter(account=account.strip()).all()
+            if len(eip_obj_list):
+                logger.info("[scan_port] find eip in account:{}".format(account))
+                list_data = list()
+                for eip_obj in eip_obj_list:
+                    dict_data = eip_obj.to_dict()
+                    temp_data = dict()
+                    temp_data["ip"] = dict_data["eip"]
+                    temp_data["zone"] = settings.ALIAS_ZONE_DICT.get(dict_data["eip_zone"])
+                    temp_data["account"] = dict_data["account"]
+                    list_data.append(temp_data)
+                scan_ip_dict_list(list_data, eip_tools, temp_name, tcp_ret_dict, udp_ret_dict)
+                continue
+            # 2.look for ip by hw cloud
             ak = config_item["ak"]
             sk = config_item["sk"]
             project_info = config_item["project_info"]
@@ -268,28 +332,11 @@ def scan_port(config_list, username=None):
                 logger.info("[scan_port] scan the port of the zone:{} and project_id:{}".format(zone, project_id))
                 ret_lists = eip_tools.get_data_list(project_id, zone, ak, sk)
                 if not ret_lists:
-                    logger.info("[scan_port] ak:{}, sk:{}, project_id:{}, zone:{} dont find ip".format(ak[:5], sk[:5], project_id, zone))
+                    logger.info("[scan_port] ak:{}, sk:{}, project_id:{}, zone:{} dont find ip".format(ak[:5], sk[:5],
+                                                                                                       project_id,
+                                                                                                       zone))
                     continue
-                for ip in ret_lists:
-                    logger.info("[scan_port] 1.start to collect tcp:{} info".format(ip))
-                    ret_code, data = eip_tools.execute_cmd(GlobalConfig.tcp_search_cmd.format(temp_name, ip))
-                    if ret_code != 0:
-                        logger.error("search tcp:{}, error:{}".format(ip, data))
-                    else:
-                        tcp_content_list = eip_tools.read_txt(temp_name)
-                        tcp_port_list = eip_tools.parse_tcp_result_txt(tcp_content_list, account=account, region=zone)
-                        EipTools.collect_tcp_server_info(ip, tcp_port_list)
-                        if tcp_port_list:
-                            tcp_ret_dict[ip] = tcp_port_list
-                    logger.info("[scan_port] 2.start to collect udp:{} info".format(ip))
-                    ret_code, data = eip_tools.execute_cmd(GlobalConfig.udp_search_cmd.format(temp_name, ip))
-                    if ret_code != 0:
-                        logger.error("search tcp:{}, error:{}".format(ip, data))
-                    else:
-                        udp_content_list = eip_tools.read_txt(temp_name)
-                        udp_port_list = eip_tools.parse_tcp_result_txt(udp_content_list, account=account, region=zone)
-                        if udp_port_list:
-                            udp_ret_dict[ip] = udp_port_list
+                scan_ip_list(ret_lists, eip_tools, temp_name, account, zone, tcp_ret_dict, udp_ret_dict)
     except Exception as e:
         logger.error("[scan_port] e:{}, traceback:{}".format(e, traceback.format_exc()))
     finally:

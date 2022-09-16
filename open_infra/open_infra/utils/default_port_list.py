@@ -5,6 +5,8 @@
 # @Software: PyCharm
 import copy
 
+from clouds_tools.models import HWCloudHighRiskPort
+
 
 class HighRiskPort(object):
     default_port_list = {
@@ -18,6 +20,7 @@ class HighRiskPort(object):
         9043: "websphere", 10000: "Virtualmin/Webmin", 27017: "mongodb", 50060: "hadoop", 50030: "hadoop"
     }
     _mem_port_list = None
+    cur_port_dict = None
 
     @classmethod
     def get_port_dict(cls):
@@ -29,3 +32,14 @@ class HighRiskPort(object):
                 mem_port_list[i] = "db2"
             cls._mem_port_list = dict(sorted(mem_port_list.items()))
         return cls._mem_port_list
+
+    @classmethod
+    def get_cur_port_dict(cls):
+        if cls.cur_port_dict is None:
+            port_obj_list = HWCloudHighRiskPort.objects.all()
+            dict_data = dict()
+            for port_obj in port_obj_list:
+                port_dict = port_obj.to_dict()
+                dict_data[port_dict["port"]] = port_dict["desc"]
+            cls.cur_port_dict = dict_data
+        return cls.cur_port_dict

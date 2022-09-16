@@ -43,13 +43,32 @@ export default {
   org_tree_page: '組織結構樹',
   drag_drawer_page: '可拖動抽屜',
   tree_select_page: '樹狀下拉選擇器',
-  Tools: '工具',
-  Eip: 'Eip查詢',
-  Resources: '资源查询',
-  scan_port: '多賬戶端口掃描',
-  scan_obs: '多賬戶對象系統掃描',
+
+  // home
+  Home: '首頁',
+
+  // Tools
+  Tools: '應用工具',
+  multi_scan_port: '多賬戶端口掃描',
+  multi_scan_obs: '多賬戶對象系統掃描',
   single_scan_port: '單賬戶端口掃描',
   single_scan_obs: '單賬戶對象系統掃描',
   high_risk_port: '高危端口',
-  Home: '首頁'
+
+  // Resources
+  Resources: '設備資源',
+  Eip: 'Eip查詢',
+  Sla: 'Sla查詢',
+
+  // Alarm
+  Alarm: '告警通知',
+  alarm: '告警',
+  alarm_email: '告警郵件',
+
+  // monitor
+  Monitor: "性能監控",
+  prometheus: "Prometheus",
+  grafana: "Grafana",
+
+
 }

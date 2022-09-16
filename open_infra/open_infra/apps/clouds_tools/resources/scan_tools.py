@@ -4,7 +4,6 @@
 # @FileName: scan_tools.py
 # @Software: PyCharm
 import datetime
-import time
 import traceback
 
 from django.db import transaction
@@ -17,6 +16,7 @@ from open_infra.libs.obs_utils import ObsLib, HWCloudIAM
 from open_infra.utils.common import output_scan_port_excel, output_scan_obs_excel, get_suitable_range, convert_yaml, \
     output_cla_excel
 from open_infra.utils.crypto import AESCrypt
+from open_infra.utils.default_port_list import HighRiskPort
 from open_infra.utils.scan_port import scan_port
 from open_infra.utils.scan_obs import EipTools as ScanObsEipTools, scan_obs
 from django.conf import settings
@@ -471,10 +471,15 @@ class HighRiskPortMgr(ScanToolsMgr):
             if ScanOrmTools.query_high_risk_port(port):
                 return 1
             HWCloudHighRiskPort.objects.create(port=port, desc=desc)
+            HighRiskPort.cur_port_dict.update({port:desc})
             return 0
 
     def delete(self, port_list):
-        return HWCloudHighRiskPort.objects.filter(port__in=port_list).delete()
+        HWCloudHighRiskPort.objects.filter(port__in=port_list).delete()
+        for port in port_list:
+            if port in HighRiskPort.cur_port_dict.keys():
+                del HighRiskPort.cur_port_dict[port]
+        return True
 
 
 # noinspection PyMethodMayBeStatic

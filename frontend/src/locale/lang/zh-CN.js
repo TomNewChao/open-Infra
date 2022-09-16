@@ -43,13 +43,32 @@ export default {
   org_tree_page: '组织结构树',
   drag_drawer_page: '可拖动抽屉',
   tree_select_page: '树状下拉选择器',
-  Tools: '工具栏',
-  Resources: '资源查询',
-  Eip: 'Eip查询',
-  scan_port: '多账户端口扫描',
-  scan_obs: '多账户对象系统扫描',
+
+  // home
+  Home: '首页',
+
+  // tools
+  Tools: '应用工具',
+  multi_scan_port: '多账户端口扫描',
+  multi_scan_obs: '多账户对象系统扫描',
   single_scan_port: '单账户端口扫描',
   single_scan_obs: '单账户对象系统扫描',
   high_risk_port: '高危端口',
-  Home: '首页'
+
+  // resources
+  Resources: '设备资源',
+  Eip: 'Eip查询',
+  Sla: 'Sla查询',
+
+  // alarm
+  Alarm: '告警通知',
+  alarm: '告警',
+  alarm_email: '告警邮件',
+
+  // monitor
+  Monitor: "性能监控",
+  prometheus: "Prometheus",
+  grafana: "Grafana",
+
+
 }
