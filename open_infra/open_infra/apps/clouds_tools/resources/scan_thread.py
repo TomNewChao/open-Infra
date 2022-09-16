@@ -108,20 +108,20 @@ class ScanToolsThread(object):
 
     @classmethod
     def cron_job(cls):
-        # cls.query_account_info()
-        # cls.scan_eip()
-        # cls.scan_sla()
-        # try:
-        #     ScanToolsLock.scan_port.acquire()
-        #     cls.scan_port()
-        # finally:
-        #     ScanToolsLock.scan_port.release()
-        #
-        # try:
-        #     ScanToolsLock.scan_obs.acquire()
-        #     cls.scan_obs()
-        # finally:
-        #     ScanToolsLock.scan_obs.release()
+        cls.query_account_info()
+        cls.scan_eip()
+        cls.scan_sla()
+        try:
+            ScanToolsLock.scan_port.acquire()
+            cls.scan_port()
+        finally:
+            ScanToolsLock.scan_port.release()
+
+        try:
+            ScanToolsLock.scan_obs.acquire()
+            cls.scan_obs()
+        finally:
+            ScanToolsLock.scan_obs.release()
         pass
 
     @classmethod
