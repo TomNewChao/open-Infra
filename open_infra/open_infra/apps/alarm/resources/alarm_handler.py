@@ -141,7 +141,7 @@ class AlarmBaseHandler(object):
                     continue
                 value = round(float(metrics_dict["value"][1]))
                 abs_value = math.fabs(value)
-                abs_value = 1.0 - abs_value
+                abs_value = 100.0 - abs_value
                 if abs_value > 100.0:
                     continue
                 elif metrics_dict["metric"].get("job") is None:
