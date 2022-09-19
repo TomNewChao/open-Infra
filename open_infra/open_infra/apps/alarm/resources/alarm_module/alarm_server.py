@@ -136,7 +136,6 @@ class AlarmEmailTool(object):
         email_conf['email_subject'] = settings.ALARM_EMAIL_SUBJECT
         email_conf['email_content'] = cls._get_alarm_email_content(alarm, alarm_type)
         threading.Thread(target=cls._send_email, args=(email_conf,)).start()
-        logger.info('[send_alarm_email] send alarm {} email succeed.'.format(alarm_type))
 
 
 # noinspection PyMethodMayBeStatic
@@ -154,7 +153,7 @@ class AlarmServer(object):
         @return:
         """
         # 1.start to modify mysql
-        Alarm.objects.filter(md5_id=md5_id).filter(is_recover=False).update(is_recover=True, alarm_recover_time=datetime.datetime.now())
+        Alarm.objects.filter(alarm_md5=md5_id).filter(is_recover=False).update(is_recover=True, alarm_recover_time=datetime.datetime.now())
         # 2.send email?
         return True
 
@@ -180,7 +179,7 @@ class AlarmServer(object):
         @return:
         """
         try:
-            logger.info('Receive a connect.args:{}'.format(params))
+            # logger.info('Receive a connect.args:{}'.format(params))
             if not isinstance(params, dict):
                 raise TypeError(type(params))
             if params.get('alarm_id', None):

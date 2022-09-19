@@ -69,11 +69,11 @@
         this.queryAlarmList()
       },
       handlerAlarmPage(value) {
-        this.pageNum = value
+        this.alarmPageNum = value
         this.queryAlarmList()
       },
       handlerAlarmPageSize(value) {
-        this.pageSize = value
+        this.alarmPageSize = value
         this.queryAlarmList()
       },
       queryAlarmList() {
