@@ -70,11 +70,11 @@ class AlarmCode:
     MONITOR_DESC_CODE_BASE = 0
     MONITOR_DESC_CODE_NODE_CPU_OVERFLOW = MONITOR_DESC_CODE_BASE + 1
     MONITOR_DESC_CODE_NODE_MEM_OVERFLOW = MONITOR_DESC_CODE_BASE + 2
-    MONITOR_DESC_CODE_NODE_DISK_OVERFLOW = MONITOR_DESC_CODE_BASE + 2
+    MONITOR_DESC_CODE_NODE_DISK_OVERFLOW = MONITOR_DESC_CODE_BASE + 3
 
-    MONITOR_DESC_CODE_CONTAINER_CPU_OVERFLOW = MONITOR_DESC_CODE_BASE + 2
-    MONITOR_DESC_CODE_CONTAINER_MEM_OVERFLOW = MONITOR_DESC_CODE_BASE + 2
-    MONITOR_DESC_CODE_CONTAINER_DISK_OVERFLOW = MONITOR_DESC_CODE_BASE + 2
+    MONITOR_DESC_CODE_CONTAINER_CPU_OVERFLOW = MONITOR_DESC_CODE_BASE + 4
+    MONITOR_DESC_CODE_CONTAINER_MEM_OVERFLOW = MONITOR_DESC_CODE_BASE + 5
+    MONITOR_DESC_CODE_CONTAINER_DISK_OVERFLOW = MONITOR_DESC_CODE_BASE + 6
 
     CN_DESC_ALARM = {
         # MONITOR
@@ -91,7 +91,7 @@ class AlarmCode:
             'ALARM_CONTENT': "服务器%s内存使用率超过%s。"
         },
         MONITOR_DESC_CODE_NODE_DISK_OVERFLOW: {
-            'ALARM_NAME': '系统盘使用率过高',
+            'ALARM_NAME': '服务器系统盘使用率过高',
             'ALARM_LEVEL': AlarmLevel.MAJOR,
             'ALARM_MODULE': AlarmModule.MODULE_MONITOR,
             'ALARM_CONTENT': "服务器%s的系统盘已用空间超过%s。"
@@ -100,19 +100,19 @@ class AlarmCode:
             'ALARM_NAME': '容器CPU告警',
             'ALARM_LEVEL': AlarmLevel.MAJOR,
             'ALARM_MODULE': AlarmModule.MODULE_MONITOR,
-            'ALARM_CONTENT': "服务器%s的CPU占用率超过%s。"
+            'ALARM_CONTENT': "容器%s的CPU占用率超过%s。"
         },
         MONITOR_DESC_CODE_CONTAINER_MEM_OVERFLOW: {
             'ALARM_NAME': '容器内存告警',
             'ALARM_LEVEL': AlarmLevel.MAJOR,
             'ALARM_MODULE': AlarmModule.MODULE_MONITOR,
-            'ALARM_CONTENT': "服务器%s内存使用率超过%s。"
+            'ALARM_CONTENT': "容器%s内存使用率超过%s。"
         },
         MONITOR_DESC_CODE_CONTAINER_DISK_OVERFLOW: {
             'ALARM_NAME': '容器挂载盘使用率过高',
             'ALARM_LEVEL': AlarmLevel.MAJOR,
             'ALARM_MODULE': AlarmModule.MODULE_MONITOR,
-            'ALARM_CONTENT': "服务器%s的系统盘已用空间超过%s。"
+            'ALARM_CONTENT': "容器%s的系统盘已用空间超过%s。"
         }
 
     }

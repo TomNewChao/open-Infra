@@ -318,10 +318,13 @@ CLA_EXPLAIN = {
 # alarm email config
 ALARM_EMAIL_SUBJECT = "Open-ops.osinfra.cn: alarm notify"
 ALARM_EMAIL_DEFAULT_LEVEL = 1  # le 1
-ALARM_EMAIL_SENDER_EMAIL = "353712216@qq.com"
-ALARM_EMAIL_SENDER_NAME = "朱超"
-ALARM_EMAIL_SENDER_SERVER = "smtp.qq.com"
+ALARM_EMAIL_SENDER_EMAIL = "infra@lists.osinfra.cn"
+ALARM_EMAIL_SENDER_NAME = "infra"
+ALARM_EMAIL_SENDER_SERVER = "lists.osinfra.cn"
 ALARM_EMAIL_SENDER_PORT = 465
 IS_SSL = True
-ALARM_EMAIL_USERNAME = "353712216@qq.com"
+ALARM_EMAIL_USERNAME = os.getenv("alarm_email_user")
 ALARM_EMAIL_PWD = os.getenv("alarm_email_pwd")
+ALARM_PROMETHEUS_URL = "https://monitor.osinfra.cn"
+ALARM_CCE_THRESHOLD = 80
+ALARM_ECS_THRESHOLD = 80

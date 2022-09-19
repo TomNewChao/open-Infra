@@ -22,17 +22,17 @@ class DemoAlarm(BaseAlarm):
     def __init__(self):
         pass
 
-    @AlarmTask(exec_interval=1 * 30)
-    def alarm(self):
-        """框架定时报警1"""
-        alarm_info_dict = {
-            "alarm_type": AlarmType.ALARM,
-            "alarm_info_dict": {
-                "alarm_id": AlarmCode.MONITOR_DESC_CODE_NODE_CPU_OVERFLOW,
-                "des_var": ["hwstaff_hongkong_node10", "{}%".format(80)],
-            }
-        }
-        return alarm_info_dict
+    # @AlarmTask(exec_interval=1 * 30)
+    # def alarm(self):
+    #     """框架定时报警1"""
+    #     alarm_info_dict = {
+    #         "alarm_type": AlarmType.ALARM,
+    #         "alarm_info_dict": {
+    #             "alarm_id": AlarmCode.MONITOR_DESC_CODE_NODE_CPU_OVERFLOW,
+    #             "des_var": ["hwstaff_hongkong_node10", "{}%".format(80)],
+    #         }
+    #     }
+    #     return alarm_info_dict
 
     # @BaseAlarm.add()
     # @AlarmTask(exec_interval=60 * 60)
