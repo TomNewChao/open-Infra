@@ -26,7 +26,7 @@ class NodeAlarm(BaseAlarm):
         query = AlarmHandlerConfig.node_cpu_query.format(settings.ALARM_PROMETHEUS_URL, int(time.time()))
         alarm_threshold = settings.ALARM_ECS_THRESHOLD
         alarm_code = AlarmCode.MONITOR_DESC_CODE_NODE_CPU_OVERFLOW
-        return AlarmBaseHandler.get_container_alarm_info(query, alarm_threshold, alarm_code)
+        return AlarmBaseHandler.get_node_alarm_info(query, alarm_threshold, alarm_code)
 
     @BaseAlarm.add()
     @AlarmTask(exec_interval=2 * 60)
@@ -35,7 +35,7 @@ class NodeAlarm(BaseAlarm):
         query = AlarmHandlerConfig.node_mem_query.format(settings.ALARM_PROMETHEUS_URL, int(time.time()))
         alarm_threshold = settings.ALARM_ECS_THRESHOLD
         alarm_code = AlarmCode.MONITOR_DESC_CODE_NODE_MEM_OVERFLOW
-        return AlarmBaseHandler.get_container_alarm_info(query, alarm_threshold, alarm_code)
+        return AlarmBaseHandler.get_node_alarm_info(query, alarm_threshold, alarm_code)
 
     @BaseAlarm.add()
     @AlarmTask(exec_interval=2 * 60)
@@ -44,4 +44,4 @@ class NodeAlarm(BaseAlarm):
         query = AlarmHandlerConfig.node_fs_query.format(settings.ALARM_PROMETHEUS_URL, int(time.time()))
         alarm_threshold = settings.ALARM_ECS_THRESHOLD
         alarm_code = AlarmCode.MONITOR_DESC_CODE_NODE_DISK_OVERFLOW
-        return AlarmBaseHandler.get_container_alarm_info(query, alarm_threshold, alarm_code)
+        return AlarmBaseHandler.get_node_alarm_info(query, alarm_threshold, alarm_code)
