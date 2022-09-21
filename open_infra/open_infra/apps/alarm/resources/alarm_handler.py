@@ -15,12 +15,12 @@ logger = logging.getLogger("django")
 
 
 class AlarmHandlerConfig(object):
-    container_cpu_query = "{}/api/v1/query?query=sum(rate(container_cpu_usage_seconds_total[5m])) by (pod, container,namespace,cluster, account,name) / sum(container_spec_cpu_quota/container_spec_cpu_period) by (pod, container,namespace,cluster, account, name)&time={}"
-    container_mem_query = "{}/api/v1/query?query=sum(container_memory_working_set_bytes) by (pod, container,namespace,cluster, account,name) / sum(container_spec_memory_limit_bytes) by (pod, container,namespace,cluster, account,name) * 100 != +inf&time={}"
-    container_fs_query = "{}/api/v1/query?query=sum(container_fs_usage_bytes) by(pod, container,namespace,cluster, account,name) / sum(container_fs_limit_bytes) by(pod, container,namespace,cluster, account,name) * 100 != +inf&time={}"
+    container_cpu_query = "{}/api/v1/query?query=container_cpu_usage_rate&time={}"
+    container_mem_query = "{}/api/v1/query?query=container_mem_usage_rate&time={}"
+    container_fs_query = "{}/api/v1/query?query=container_fs_usage_rate&time={}"
     node_cpu_query = "{}/api/v1/query?query=node_cpu_seconds_total&time={}"
     node_mem_query = "{}/api/v1/query?query=node_memory_MemUsed&time={}"
-    node_fs_query = "{}/api/v1/query?query=sum(node_filesystem_free_bytes) by(node_name, job) / sum(node_filesystem_size_bytes) by(node_name, job) * 100 != +inf&time={}"
+    node_fs_query = "{}/api/v1/query?query=node_filesystem_usage_rate&time={}"
     pass
 
 
@@ -48,8 +48,6 @@ class AlarmBaseHandler(object):
                     continue
                 value = round(float(metrics_dict["value"][1]))
                 abs_value = math.fabs(value)
-                if abs_value > 100.0:
-                    continue
                 if metrics_dict["metric"].get("account") is None:
                     continue
                 elif metrics_dict["metric"].get("cluster") is None:
@@ -59,6 +57,14 @@ class AlarmBaseHandler(object):
                 elif metrics_dict["metric"].get("pod") is None:
                     continue
                 elif metrics_dict["metric"].get("name") is None:
+                    continue
+                elif metrics_dict["metric"]["cluster"] == "openeuler-cn-north4-x86-cluster" and metrics_dict["metric"]["namespace"] == "jenkins":
+                    pod_name = metrics_dict["metric"]["pod"]
+                    if pod_name.startswith("k8s-x86-oe") or pod_name.startswith("k8s-x86-openeuler") or pod_name.startswith("k8s-x86-rtos-openeuler-test") or pod_name.startswith("k8s-x86-soe"):
+                        continue
+                elif metrics_dict["metric"]["cluster"] in ["openeuler-arm-jenkins-cluster", "openeuler-cn-north4-arm-cluster"] and metrics_dict["metric"]["namespace"] == "jenkins":
+                    continue
+                elif metrics_dict["metric"]["cluster"] == "mindspore-cn-north-4-arm-new-cluster" and metrics_dict["metric"]["namespace"] == "jenkins" and metrics_dict["metric"]["pod"].startswith("arm-centos-slaves"):
                     continue
                 name = "{}/{}/{}/{}/{}".format(metrics_dict["metric"]["account"],
                                                metrics_dict["metric"]["cluster"],
@@ -99,52 +105,7 @@ class AlarmBaseHandler(object):
                     continue
                 value = round(float(metrics_dict["value"][1]))
                 abs_value = math.fabs(value)
-                if abs_value > 100.0:
-                    continue
-                elif metrics_dict["metric"].get("job") is None:
-                    continue
-                elif metrics_dict["metric"].get("node_name") is None:
-                    continue
-                name = "{}/{}".format(metrics_dict["metric"]["job"],
-                                      metrics_dict["metric"]["node_name"])
-                if abs_value >= alarm_threshold:
-                    alarm_info_dict = {
-                        "alarm_type": AlarmType.ALARM,
-                        "report_retry_count": 2,
-                        "alarm_info_dict": {
-                            "alarm_id": alarm_code,
-                            "des_var": [name, "{}%".format(alarm_threshold)],
-                        }
-                    }
-                else:
-                    alarm_info_dict = {
-                        "alarm_type": AlarmType.RECOVER,
-                        "report_retry_count": 2,
-                        "alarm_info_dict": {
-                            "alarm_id": alarm_code,
-                            "des_var": [name, "{}%".format(alarm_threshold)],
-                        }
-                    }
-                alarm_list_data.append(alarm_info_dict)
-            return alarm_list_data
-        except Exception as e:
-            logger.error("[get_node_alarm_info] e:{}, traceback:{}".format(e, traceback.format_exc()))
-            return list()
-
-    @classmethod
-    def get_node_fs_alarm_info(cls, query, alarm_threshold, alarm_code):
-        try:
-            alarm_list_data = list()
-            list_data = cls.get_metrics_data(query)
-            for metrics_dict in list_data:
-                if metrics_dict["value"][1] == "NaN":
-                    continue
-                value = round(float(metrics_dict["value"][1]))
-                abs_value = math.fabs(value)
-                abs_value = 100.0 - abs_value
-                if abs_value > 100.0:
-                    continue
-                elif metrics_dict["metric"].get("job") is None:
+                if metrics_dict["metric"].get("job") is None:
                     continue
                 elif metrics_dict["metric"].get("node_name") is None:
                     continue
