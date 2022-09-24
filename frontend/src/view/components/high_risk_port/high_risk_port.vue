@@ -37,7 +37,7 @@
           <Icon type="search"/>&nbsp;&nbsp;搜索
         </Button>
       </div>
-      <Table border ref="selection" search-place="top" :data="highRiskPortTableData" :columns="highRiskColumns"/>
+      <Table border ref="selection" search-place="top" :data="highRiskPortTableData" :columns="highRiskColumns" @on-sort-change="handleHighRiskSort"/>
       <Page :total="highRiskPortPageTotal" :current="highRiskPortPageNum" :page-size="highRiskPortPageSize" show-sizer
             show-total @on-change="handlerHighRiskPage"
             @on-page-size-change="handlerHighRiskPageSize"/>
@@ -76,7 +76,7 @@ export default {
       highRiskPortPageNum: 1,
       highRiskPortPageSize: 10,
       highRiskPortOrderBy: 'create_time',
-      highRiskPortOrderType: '1',
+      highRiskPortOrderType: 1,
       highRiskPortFilterColumns: [
         {title: 'port', key: 'port'}
       ],
@@ -86,9 +86,9 @@ export default {
           width: 60,
           align: 'center'
         },
-        {title: 'port', key: 'port', sortable: true},
+        {title: 'port', key: 'port', sortable: 'custom'},
         {title: 'desc', key: 'desc'},
-        {title: 'create_time', key: 'create_time', sortable: true}
+        {title: 'create_time', key: 'create_time', sortable: 'custom',  sortType: "desc"}
       ],
       highRiskPortTableData: []
     }
@@ -106,6 +106,11 @@ export default {
     },
     handlerHighRiskPageSize(value) {
       this.highRiskPortPageSize = value
+      this.queryHighRiskPortList()
+    },
+    handleHighRiskSort(column){
+      this.highRiskPortOrderBy = column.key
+      this.highRiskPortOrderType = column.order === "asc" ? 0:1
       this.queryHighRiskPortList()
     },
     queryHighRiskPortList() {

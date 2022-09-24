@@ -10,8 +10,9 @@
           <Icon type="search"/>&nbsp;&nbsp;搜索
         </Button>
       </div>
-      <tables ref="tables" search-place="top" v-model="tableData" :columns="columns"/>
-      <Page :total="pageTotal" :current="pageNum" :page-size="pageSize" show-sizer show-total @on-change="handlerPage"
+      <tables ref="tables" search-place="top" v-model="tableData" :columns="columns" @on-sort-change="handlerEipSort"/>
+      <Page :total="pageTotal" :current="pageNum" :page-size="pageSize" show-sizer show-total
+            @on-change="handlerPage"
             @on-page-size-change="handlerPageSize"/>
     </Card>
   </div>
@@ -35,7 +36,7 @@ export default {
       pageNum: 1,
       pageSize: 10,
       order_by: 'create_time',
-      order_type: '0',
+      order_type: 1,
       filter_columns: [
         { title: 'IP', key: 'eip' },
         { title: '状态', key: 'eip_type' },
@@ -45,19 +46,19 @@ export default {
         { title: '账户', key: 'account' }
       ],
       columns: [
-        { title: 'IP', key: 'eip', sortable: true },
+        { title: 'IP', key: 'eip', sortable: 'custom' },
         { title: '状态', key: 'eip_status' },
         { title: '类型', key: 'eip_type' },
-        { title: '归属区域', key: 'eip_zone', sortable: true },
+        { title: '归属区域', key: 'eip_zone', sortable: 'custom' },
         { title: '宽带id', key: 'bandwidth_id' },
         { title: '宽带名称', key: 'bandwidth_name' },
-        { title: '宽带size', key: 'bandwidth_size', sortable: true },
+        { title: '宽带size', key: 'bandwidth_size', sortable: 'custom' },
         { title: '实例id', key: 'example_id' },
         { title: '实例名称', key: 'example_name' },
         { title: '实例类型', key: 'example_type' },
-        { title: '账户', key: 'account', sortable: true },
-        { title: '创建时间', key: 'create_time', sortable: true },
-        { title: '刷新时间', key: 'refresh_time', sortable: true }
+        { title: '账户', key: 'account', sortable: 'custom' },
+        { title: '创建时间', key: 'create_time', sortable: 'custom', sortType: "desc"},
+        { title: '刷新时间', key: 'refresh_time', sortable: 'custom' }
       ],
       tableData: []
     }
@@ -75,6 +76,11 @@ export default {
     },
     handlerPageSize (value) {
       this.pageSize = value
+      this.queryEipList()
+    },
+    handlerEipSort(column){
+      this.order_by = column.key
+      this.order_type = column.order === "asc" ? 0:1
       this.queryEipList()
     },
     queryEipList () {

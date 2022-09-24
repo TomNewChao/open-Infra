@@ -12,7 +12,7 @@
         </Button>
         <Button type="primary" @click="slaHandleSubmit" class="sla-export">导出所有数据</Button>
       </div>
-      <tables ref="tables" search-place="top" :no-data-text="loadingText ? loadingText : '暂无数据'" v-model="slaTableData" :columns="slaColumns"/>
+      <tables ref="tables" search-place="top" :no-data-text="loadingText ? loadingText : '暂无数据'" v-model="slaTableData" :columns="slaColumns" @on-sort-change="slaSort"/>
       <Page :total="slaPageTotal" :current="slaPageNum" :page-size="slaPageSize" show-sizer show-total
             @on-change="slaHandlerPage"
             @on-page-size-change="slaHandlerPageSize"/>
@@ -41,7 +41,7 @@ export default {
       slaPageNum: 1,
       slaPageSize: 10,
       order_by: 'sla_year_remain',
-      order_type: '0',
+      order_type: 0,
       loadingText: '',
       slaFilterColumns: [
         { title: '服务名', key: 'service_name' }
@@ -51,11 +51,11 @@ export default {
         { title: '服务介绍', key: 'introduce' },
         { title: '访问地址', key: 'sla_url' },
         { title: '社区', key: 'sla_zone' },
-        { title: '月度异常累计时间(min)', key: 'month_exp_min' },
-        { title: '年度异常累计时间(min)', key: 'year_exp_min' },
-        { title: '月度SLA', key: 'month_sla' },
-        { title: '年度SLA', key: 'year_sla' },
-        { title: '年度剩余SLA配额', key: 'sla_year_remain' }
+        { title: '月度异常累计时间(min)', key: 'month_exp_min', sortable: 'custom'},
+        { title: '年度异常累计时间(min)', key: 'year_exp_min' , sortable: 'custom'},
+        { title: '月度SLA', key: 'month_sla' , sortable: 'custom'},
+        { title: '年度SLA', key: 'year_sla' , sortable: 'custom'},
+        { title: '年度剩余SLA配额', key: 'sla_year_remain' , sortable: 'custom', sortType: "asc"}
       ],
       slaTableData: []
     }
@@ -81,6 +81,11 @@ export default {
     },
     slaHandlerPageSize (value) {
       this.slaPageSize = value
+      this.querySlaList()
+    },
+    slaSort(column){
+      this.order_by = column.key
+      this.order_type = column.order === "asc" ? 0:1
       this.querySlaList()
     },
     querySlaList () {

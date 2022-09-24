@@ -11,7 +11,7 @@
         </Button>
         <Button type="primary" @click="handlerRemoveAlarm" class="handlerRemove">手动批量解除报警</Button>
       </div>
-      <Table border ref="selection" search-place="top" :data="alarmTableData" :columns="alarmColumns"/>
+      <Table border ref="selection" search-place="top" :data="alarmTableData" :columns="alarmColumns" @on-sort-change="handlerAlarmSort"/>
       <Page :total="alarmPageTotal" :current="alarmPageNum" :page-size="alarmPageSize" show-sizer show-total
             @on-change="handlerAlarmPage"
             @on-page-size-change="handlerAlarmPageSize"/>
@@ -36,8 +36,8 @@
         alarmPageTotal: 0,
         alarmPageNum: 1,
         alarmPageSize: 10,
-        alarmOrderBy: 'alarm_happen_time',
-        alarmOrderType: '0',
+        alarmOrderBy: 'alarm_refresh_time',
+        alarmOrderType: 1,
         alarmFilterColumns: [
           {title: '报警模块', key: 'alarm_module'},
           {title: '报警名称', key: 'alarm_name'},
@@ -54,9 +54,9 @@
           {title: '报警模块', key: 'alarm_module'},
           {title: '报警级别', key: 'alarm_level'},
           {title: '是否恢复', key: 'is_recover'},
-          {title: '报警发生时间', key: 'alarm_happen_time', sortable: true},
-          {title: '报警恢复时间', key: 'alarm_recover_time', sortable: true},
-          {title: '报警刷新时间', key: 'alarm_refresh_time', sortable: true}
+          {title: '报警发生时间', key: 'alarm_happen_time', sortable: 'custom'},
+          {title: '报警恢复时间', key: 'alarm_recover_time', sortable: 'custom'},
+          {title: '报警刷新时间', key: 'alarm_refresh_time', sortable: 'custom', sortType: "desc"}
         ],
         alarmTableData: []
       }
@@ -74,6 +74,11 @@
       },
       handlerAlarmPageSize(value) {
         this.alarmPageSize = value
+        this.queryAlarmList()
+      },
+      handlerAlarmSort(column) {
+        this.alarmOrderBy = column.key
+        this.alarmOrderType = column.order === "asc" ? 0:1
         this.queryAlarmList()
       },
       queryAlarmList() {

@@ -37,7 +37,7 @@
           <Icon type="search"/>&nbsp;&nbsp;搜索
         </Button>
       </div>
-      <Table border ref="selection" search-place="top" :data="alarmEmailTableData" :columns="alarmEmailColumns"/>
+      <Table border ref="selection" search-place="top" :data="alarmEmailTableData" :columns="alarmEmailColumns" @on-sort-change="handlerAlarmEmailSort"/>
       <Page :total="alarmEmailPageTotal" :current="alarmEmailPageNum" :page-size="alarmEmailPageSize" show-sizer
             show-total @on-change="handlerAlarmEmailPage"
             @on-page-size-change="handlerAlarmEmailPageSize"/>
@@ -75,7 +75,7 @@
         alarmEmailPageNum: 1,
         alarmEmailPageSize: 10,
         alarmEmailOrderBy: 'create_time',
-        alarmEmailOrderType: '1',
+        alarmEmailOrderType: 1,
         alarmEmailFilterColumns: [
           {title: 'email', key: 'email'}
         ],
@@ -85,9 +85,9 @@
             width: 60,
             align: 'center'
           },
-          {title: 'email', key: 'email', sortable: true},
+          {title: 'email', key: 'email', sortable: 'custom'},
           {title: 'desc', key: 'desc'},
-          {title: 'create_time', key: 'create_time', sortable: true}
+          {title: 'create_time', key: 'create_time', sortable: 'custom', sortType: "desc"}
         ],
         alarmEmailTableData: []
       }
@@ -96,6 +96,11 @@
       this.queryAlarmEmailList()
     },
     methods: {
+      handlerAlarmEmailSort(column){
+        this.alarmEmailOrderBy = column.key
+        this.alarmEmailOrderType = column.order === "asc" ? 0:1
+        this.queryAlarmEmailList()
+      },
       handlerAlarmEmailSearch() {
         this.queryAlarmEmailList()
       },
