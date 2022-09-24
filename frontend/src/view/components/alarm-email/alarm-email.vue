@@ -1,7 +1,7 @@
 <template>
   <div>
     <Card>
-      <Button @click="alarmEmailDrawerValue = true" type="primary">+增加邮箱</Button>
+      <Button @click="queryAlarmName" type="primary">+增加邮箱</Button>
       <Button class="ivu-btn-second" @click="deleteAlarmEmail" type="primary">-删除邮箱</Button>
       <Drawer
         title="添加邮箱"
@@ -13,14 +13,26 @@
         <Form :model="alarmEmailFormData">
           <Row :gutter="32">
             <Col span="12">
-              <FormItem label="Email" label-position="top">
-                <Input v-model="alarmEmailFormData.email" placeholder="please enter email"/>
+              <FormItem label="邮件" label-position="top">
+                <Input v-model="alarmEmailFormData.email" placeholder="请输入邮件"/>
+              </FormItem>
+              <FormItem label="手机号码" label-position="top">
+                <Input v-model="alarmEmailFormData.phoneNumber" placeholder="请输入手机号码"/>
+              </FormItem>
+              <FormItem label="报警名称" label-position="top">
+                <Select v-model="alarmEmailFormData.alarmName" multiple style="width:600px" placeholder="请选择报警名称">
+                  <Option v-for="item in alarmNameItem" :value="item.id" :key="item.id">{{ item.name }}</Option>
+                </Select>
               </FormItem>
             </Col>
           </Row>
-          <FormItem label="Description" label-position="top">
+          <FormItem label="报警详细信息关键字" label-position="top">
+            <Input v-model="alarmEmailFormData.alarmKeywords"
+                   placeholder="请输入报警详细信息关键字:   为空代表监控选中报警名称的所有报警"/>
+          </FormItem>
+          <FormItem label="备注" label-position="top">
             <Input type="textarea" v-model="alarmEmailFormData.desc" :rows="4"
-                   placeholder="please enter the description"/>
+                   placeholder="请输入备注信息"/>
           </FormItem>
         </Form>
         <div class="alarm-email-drawer-footer">
@@ -67,8 +79,12 @@
         },
         alarmEmailFormData: {
           email: '',
+          phoneNumber: '',
+          alarmName: '',
+          alarmKeywords: '',
           desc: ''
         },
+        alarmNameItem : [],
         alarmEmailSearchKey: '',
         alarmEmailSearchValue: '',
         alarmEmailPageTotal: 0,
@@ -77,7 +93,9 @@
         alarmEmailOrderBy: 'create_time',
         alarmEmailOrderType: 1,
         alarmEmailFilterColumns: [
-          {title: 'email', key: 'email'}
+          {title: '邮件', key: 'email'},
+          {title: '报警名称', key: 'alarm_name'},
+          {title: '报警详细关键字', key: 'alarm_detail_keywords'},
         ],
         alarmEmailColumns: [
           {
@@ -85,9 +103,12 @@
             width: 60,
             align: 'center'
           },
-          {title: 'email', key: 'email', sortable: 'custom'},
-          {title: 'desc', key: 'desc'},
-          {title: 'create_time', key: 'create_time', sortable: 'custom', sortType: "desc"}
+          {title: '邮件', key: 'email', sortable: 'custom'},
+          {title: '手机号', key: 'phone_number'},
+          {title: '报警名称', key: 'alarm_name'},
+          {title: '报警详细关键字', key: 'alarm_detail_keywords'},
+          {title: '备注', key: 'desc'},
+          {title: '创建时间', key: 'create_time', sortable: 'custom', sortType: "desc"}
         ],
         alarmEmailTableData: []
       }
@@ -123,6 +144,11 @@
             this.alarmEmailPageSize = res.data.data.size
           }
         })
+      },
+      queryAlarmName(){
+        // check data
+        this.alarmEmailDrawerValue = true
+
       },
       createAlarmEmail() {
         let email = this.alarmEmailFormData.email

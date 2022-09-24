@@ -363,7 +363,9 @@ def runserver_executor(func):
 
 
 def list_param_check_and_trans(params, order_type=0, order_by="account"):
+    dict_data = dict()
     page, size = params.get("page", "1"), params.get("size", "100")
+    # 1是降序， 0是升序
     order_type, order_by = params.get('order_type', order_type), params.get('order_by', order_by)
     if not page or not size:
         raise MgrException(ErrCode.STATUS_PARAMETER_ERROR)
@@ -374,18 +376,17 @@ def list_param_check_and_trans(params, order_type=0, order_by="account"):
     if int(page) < 1 or int(size) < 1:
         raise MgrException(ErrCode.STATUS_PARAMETER_ERROR)
 
-    params['page'], params['size'] = int(page), int(size)
-
+    dict_data['page'], dict_data['size'] = int(page), int(size)
+    dict_data['order_by'] = order_by
     if order_type:
         if not order_type.isdigit() or int(order_type) not in [0, 1]:
             raise MgrException(ErrCode.STATUS_PARAMETER_ERROR)
-        params['order_type'] = int(order_type)
+        dict_data['order_type'] = int(order_type)
     filter_name, filter_value = params.get("filter_name"), params.get("filter_value")
-    if filter_name:
-        params["filter_name"] = filter_name.strip()
-    if filter_value:
-        params["filter_value"] = filter_value.strip()
-    return params
+    if filter_name and filter_value:
+        dict_data["filter_name"] = filter_name.strip()
+        dict_data["filter_value"] = filter_value.strip()
+    return dict_data
 
 
 def get_max_page(total, size):

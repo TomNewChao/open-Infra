@@ -409,7 +409,7 @@ class EipMgr(ScanToolsMgr):
         elif filter_name and filter_name == "account":
             eip_list = HWCloudEipInfo.objects.filter(account__contains=filter_value)
         elif filter_name and filter_name == "eip_type":
-            filter_value = HWCloudEipStatus.get_comment_status().get(filter_value)
+            filter_value = HWCloudEipStatus.get_comment_status().get(filter_value, -1)
             eip_list = HWCloudEipInfo.objects.filter(eip_status__contains=filter_value)
         elif filter_name and filter_name == "eip_zone":
             eip_list = HWCloudEipInfo.objects.filter(eip_zone__contains=filter_value)

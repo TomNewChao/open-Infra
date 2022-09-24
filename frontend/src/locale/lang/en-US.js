@@ -63,7 +63,7 @@ export default {
   // alarm
   Alarm: 'AlarmNotification',
   alarm: 'Alarm',
-  alarm_email: 'AlarmEmail',
+  alarm_email: 'AlarmNotification',
 
   // monitor
   Monitor: "Monitor",
