@@ -54,9 +54,24 @@ class Alarm(BaseModel):
         return dict_data
 
 
+class AlarmNotify(BaseModel):
+    email = models.EmailField(unique=True)
+    phone_number = models.CharField(max_length=20, verbose_name="报警手机号", unique=True)
+    desc = models.CharField(max_length=255, verbose_name="报警Email信息")
+    create_time = models.DateTimeField(auto_created=True, verbose_name="创建时间")
+
+    class Meta:
+        db_table = "alarm_notify"
+        verbose_name = "报警通知"
+
+    def __str__(self):
+        return self.id
+
+
 class AlarmNotifyStrategy(BaseModel):
-    name = models.CharField(max_length=64, verbose_name="报警名字")
-    keywords = models.CharField(max_length=255, verbose_name="报警详细信息关键字", unique=True)
+    alarm_name = models.IntegerField(verbose_name="报警名字id")
+    alarm_keywords = models.CharField(max_length=255, verbose_name="报警详细信息关键字")
+    alarm_notify = models.ForeignKey(AlarmNotify, verbose_name="报警通知", on_delete=models.CASCADE)
 
     class Meta:
         db_table = "alarm_notify_strategy"
@@ -65,17 +80,3 @@ class AlarmNotifyStrategy(BaseModel):
     def __str__(self):
         return self.id
 
-
-class AlarmNotify(BaseModel):
-    email = models.EmailField(unique=True)
-    phone_number = models.IntegerField(verbose_name="报警手机号", unique=True)
-    desc = models.CharField(max_length=255, verbose_name="报警Email信息")
-    create_time = models.DateTimeField(auto_created=True, verbose_name="创建时间")
-    alarm_strategy = models.ForeignKey(AlarmNotifyStrategy, on_delete=models.CASCADE)
-
-    class Meta:
-        db_table = "alarm_notify"
-        verbose_name = "报警通知"
-
-    def __str__(self):
-        return self.id

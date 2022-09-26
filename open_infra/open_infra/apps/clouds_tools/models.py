@@ -46,7 +46,7 @@ class HWCloudEipInfo(BaseModel):
     example_name = models.CharField(max_length=64, null=True, verbose_name="实例name")
     example_type = models.CharField(max_length=32, null=True, verbose_name="实例type")
     create_time = models.DateTimeField(verbose_name="创建时间")
-    refresh_time = models.DateTimeField(verbose_name="刷新时间", default=datetime.datetime.now())
+    refresh_time = models.DateTimeField(verbose_name="刷新时间")
     account = models.CharField(max_length=32, verbose_name="华为云账户名称")  # not use FK, for refresh data
 
     def to_dict(self, fields=None, exclude=None, is_relate=False):

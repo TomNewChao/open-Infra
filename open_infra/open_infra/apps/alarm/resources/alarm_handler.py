@@ -3,12 +3,12 @@
 # @Author  : Tom_zc
 # @FileName: alarm_handler.py
 # @Software: PyCharm
-import json
 import math
 import traceback
 import requests
 import logging
 
+from alarm.resources.alarm_module.alarm_thread import AlarmTools
 from alarm.resources.alarm_module.constants import AlarmType
 
 logger = logging.getLogger("django")
@@ -41,7 +41,7 @@ class AlarmBaseHandler(object):
     @classmethod
     def get_container_alarm_info(cls, query, alarm_threshold, alarm_code):
         try:
-            alarm_list_data = list()
+            alarm_list_data, alarm_md5_data = list(), list()
             list_data = cls.get_metrics_data(query)
             for metrics_dict in list_data:
                 if metrics_dict["value"][1] in ["-Inf", "NaN", "+Inf"]:
@@ -89,16 +89,18 @@ class AlarmBaseHandler(object):
                             "des_var": [name, "{}%".format(alarm_threshold)],
                         }
                     }
+                alarm_md5 = AlarmTools.gen_alarm_md5(alarm_info_dict["alarm_info_dict"])
+                alarm_md5_data.append(alarm_md5)
                 alarm_list_data.append(alarm_info_dict)
-            return alarm_list_data
+            return alarm_list_data, alarm_md5_data
         except Exception as e:
             logger.error("[get_container_alarm_info] e:{}, traceback:{}".format(e, traceback.format_exc()))
-            return list()
+            return list(), list()
 
     @classmethod
     def get_node_alarm_info(cls, query, alarm_threshold, alarm_code):
         try:
-            alarm_list_data = list()
+            alarm_list_data, alarm_md5_data = list(), list()
             list_data = cls.get_metrics_data(query)
             for metrics_dict in list_data:
                 if metrics_dict["value"][1] in ["-Inf", "NaN", "+Inf"]:
@@ -129,8 +131,10 @@ class AlarmBaseHandler(object):
                             "des_var": [name, "{}%".format(alarm_threshold)],
                         }
                     }
+                alarm_md5 = AlarmTools.gen_alarm_md5(alarm_info_dict["alarm_info_dict"])
+                alarm_md5_data.append(alarm_md5)
                 alarm_list_data.append(alarm_info_dict)
-            return alarm_list_data
+            return alarm_list_data, alarm_md5_data
         except Exception as e:
             logger.error("[get_node_alarm_info] e:{}, traceback:{}".format(e, traceback.format_exc()))
-            return list()
+            return list(), list()

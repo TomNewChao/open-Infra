@@ -10,7 +10,7 @@ import datetime
 from email.mime.text import MIMEText
 from email.header import Header
 
-from alarm.models import Alarm, AlarmNotify, AlarmNotifyStrategy
+from alarm.models import Alarm, AlarmNotifyStrategy
 from alarm.resources.alarm_module.alarm_code import AlarmCode, AlarmLevel, AlarmModule
 from alarm.resources.alarm_module.constants import AlarmType
 from django.conf import settings
@@ -205,25 +205,26 @@ class AlarmServer(object):
         email_list, phone_number_list = list(), list()
         try:
             if alarm_info_dict["alarm_id"] < AlarmServerConfig.AlarmBaseCode:
-                alarm_notify_strategy_list = AlarmNotifyStrategy.objects.filter(name=alarm_info_dict["alarm_name"])
-                alarm_notify_strategy_ids_list = list()
+                # 下面的可能有多条数据
+                alarm_notify_strategy_list = AlarmNotifyStrategy.objects.filter(alarm_name=alarm_info_dict["alarm_name"])
                 for alarm_info in alarm_notify_strategy_list:
                     alarm = Alarm.objects.filter(alarm_md5=alarm_info_dict["alarm_md5"]).filter(
                         alarm_name=alarm_info_dict["alarm_name"])
                     if alarm_info.keywords:
                         alarm = alarm.filter(alarm_details__contains=alarm_info.keywords)
                     if len(alarm):
-                        alarm_notify_strategy_ids_list.append(alarm.id)
-                alarm_notify_list = AlarmNotify.objects.filter(
-                    alarm_strategy_id__in=alarm_notify_strategy_ids_list).values_list("email", "phone_number")
+                        email_list.append(alarm_info.alarm_notify.email)
+                        phone_number_list.append(alarm_info.alarm_notify.phone_number)
             else:
-                alarm_notify_list = AlarmNotify.objects.filter(
-                    alarm_strategy__name=alarm_info_dict["alarm_name"]).values_list("email", "phone_number")
-            for alarm_notify_info in alarm_notify_list:
-                if alarm_notify_info.email:
-                    email_list.append(alarm_notify_info.email)
-                if alarm_notify_info.phone_number:
-                    phone_number_list.append(alarm_notify_info.phone_number)
+                alarm_notify_list = AlarmNotifyStrategy.objects.filter(
+                    alarm_name=alarm_info_dict["alarm_name"]).values("alarm_notify__email", "alarm_notify__phone_number")
+                for alarm_notify_info in alarm_notify_list:
+                    if alarm_notify_info.alarm_notify__email:
+                        email_list.append(alarm_notify_info.alarm_notify__email)
+                    if alarm_notify_info.alarm_notify__phone_number:
+                        phone_number_list.append(alarm_notify_info.alarm_notify__phone_number)
+            email_list = list(set(email_list))
+            phone_number_list = list(set(phone_number_list))
         except Exception as e:
             logger.error("[alarm_notify_work_thread] find email or phone number error:{}".format(e))
         try:
@@ -256,7 +257,7 @@ class AlarmServer(object):
             if len(alarm_list):
                 cur_timestamps = int(time.time())
                 create_datetime = alarm_list[0].alarm_happen_time
-                create_timestamps = int(time.mktime(time.strptime(create_datetime, '%Y-%m-%d %H:%M:%S')))
+                create_timestamps = int(time.mktime(create_datetime.timetuple()))
                 if cur_timestamps - create_timestamps >= settings.ALARM_DELAY * 60:
                     refresh_datetime = datetime.datetime.now()
                     Alarm.objects.filter(alarm_md5=md5_id).update(alarm_refresh_time=refresh_datetime,
