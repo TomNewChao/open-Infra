@@ -39,9 +39,9 @@
         alarmOrderBy: 'alarm_refresh_time',
         alarmOrderType: 1,
         alarmFilterColumns: [
-          {title: '报警模块', key: 'alarm_module'},
           {title: '报警名称', key: 'alarm_name'},
           {title: '报警详细信息', key: 'alarm_details'},
+          {title: '报警级别', key: 'alarm_level'},
         ],
         alarmColumns: [
           {

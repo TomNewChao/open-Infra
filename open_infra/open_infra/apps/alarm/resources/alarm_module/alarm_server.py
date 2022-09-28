@@ -10,8 +10,10 @@ import datetime
 from email.mime.text import MIMEText
 from email.header import Header
 
+from django.utils import timezone
+
 from alarm.models import Alarm, AlarmNotifyStrategy
-from alarm.resources.alarm_module.alarm_code import AlarmCode, AlarmLevel, AlarmModule
+from alarm.resources.alarm_module.alarm_code import AlarmCode, AlarmLevel, AlarmModule, AlarmName
 from alarm.resources.alarm_module.constants import AlarmType
 from django.conf import settings
 
@@ -37,20 +39,20 @@ class AlarmServerTools:
         alarm = dict()
         alarm['alarm_id'] = params.get('alarm_id')
         alarm['alarm_level'] = alarm_resource.get('ALARM_LEVEL')
-        alarm['alarm_name'] = alarm_resource.get('ALARM_NAME')
+        alarm['alarm_name'] = AlarmName.get_alarm_name_by_id(alarm_resource.get('ALARM_NAME'))
         alarm['alarm_module'] = alarm_resource.get('ALARM_MODULE')
         alarm['alarm_details'] = self._trans_str(alarm_resource.get('ALARM_CONTENT'))
         alarm['alarm_md5'] = params.get('md5')
-        cur_date = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        alarm['alarm_happen_time'] = cur_date
-        alarm['alarm_refresh_time'] = cur_date
+        # cur_date = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        alarm['alarm_happen_time'] = timezone.now()
+        alarm['alarm_refresh_time'] = timezone.now()
         return alarm
 
     def get_update_level_format(self, params):
         alarm_resource = AlarmCode.trans_to_des_by_str(params.get('alarm_id'), params.get('des_var'))
         alarm = dict()
         alarm['alarm_id'] = params.get('alarm_id')
-        alarm['alarm_name'] = alarm_resource.get('ALARM_NAME')
+        alarm['alarm_name'] = AlarmName.get_alarm_name_by_id(alarm_resource.get('ALARM_NAME'))
         alarm['alarm_module'] = alarm_resource.get('ALARM_MODULE')
         alarm['alarm_details'] = self._trans_str(alarm_resource.get('ALARM_CONTENT'))
         alarm['alarm_md5'] = params.get('md5')
@@ -197,7 +199,7 @@ class AlarmServer(object):
         """
         # 1.start to modify mysql
         Alarm.objects.filter(alarm_md5=md5_id).filter(is_recover=False).update(is_recover=True,
-                                                                               alarm_recover_time=datetime.datetime.now())
+                                                                               alarm_recover_time=timezone.now())
         # 2.send email?
         return True
 
@@ -205,19 +207,24 @@ class AlarmServer(object):
         email_list, phone_number_list = list(), list()
         try:
             if alarm_info_dict["alarm_id"] < AlarmServerConfig.AlarmBaseCode:
-                # 下面的可能有多条数据
-                alarm_notify_strategy_list = AlarmNotifyStrategy.objects.filter(alarm_name=alarm_info_dict["alarm_name"])
+                alarm_name_id = AlarmName.get_alarm_name_id_by_name(alarm_info_dict["alarm_name"])
+                alarm_notify_strategy_list = AlarmNotifyStrategy.objects.filter(alarm_name=alarm_name_id)
                 for alarm_info in alarm_notify_strategy_list:
-                    alarm = Alarm.objects.filter(alarm_md5=alarm_info_dict["alarm_md5"]).filter(
-                        alarm_name=alarm_info_dict["alarm_name"])
-                    if alarm_info.keywords:
-                        alarm = alarm.filter(alarm_details__contains=alarm_info.keywords)
+                    alarm = Alarm.objects.filter(alarm_md5=alarm_info_dict["alarm_md5"]).filter(alarm_name=alarm_info_dict["alarm_name"])
+                    if alarm_info.alarm_keywords:
+                        logger.info("[alarm_notify_work_thread] alarm keywords:{}".format(alarm_info.alarm_keywords))
+                        keywords_list = alarm_info.alarm_keywords.split(",")
+                        for keywords in keywords_list:
+                            if keywords:
+                                logger.error("data11111111111111110 is {}".format(keywords))
+                                alarm = alarm.filter(alarm_details__contains=keywords)
+                    logger.error("data11111111111111111 is {}".format(len(alarm)))
                     if len(alarm):
                         email_list.append(alarm_info.alarm_notify.email)
                         phone_number_list.append(alarm_info.alarm_notify.phone_number)
             else:
-                alarm_notify_list = AlarmNotifyStrategy.objects.filter(
-                    alarm_name=alarm_info_dict["alarm_name"]).values("alarm_notify__email", "alarm_notify__phone_number")
+                alarm_name_id = AlarmName.get_alarm_name_id_by_name(alarm_info_dict["alarm_name"])
+                alarm_notify_list = AlarmNotifyStrategy.objects.filter(alarm_name=alarm_name_id).values("alarm_notify__email", "alarm_notify__phone_number")
                 for alarm_notify_info in alarm_notify_list:
                     if alarm_notify_info.alarm_notify__email:
                         email_list.append(alarm_notify_info.alarm_notify__email)
@@ -225,6 +232,7 @@ class AlarmServer(object):
                         phone_number_list.append(alarm_notify_info.alarm_notify__phone_number)
             email_list = list(set(email_list))
             phone_number_list = list(set(phone_number_list))
+            logger.error("data is {}".format(email_list, phone_number_list))
         except Exception as e:
             logger.error("[alarm_notify_work_thread] find email or phone number error:{}".format(e))
         try:
@@ -239,9 +247,9 @@ class AlarmServer(object):
             logger.error("[alarm_notify_work_thread] alarm sms:{}".format(e))
 
     def alarm_notify(self, alarm_info_dict):
-        if int(alarm_info_dict.get('alarm_level')) > int(settings.ALARM_EMAIL_DEFAULT_LEVEL):
-            return
-        threading.Thread(target=self.alarm_notify_work_thread, args=(alarm_info_dict,)).start()
+        """start a thread to execute func alarm_notify_work_thread"""
+        t = threading.Thread(target=self.alarm_notify_work_thread, args=(alarm_info_dict,))
+        t.start()
 
     def appear_alarm(self, params):
         """
@@ -258,8 +266,9 @@ class AlarmServer(object):
                 cur_timestamps = int(time.time())
                 create_datetime = alarm_list[0].alarm_happen_time
                 create_timestamps = int(time.mktime(create_datetime.timetuple()))
-                if cur_timestamps - create_timestamps >= settings.ALARM_DELAY * 60:
-                    refresh_datetime = datetime.datetime.now()
+                is_level_gt_major = int(alarm_list[0].alarm_level) > int(settings.ALARM_EMAIL_DEFAULT_LEVEL)
+                if cur_timestamps - create_timestamps >= settings.ALARM_DELAY * 60 and is_level_gt_major:
+                    refresh_datetime = timezone.now()
                     Alarm.objects.filter(alarm_md5=md5_id).update(alarm_refresh_time=refresh_datetime,
                                                                   alarm_level=AlarmLevel.MAJOR)
                     dict_data = self.alarm_server_tools.get_update_level_format(params)
@@ -268,14 +277,14 @@ class AlarmServer(object):
                     dict_data["alarm_refresh_time"] = refresh_datetime
                     self.alarm_notify(dict_data)
                 else:
-                    Alarm.objects.filter(alarm_md5=md5_id).update(alarm_refresh_time=datetime.datetime.now())
+                    Alarm.objects.filter(alarm_md5=md5_id).update(alarm_refresh_time=timezone.now())
             else:
                 logger.info("[appear_alarm] params:{}, alarm:{}".format(params, len(alarm_list)))
                 dict_data = self.alarm_server_tools.get_format_alarm(params)
                 Alarm.objects.create(**dict_data)
         else:
             if len(alarm_list):
-                Alarm.objects.filter(alarm_md5=md5_id).update(alarm_refresh_time=datetime.datetime.now())
+                Alarm.objects.filter(alarm_md5=md5_id).update(alarm_refresh_time=timezone.now())
             else:
                 logger.info("[appear_alarm] params:{}, alarm:{}".format(params, len(alarm_list)))
                 dict_data = self.alarm_server_tools.get_format_alarm(params)

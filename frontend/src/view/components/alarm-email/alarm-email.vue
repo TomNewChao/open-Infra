@@ -1,11 +1,11 @@
 <template>
   <div>
     <Card>
-      <Button @click="queryAlarmName" type="primary">+增加告警通知</Button>
-      <Button class="ivu-btn-second" @click="deleteAlarmEmail" type="primary">-删除告警通知</Button>
-      <Button class="ivu-btn-third" @click="putAlarmEmail" type="primary"> 修改告警通知</Button>
+      <Button class="ivu-btn-one" @click="queryAlarmName" type="primary">+增加告警通知</Button>
+      <Button class="ivu-btn-second" @click="deleteAlarmNotify" type="primary">-删除告警通知</Button>
+      <Button class="ivu-btn-third" @click="getAlarmNotify" type="primary"> 修改告警通知</Button>
       <Drawer
-        title="添加邮箱"
+        title="添加邮件通知"
         v-model="alarmEmailDrawerValue"
         width="720"
         :mask-closable="false"
@@ -38,9 +38,47 @@
         </Form>
         <div class="alarm-email-drawer-footer">
           <Button style="margin-right: 8px" @click="clearAlarmEmailContent">Cancel</Button>
-          <Button type="primary" @click="createAlarmEmail">Submit</Button>
+          <Button type="primary" @click="createAlarmNotify">Submit</Button>
         </div>
       </Drawer>
+      <Drawer
+        title="修改邮件通知"
+        v-model="alarmNotifyDrawerValue"
+        width="720"
+        :mask-closable="false"
+        :styles="alarmEmailDrawerStyles"
+      >
+        <Form :model="alarmEmailFormData">
+          <Row :gutter="32">
+            <Col span="12">
+              <FormItem label="邮件" label-position="top">
+                <Input v-model="alarmEmailFormData.email" placeholder="请输入邮件"/>
+              </FormItem>
+              <FormItem label="手机号码" label-position="top">
+                <Input v-model="alarmEmailFormData.phoneNumber" placeholder="请输入手机号码"/>
+              </FormItem>
+              <FormItem label="报警名称" label-position="top">
+                <Select v-model="alarmEmailFormData.alarmName" multiple style="width:690px" placeholder="请选择报警名称">
+                  <Option v-for="item in alarmNameItem" :value="item.value" :key="item.value">{{ item.name }}</Option>
+                </Select>
+              </FormItem>
+            </Col>
+          </Row>
+          <FormItem label="报警详细信息关键字" label-position="top">
+            <Input v-model="alarmEmailFormData.alarmKeywords"
+                   placeholder="请输入报警详细信息关键字:   为空代表监控选中报警名称的所有报警"/>
+          </FormItem>
+          <FormItem label="备注" label-position="top">
+            <Input type="textarea" v-model="alarmEmailFormData.desc" :rows="4"
+                   placeholder="请输入备注信息"/>
+          </FormItem>
+        </Form>
+        <div class="alarm-email-drawer-footer">
+          <Button style="margin-right: 8px" @click="clearAlarmEmailContent">Cancel</Button>
+          <Button type="primary" @click="putAlarmNotify">Submit</Button>
+        </div>
+      </Drawer>
+
       <div class="alarm-email-search-con search-con-top">
         <Select v-model="alarmEmailSearchKey" class="search-col">
           <Option v-for="item in alarmEmailFilterColumns" :value="item.key" :key="item.key">{{ item.title }}</Option>
@@ -68,7 +106,7 @@ import {
   alarmNotifyListApi,
   alarmNotifyPostApi,
   alarmNameGetApi,
-  alarmNotifyGetApi
+  alarmNotifyGetApi, alarmNotifyPutApi
 } from '@/api/tools'
 
 export default {
@@ -78,6 +116,8 @@ export default {
   },
   data() {
     return {
+      putSelectId: 0,
+      alarmNotifyDrawerValue: false,
       alarmEmailDrawerValue: false,
       alarmEmailDrawerStyles: {
         height: 'calc(100% - 55px)',
@@ -163,7 +203,7 @@ export default {
         }
       })
     },
-    createAlarmEmail() {
+    createAlarmNotify() {
       let email = this.alarmEmailFormData.email
       let desc = this.alarmEmailFormData.desc
       let phone = this.alarmEmailFormData.phoneNumber
@@ -194,14 +234,14 @@ export default {
     },
     clearAlarmEmailContent() {
       this.alarmEmailDrawerValue = false
-      this.alarmEmailDrawerValue = false
+      this.alarmNotifyDrawerValue = false
       this.alarmEmailFormData.email = ''
       this.alarmEmailFormData.desc = ''
       this.alarmEmailFormData.phoneNumber = ''
       this.alarmEmailFormData.alarmName = []
       this.alarmEmailFormData.alarmKeywords = ''
     },
-    deleteAlarmEmail() {
+    deleteAlarmNotify() {
       let selectEmailArray = this.$refs.selection.getSelection()
       let selectEmailList = []
       for (let i = 0; i < selectEmailArray.length; i++) {
@@ -218,7 +258,7 @@ export default {
         })
       }
     },
-    putAlarmEmail() {
+    getAlarmNotify() {
       let selectNotifyArray = this.$refs.selection.getSelection()
       let selectNotifyList = []
       for (let i = 0; i < selectNotifyArray.length; i++) {
@@ -235,16 +275,49 @@ export default {
             this.$Message.info(res.data.description)
           } else {
             let respData = res.data.data
+            this.putSelectId = respData.id
             this.alarmEmailFormData.email = respData.email
             this.alarmEmailFormData.phoneNumber = respData.phone_number
             this.alarmEmailFormData.desc = respData.desc
             this.alarmNameItem = respData.default_alarm_name
             this.alarmEmailFormData.alarmName = respData.alarm_name
             this.alarmEmailFormData.alarmKeywords = respData.alarm_keywords
-            this.alarmEmailDrawerValue = true
+            this.alarmNotifyDrawerValue = true
           }
         })
       }
+    },
+    putAlarmNotify() {
+      let email = this.alarmEmailFormData.email
+      let desc = this.alarmEmailFormData.desc
+      let phone = this.alarmEmailFormData.phoneNumber
+      let name = this.alarmEmailFormData.alarmName
+      let keywords = this.alarmEmailFormData.alarmKeywords
+      let id = this.putSelectId
+      let phoneReg = /^1(3[0-9]|4[579]|5[0-3,5-9]|6[6]|7[0135678]|8[0-9]|9[89])\d{8}$/
+      if (!phoneReg.test(phone)) {
+        this.$Message.info("请输入正确的手机号")
+        return
+      }
+      let emailReg = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/
+      if (!emailReg.test(email)) {
+        this.$Message.info("请输入正确的邮箱")
+        return
+      }
+      alarmNotifyPutApi(phone, email, desc, name, keywords, id).then(res => {
+        if (res.data.err_code === 0) {
+          this.queryAlarmEmailList()
+        }
+        this.$Message.info(res.data.description)
+      })
+      this.putSelectId = 0
+      this.alarmNotifyDrawerValue = false
+      this.alarmEmailFormData.email = ''
+      this.alarmEmailFormData.desc = ''
+      this.alarmEmailFormData.phoneNumber = ''
+      this.alarmEmailFormData.alarmName = []
+      this.alarmEmailFormData.alarmKeywords = ''
+
     }
   }
 }
@@ -264,6 +337,10 @@ export default {
   padding: 10px 16px;
   text-align: right;
   background: #fff;
+}
+
+.ivu-btn-one {
+  margin-left: 20px;
 }
 
 .ivu-btn-second {

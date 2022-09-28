@@ -64,6 +64,50 @@ class AlarmNotifyView(AuthView):
             return assemble_api_result(ErrCode.INTERNAL_ERROR)
         return assemble_api_result(ErrCode.STATUS_SUCCESS, data=dict_data)
 
+    def put(self, request):
+        dict_data = json.loads(request.body)
+        email = dict_data.get("email")
+        phone_number = dict_data.get("phone")
+        alarm_name_list = dict_data.get("name")
+        keywords = dict_data.get("keywords")
+        desc = dict_data.get("desc")
+        alarm_notify_id = dict_data.get("id")
+        if email and not re.match(r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)", email):
+            logger.error("email is invalid:{}".format(email))
+            return assemble_api_result(ErrCode.STATUS_PARAMETER_ERROR)
+        if phone_number and not re.match(r"^1(3[0-9]|4[579]|5[0-3,5-9]|6[6]|7[0135678]|8[0-9]|9[89])\d{8}$",
+                                         phone_number):
+            logger.error("phone number invalid:{}".format(phone_number))
+            return assemble_api_result(ErrCode.STATUS_PARAMETER_ERROR)
+        if not len(email) and not len(phone_number):
+            logger.error("phone number and email is empty")
+            return assemble_api_result(ErrCode.STATUS_PARAMETER_ERROR)
+        if not isinstance(alarm_name_list, list):
+            logger.error("alarm name list must be list")
+            return assemble_api_result(ErrCode.STATUS_PARAMETER_ERROR)
+        for alarm_name_id in alarm_name_list:
+            if not AlarmName.get_alarm_name_by_id(alarm_name_id):
+                logger.error("alarm name is invalid：{}".format(alarm_name_list))
+                return assemble_api_result(ErrCode.STATUS_PARAMETER_ERROR)
+        if len(desc) > 255:
+            return assemble_api_result(ErrCode.STATUS_PARAMETER_ERROR)
+        try:
+            alarm_notify_obj = AlarmNotify.objects.get(id=alarm_notify_id)
+            with transaction.atomic():
+                AlarmNotify.objects.filter(id=alarm_notify_id).update(
+                    email=email, phone_number=phone_number, desc=desc,
+                )
+                AlarmNotifyStrategy.objects.filter(alarm_notify_id=alarm_notify_id).delete()
+                for alarm_name in alarm_name_list:
+                    AlarmNotifyStrategy.objects.create(alarm_name=alarm_name, alarm_keywords=keywords,
+                                                       alarm_notify=alarm_notify_obj)
+        except AlarmNotify.DoesNotExist as e:
+            return assemble_api_result(ErrCode.STATUS_ALARM_EMAIL_NOT_EXIST)
+        except Exception as e:
+            logger.info("[AlarmEmailView] {}, {}".format(e, traceback.format_exc()))
+            return assemble_api_result(ErrCode.INTERNAL_ERROR)
+        return assemble_api_result(ErrCode.STATUS_SUCCESS)
+
     def post(self, request):
         dict_data = json.loads(request.body)
         email = dict_data.get("email")

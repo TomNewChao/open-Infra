@@ -7,6 +7,8 @@ import datetime
 import threading
 import traceback
 
+from django.utils import timezone
+
 from alarm.models import Alarm
 from alarm.resources.alarm_module.alarm_server import AlarmServer
 from alarm.resources.alarm_module.common import calc_next_run_time
@@ -206,7 +208,7 @@ class AlarmTools(object):
     # noinspection PyMethodMayBeStatic
     def recover_alarm(self, alarm_ids):
         Alarm.objects.filter(alarm_md5__in=alarm_ids).update(is_recover=True,
-                                                             alarm_recover_time=datetime.datetime.now())
+                                                             alarm_recover_time=timezone.now())
         for alarm_str in alarm_ids:
             if alarm_str in AlarmGlobalConfig.ALARM_STATUS_DICT.keys():
                 del AlarmGlobalConfig.ALARM_STATUS_DICT[alarm_str]

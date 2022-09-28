@@ -175,6 +175,17 @@ export const alarmNotifyPostApi = (phone, email, desc, name, keywords) => {
   })
 }
 
+// Alarm notify put
+export const alarmNotifyPutApi = (phone, email, desc, name, keywords, id) => {
+  return axios.request({
+    url: '/api/alarm/alarm_notify',
+    method: 'put',
+    data: {
+      phone, email, desc, name, keywords, id
+    }
+  })
+}
+
 
 // Alarm notify get single alarmNotify
 export const alarmNotifyGetApi = (id) => {

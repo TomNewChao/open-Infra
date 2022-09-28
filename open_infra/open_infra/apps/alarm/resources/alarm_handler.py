@@ -8,6 +8,7 @@ import traceback
 import requests
 import logging
 
+from collections import defaultdict
 from alarm.resources.alarm_module.alarm_thread import AlarmTools
 from alarm.resources.alarm_module.constants import AlarmType
 
@@ -18,6 +19,7 @@ class AlarmHandlerConfig(object):
     container_cpu_query = "{}/api/v1/query?query=container_cpu_usage_rate&time={}"
     container_mem_query = "{}/api/v1/query?query=container_mem_usage_rate&time={}"
     container_fs_query = "{}/api/v1/query?query=container_fs_usage_rate&time={}"
+    container_res_count_query = "{}/api/v1/query?query=container_cpu_usage_seconds_total&time={}"
     node_cpu_query = "{}/api/v1/query?query=node_cpu_seconds_total&time={}"
     node_mem_query = "{}/api/v1/query?query=node_memory_MemUsed&time={}"
     node_fs_query = "{}/api/v1/query?query=node_filesystem_usage_rate&time={}"
@@ -138,3 +140,42 @@ class AlarmBaseHandler(object):
         except Exception as e:
             logger.error("[get_node_alarm_info] e:{}, traceback:{}".format(e, traceback.format_exc()))
             return list(), list()
+
+    @classmethod
+    def get_container_count_info(cls, query, alarm_threshold, alarm_code):
+        try:
+            count_server_count = defaultdict(int)
+            alarm_list_data = list()
+            list_data = cls.get_metrics_data(query)
+            for metrics_dict in list_data:
+                account = metrics_dict["metric"].get("account")
+                cluster = metrics_dict["metric"].get("cluster")
+                namespace = metrics_dict["metric"].get("namespace")
+                pod = metrics_dict["metric"].get("pod")
+                if not (account and cluster and pod and namespace):
+                    logger.info("[get_container_count_info] get fault data:{},{},{},{}".format(account, cluster, namespace, pod))
+                if pod.startswith("res"):
+                    key = "{}/{}/{}".format(account, cluster, namespace)
+                    count_server_count[key] += 1
+            for name, value in count_server_count.items():
+                if value >= alarm_threshold:
+                    alarm_info_dict = {
+                        "alarm_type": AlarmType.ALARM,
+                        "alarm_info_dict": {
+                            "alarm_id": alarm_code,
+                            "des_var": [name, "{}".format(alarm_threshold)],
+                        }
+                    }
+                else:
+                    alarm_info_dict = {
+                        "alarm_type": AlarmType.RECOVER,
+                        "alarm_info_dict": {
+                            "alarm_id": alarm_code,
+                            "des_var": [name, "{}".format(alarm_threshold)],
+                        }
+                    }
+                alarm_list_data.append(alarm_info_dict)
+            return alarm_list_data
+        except Exception as e:
+            logger.error("[get_container_count_info] e:{}, traceback:{}".format(e, traceback.format_exc()))
+            return list()

@@ -1,6 +1,6 @@
 import logging
 from alarm.models import Alarm, AlarmNotify, AlarmNotifyStrategy
-from alarm.resources.alarm_module.alarm_code import AlarmName, AlarmModule
+from alarm.resources.alarm_module.alarm_code import AlarmName, AlarmModule, AlarmLevel
 from open_infra.utils.common import get_suitable_range
 
 logger = logging.getLogger("django")
@@ -59,9 +59,9 @@ class AlarmMgr:
         filter_value = kwargs.get("filter_value")
         if filter_name and filter_name == "alarm_name":
             eip_list = Alarm.objects.filter(alarm_name__contains=filter_value).filter(is_recover=False)
-        elif filter_name and filter_name == "alarm_module":
-            filter_value = AlarmModule.get_alarm_module_id_by_name(filter_value)
-            eip_list = Alarm.objects.filter(alarm_module__contains=filter_value).filter(is_recover=False)
+        elif filter_name and filter_name == "alarm_level":
+            filter_value = AlarmLevel.get_alarm_level_id_by_name(filter_value)
+            eip_list = Alarm.objects.filter(alarm_level=filter_value).filter(is_recover=False)
         elif filter_name and filter_name == "alarm_details":
             eip_list = Alarm.objects.filter(alarm_details__contains=filter_value).filter(is_recover=False)
         else:
