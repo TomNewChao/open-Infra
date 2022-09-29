@@ -6,6 +6,8 @@ import hashlib
 import datetime
 import threading
 import traceback
+
+from alarm.models import Alarm
 from alarm.resources.alarm_module.alarm_server import AlarmServer
 from alarm.resources.alarm_module.common import calc_next_run_time
 from alarm.resources.alarm_module.task import get_all_alarm_fun
@@ -36,11 +38,18 @@ class AlarmTools(object):
 
     def __new__(cls, *args, **kwargs):
         if cls._instance is None:
-            cls._instance = object.__new__(cls, *args, **kwargs)
+            cls._instance = object.__new__(cls)
         return cls._instance
 
     def __init__(self):
         self.server = AlarmServer()
+
+    @staticmethod
+    def get_alarm_md5(alarm_name, alarm_md5_list):
+        """获取未恢复的报警"""
+        alarm_list = Alarm.objects.filter(alarm_name=alarm_name).filter(is_recover=False).values("alarm_md5")
+        exist_alarm_list = [alarm_dict["alarm_md5"] for alarm_dict in alarm_list]
+        return list(set(exist_alarm_list) - set(alarm_md5_list))
 
     @staticmethod
     def get_run_min_interval(min_run_time):
@@ -195,6 +204,15 @@ class AlarmTools(object):
                     return True
         return True
 
+    # noinspection PyMethodMayBeStatic
+    def recover_alarm(self, alarm_md5_list):
+        for alarm_md5_str in alarm_md5_list:
+            self.server.recover_alarm(alarm_md5_str)
+            if alarm_md5_str in AlarmGlobalConfig.ALARM_STATUS_DICT.keys():
+                del AlarmGlobalConfig.ALARM_STATUS_DICT[alarm_md5_str]
+            if alarm_md5_str in AlarmGlobalConfig.RETRY_NEED_TASK_DICT.keys():
+                del AlarmGlobalConfig.RETRY_NEED_TASK_DICT[alarm_md5_str]
+
     def exec_alarm_obj(self, alarm_obj):
         """根据参数判断告警类型，在内存中添加告警状态，告警状态判断通过的，将消息传入队列中"""
         if isinstance(alarm_obj, dict):
@@ -220,8 +238,39 @@ def active_alarm(alarm_dict):
         logger.debug("[active_alarm]:{}".format(alarm_dict))
         base_obj.exec_alarm_obj(alarm_dict)
     except Exception as e:
-        logger.error("[active_alarm] fail")
-        logger.error(e, exc_info=True)
+        logger.error("[active_alarm] fail:{}".format(e))
+        return False
+    return True
+
+
+def batch_recover_alarm(alarm_md5_list):
+    """批量手动消除报警
+    @param alarm_md5_list: ["md5_list"]
+    @return:
+    """
+    try:
+        if not alarm_md5_list:
+            return True
+        base_obj = AlarmTools()
+        base_obj.recover_alarm(alarm_md5_list)
+    except Exception as e:
+        logger.error("[batch_recover_alarm] fail:{}".format(e))
+        return False
+    return True
+
+
+def batch_recover_faded_alarm(alarm_name, alarm_md5_list):
+    """针对于在报警中里面消逝的报警，进行手动恢复
+    @param alarm_name: 报警名称
+    @param alarm_md5_list: 报警md5列表
+    @return:
+    """
+    try:
+        base_obj = AlarmTools()
+        alarm_md5_list = base_obj.get_alarm_md5(alarm_name, alarm_md5_list)
+        batch_recover_alarm(alarm_md5_list)
+    except Exception as e:
+        logger.error("[batch_recover_faded_alarm] fail:{}".format(e))
         return False
     return True
 
@@ -367,7 +416,8 @@ class AlarmClient(threading.Thread):
                     min_next_run_time = AlarmGlobalConfig.TASK_LIST[0]['run_time']
                     status = AlarmGlobalConfig.TASK_LIST[0]['run_status']
                     if status:
-                        logger.info("[AlarmClient] {} task is running".format(AlarmGlobalConfig.TASK_LIST[0]['func_obj']))
+                        logger.info(
+                            "[AlarmClient] {} task is running".format(AlarmGlobalConfig.TASK_LIST[0]['func_obj']))
                         min_next_run_time = datetime.datetime.max
                     copy_task_list = AlarmGlobalConfig.TASK_LIST[1:]
                     for task_dict in copy_task_list:

@@ -134,38 +134,6 @@ export const exportSlaData = () => {
 }
 
 // Alarm
-export const alarmEmailPostApi = (email, desc) => {
-  return axios.request({
-    url: '/api/alarm/alarm_email',
-    method: 'post',
-    data: {
-      email, desc
-    }
-  })
-}
-
-
-export const alarmEmailDeletePostApi = (email_list) => {
-  return axios.request({
-    url: '/api/alarm/alarm_email_list',
-    method: 'post',
-    data: {
-      email_list
-    }
-  })
-}
-
-export const alarmEmailListApi = (page, size, order_by, order_type, filter_name, filter_value) => {
-  return axios.request({
-    url: '/api/alarm/alarm_email_list',
-    method: 'get',
-    params: {
-      page, size, order_by, order_type, filter_name, filter_value
-    }
-  })
-}
-
-
 export const AlarmListApi = (page, size, order_by, order_type, filter_name, filter_value) => {
   return axios.request({
     url: '/api/alarm/alarm',
@@ -186,3 +154,72 @@ export const batchDeleteAlarmPostApi = (alarm_ids) => {
     }
   })
 }
+
+// Alarm Notify
+export const alarmNameGetApi = () => {
+  return axios.request({
+      url: '/api/alarm/alarm_name',
+      method: 'GET'
+    }
+  )
+}
+
+// Alarm notify create
+export const alarmNotifyPostApi = (phone, email, desc, name, keywords) => {
+  return axios.request({
+    url: '/api/alarm/alarm_notify',
+    method: 'post',
+    data: {
+      phone, email, desc, name, keywords
+    }
+  })
+}
+
+// Alarm notify put
+export const alarmNotifyPutApi = (phone, email, desc, name, keywords, id) => {
+  return axios.request({
+    url: '/api/alarm/alarm_notify',
+    method: 'put',
+    data: {
+      phone, email, desc, name, keywords, id
+    }
+  })
+}
+
+
+// Alarm notify get single alarmNotify
+export const alarmNotifyGetApi = (id) => {
+  return axios.request({
+    url: '/api/alarm/alarm_notify',
+    method: 'get',
+    params: {
+      id
+    }
+  })
+}
+
+// Batch alarm notify list
+export const alarmNotifyListApi = (page, size, order_by, order_type, filter_name, filter_value) => {
+  return axios.request({
+    url: '/api/alarm/batch_alarm_notify',
+    method: 'get',
+    params: {
+      page, size, order_by, order_type, filter_name, filter_value
+    }
+  })
+}
+
+// Batch alarm notify delete
+export const alarmNotifyDeletePostApi = (alarm_notify_ids) => {
+  return axios.request({
+    url: '/api/alarm/batch_alarm_notify',
+    method: 'post',
+    data: {
+      alarm_notify_ids
+    }
+  })
+}
+
+
+
+

@@ -44,9 +44,18 @@ class AlarmLevel:
         NOTE: 'NOTE'
     }
 
+    @classmethod
+    def get_alarm_level_id_by_name(cls, name):
+        if AlarmCodeConfig.is_cn:
+            temp = {value: key for key, value in cls.CN_ALARM_LEVEL.items()}
+            return temp.get(name, -1)
+        else:
+            temp = {value: key for key, value in cls.EN_ALARM_LEVEL.items()}
+            return temp.get(name, -1)
+
 
 class AlarmModule:
-    """The definition of sub-modules which may generate alarm info."""
+    """The definition of modules which may generate alarm info."""
     MODULE_MONITOR = 0
 
     CN_ALARM_MODULE = {
@@ -64,6 +73,68 @@ class AlarmModule:
         else:
             return AlarmModule.EN_ALARM_MODULE.get(module_id)
 
+    @classmethod
+    def get_alarm_module_id_by_name(cls, name):
+        if AlarmCodeConfig.is_cn:
+            temp = {value: key for key, value in cls.CN_ALARM_MODULE.items()}
+            return temp.get(name, "")
+        else:
+            temp = {value: key for key, value in cls.EN_ALARM_MODULE.items()}
+            return temp.get(name, "")
+
+
+class AlarmName:
+    NAME_NODE_CPU = 0
+    NAME_NODE_MEM = 1
+    NAME_NODE_DISK = 2
+    NAME_CONTAINER_CPU = 3
+    NAME_CONTAINER_MEM = 4
+    NAME_CONTAINER_DISK = 5
+    NAME_CONTAINER_SERVICE_COUNT = 6
+
+    CN_ALARM_NAME = {
+        NAME_NODE_CPU: '服务器CPU告警',
+        NAME_NODE_MEM: '服务器内存告警',
+        NAME_NODE_DISK: '服务器系统盘使用率过高',
+        NAME_CONTAINER_CPU: '容器CPU告警',
+        NAME_CONTAINER_MEM: '容器内存告警',
+        NAME_CONTAINER_DISK: '容器挂载盘使用率过高',
+        NAME_CONTAINER_SERVICE_COUNT: 'PlayGround Code Server容器报警',
+    }
+
+    EN_ALARM_NAME = {
+        NAME_NODE_CPU: "node cpu alarm",
+        NAME_NODE_MEM: "node memory alarm",
+        NAME_NODE_DISK: "node disk alarm",
+        NAME_CONTAINER_CPU: "container cpu alarm",
+        NAME_CONTAINER_MEM: "container memory alarm",
+        NAME_CONTAINER_DISK: "container disk alarm",
+        NAME_CONTAINER_SERVICE_COUNT: "PlayGround Code Server container alarm",
+    }
+
+    @classmethod
+    def get_all_alarm(cls):
+        if AlarmCodeConfig.is_cn:
+            return cls.CN_ALARM_NAME
+        else:
+            return cls.EN_ALARM_NAME
+
+    @classmethod
+    def get_alarm_name_by_id(cls, name_id):
+        if AlarmCodeConfig.is_cn:
+            return cls.CN_ALARM_NAME.get(name_id)
+        else:
+            return cls.EN_ALARM_NAME.get(name_id)
+
+    @classmethod
+    def get_alarm_name_id_by_name(cls, name):
+        if AlarmCodeConfig.is_cn:
+            temp = {value: key for key, value in cls.CN_ALARM_NAME.items()}
+            return temp.get(name, "")
+        else:
+            temp = {value: key for key, value in cls.EN_ALARM_NAME.items()}
+            return temp.get(name, "")
+
 
 class AlarmCode:
     # MONITOR ALARM CODE
@@ -76,84 +147,99 @@ class AlarmCode:
     MONITOR_DESC_CODE_CONTAINER_MEM_OVERFLOW = MONITOR_DESC_CODE_BASE + 5
     MONITOR_DESC_CODE_CONTAINER_DISK_OVERFLOW = MONITOR_DESC_CODE_BASE + 6
 
+    # Play Ground code server over limit 100
+    MONITOR_DESC_CODE_CONTAINER_REST_COUNT_OVERFLOW = MONITOR_DESC_CODE_BASE + 20
+
+    # AFTER ALARM CODE BEGIN 20
     CN_DESC_ALARM = {
         # MONITOR
         MONITOR_DESC_CODE_NODE_CPU_OVERFLOW: {
-            'ALARM_NAME': '服务器CPU告警',
-            'ALARM_LEVEL': AlarmLevel.MAJOR,
+            'ALARM_NAME': AlarmName.NAME_NODE_CPU,
+            'ALARM_LEVEL': AlarmLevel.MINOR,
             'ALARM_MODULE': AlarmModule.MODULE_MONITOR,
             'ALARM_CONTENT': "服务器%s的CPU占用率超过%s。"
         },
         MONITOR_DESC_CODE_NODE_MEM_OVERFLOW: {
-            'ALARM_NAME': '服务器内存告警',
-            'ALARM_LEVEL': AlarmLevel.MAJOR,
+            'ALARM_NAME': AlarmName.NAME_NODE_MEM,
+            'ALARM_LEVEL': AlarmLevel.MINOR,
             'ALARM_MODULE': AlarmModule.MODULE_MONITOR,
             'ALARM_CONTENT': "服务器%s内存使用率超过%s。"
         },
         MONITOR_DESC_CODE_NODE_DISK_OVERFLOW: {
-            'ALARM_NAME': '服务器系统盘使用率过高',
-            'ALARM_LEVEL': AlarmLevel.MAJOR,
+            'ALARM_NAME': AlarmName.NAME_NODE_DISK,
+            'ALARM_LEVEL': AlarmLevel.MINOR,
             'ALARM_MODULE': AlarmModule.MODULE_MONITOR,
             'ALARM_CONTENT': "服务器%s的系统盘已用空间超过%s。"
         },
         MONITOR_DESC_CODE_CONTAINER_CPU_OVERFLOW: {
-            'ALARM_NAME': '容器CPU告警',
-            'ALARM_LEVEL': AlarmLevel.MAJOR,
+            'ALARM_NAME': AlarmName.NAME_CONTAINER_CPU,
+            'ALARM_LEVEL': AlarmLevel.MINOR,
             'ALARM_MODULE': AlarmModule.MODULE_MONITOR,
             'ALARM_CONTENT': "容器%s的CPU占用率超过%s。"
         },
         MONITOR_DESC_CODE_CONTAINER_MEM_OVERFLOW: {
-            'ALARM_NAME': '容器内存告警',
-            'ALARM_LEVEL': AlarmLevel.MAJOR,
+            'ALARM_NAME': AlarmName.NAME_CONTAINER_MEM,
+            'ALARM_LEVEL': AlarmLevel.MINOR,
             'ALARM_MODULE': AlarmModule.MODULE_MONITOR,
             'ALARM_CONTENT': "容器%s内存使用率超过%s。"
         },
         MONITOR_DESC_CODE_CONTAINER_DISK_OVERFLOW: {
-            'ALARM_NAME': '容器挂载盘使用率过高',
-            'ALARM_LEVEL': AlarmLevel.MAJOR,
+            'ALARM_NAME': AlarmName.NAME_CONTAINER_DISK,
+            'ALARM_LEVEL': AlarmLevel.MINOR,
             'ALARM_MODULE': AlarmModule.MODULE_MONITOR,
             'ALARM_CONTENT': "容器%s的系统盘已用空间超过%s。"
+        },
+        MONITOR_DESC_CODE_CONTAINER_REST_COUNT_OVERFLOW: {
+            'ALARM_NAME': AlarmName.NAME_CONTAINER_SERVICE_COUNT,
+            'ALARM_LEVEL': AlarmLevel.MAJOR,
+            'ALARM_MODULE': AlarmModule.MODULE_MONITOR,
+            'ALARM_CONTENT': "集群%s的PlayGround Code Server容器数量超过%s。"
         }
-
     }
 
     EN_DESC_ALARM = {
         # MONITOR
         MONITOR_DESC_CODE_NODE_CPU_OVERFLOW: {
-            'ALARM_NAME': 'server CPU alarm',
-            'ALARM_LEVEL': AlarmLevel.MAJOR,
+            'ALARM_NAME': AlarmName.NAME_NODE_CPU,
+            'ALARM_LEVEL': AlarmLevel.MINOR,
             'ALARM_MODULE': AlarmModule.MODULE_MONITOR,
-            'ALARM_CONTENT': "server %s CPU is over %s。"
+            'ALARM_CONTENT': "The server %s CPU is over %s."
         },
         MONITOR_DESC_CODE_NODE_MEM_OVERFLOW: {
-            'ALARM_NAME': 'server Memory alarm',
-            'ALARM_LEVEL': AlarmLevel.MAJOR,
+            'ALARM_NAME': AlarmName.NAME_NODE_MEM,
+            'ALARM_LEVEL': AlarmLevel.MINOR,
             'ALARM_MODULE': AlarmModule.MODULE_MONITOR,
-            'ALARM_CONTENT': "server %s memory is over %s。"
+            'ALARM_CONTENT': "The server %s memory is over %s."
         },
         MONITOR_DESC_CODE_NODE_DISK_OVERFLOW: {
-            'ALARM_NAME': 'server disk alarm',
-            'ALARM_LEVEL': AlarmLevel.MAJOR,
+            'ALARM_NAME': AlarmName.NAME_NODE_DISK,
+            'ALARM_LEVEL': AlarmLevel.MINOR,
             'ALARM_MODULE': AlarmModule.MODULE_MONITOR,
-            'ALARM_CONTENT': "server %s disk is over %s。"
+            'ALARM_CONTENT': "The server %s disk is over %s."
         },
         MONITOR_DESC_CODE_CONTAINER_CPU_OVERFLOW: {
-            'ALARM_NAME': 'container CPU alarm',
-            'ALARM_LEVEL': AlarmLevel.MAJOR,
+            'ALARM_NAME': AlarmName.NAME_CONTAINER_CPU,
+            'ALARM_LEVEL': AlarmLevel.MINOR,
             'ALARM_MODULE': AlarmModule.MODULE_MONITOR,
-            'ALARM_CONTENT': "container %s is over %s。"
+            'ALARM_CONTENT': "The container %s is over %s."
         },
         MONITOR_DESC_CODE_CONTAINER_MEM_OVERFLOW: {
-            'ALARM_NAME': 'container Memory alarm',
-            'ALARM_LEVEL': AlarmLevel.MAJOR,
+            'ALARM_NAME': AlarmName.NAME_CONTAINER_MEM,
+            'ALARM_LEVEL': AlarmLevel.MINOR,
             'ALARM_MODULE': AlarmModule.MODULE_MONITOR,
-            'ALARM_CONTENT': "container %s is over %s。"
+            'ALARM_CONTENT': "The container %s is over %s."
         },
         MONITOR_DESC_CODE_CONTAINER_DISK_OVERFLOW: {
-            'ALARM_NAME': 'container disk alarm',
+            'ALARM_NAME': AlarmName.NAME_CONTAINER_DISK,
+            'ALARM_LEVEL': AlarmLevel.MINOR,
+            'ALARM_MODULE': AlarmModule.MODULE_MONITOR,
+            'ALARM_CONTENT': "The container %s is over %s."
+        },
+        MONITOR_DESC_CODE_CONTAINER_REST_COUNT_OVERFLOW: {
+            'ALARM_NAME': AlarmName.NAME_CONTAINER_SERVICE_COUNT,
             'ALARM_LEVEL': AlarmLevel.MAJOR,
             'ALARM_MODULE': AlarmModule.MODULE_MONITOR,
-            'ALARM_CONTENT': "container %s is over %s。"
+            'ALARM_CONTENT': "The playGround Code Server of %s container over %s."
         }
     }
 

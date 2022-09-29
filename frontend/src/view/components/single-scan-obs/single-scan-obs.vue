@@ -12,7 +12,6 @@
     </FormItem>
     <FormItem>
       <Button type="primary" @click="handleSubmit('formValidate')">导出</Button>
-      <!--      <Button @click="handleReset('formValidate')" style="margin-left: 8px">Reset</Button>-->
       <Progress :percent="scanObsProgressValue" :stroke-width="28" status="active" :text-inside="true"/>
     </FormItem>
   </Form>

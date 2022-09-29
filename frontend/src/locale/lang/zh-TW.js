@@ -63,7 +63,7 @@ export default {
   // Alarm
   Alarm: '告警通知',
   alarm: '告警',
-  alarm_email: '告警郵件',
+  alarm_email: '告警通知',
 
   // monitor
   Monitor: "性能監控",

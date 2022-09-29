@@ -196,25 +196,25 @@ def exec_shell_cmd2(api_key, cur_year, cur_month, cur_day):
     count_year_days = 0
     count_month_days = 0
     if cur_month < int(which_month):
-        print(f"本次统计{cur_month}月SLA")
+        logger.info(f"本次统计{cur_month}月SLA")
         i = 1
         while i <= cur_month:
             _, count_month_days = calendar.monthrange(cur_year, i)
             count_year_days += count_month_days
             i += 1
     else:
-        print(f"本次统计{which_month}月SLA")
+        logger.info(f"本次统计{which_month}月SLA")
         # 统计当月的SLA，当月天数为今天的日期-1
         count_month_days = int(time.strftime("%d", t))
         count_month_days -= 1
         count_year_days = int(which_today) - 1
 
-    print(f"统计{cur_month}月{count_month_days}天")
+    logger.info(f"统计{cur_month}月{count_month_days}天")
     count_month_mins = count_month_days * 24 * 60
-    print(f"统计{cur_month}月总时长{count_month_mins}分钟")
+    logger.info(f"统计{cur_month}月总时长{count_month_mins}分钟")
 
     # count_year_days = int(which_today) - 1
-    print("分母是%d", count_year_days)
+    logger.info("分母是%d", count_year_days)
     if 1 <= cur_month <= 9:
         cur_month = f"0{cur_month}"
     ret_list = list()
@@ -236,7 +236,7 @@ def exec_shell_cmd2(api_key, cur_year, cur_month, cur_day):
         elif url == "159.138.46.20":
             domain = "openEuler"
         elif not domain:
-            print("url is %s", url)
+            logger.info("url is %s", url)
             continue
         else:
             domain = domain.split(".")[-2]
@@ -253,7 +253,6 @@ def exec_shell_cmd2(api_key, cur_year, cur_month, cur_day):
             str_month = str_datetime.split("&")[0].split("-")[1]
             str_year = str_datetime.split("&")[0].split("-")[0]
             str_day = str_datetime.split("&")[0].split("-")[2]
-            # print("str_year=%d,cur_year=%d", str_year, cur_year)
             # 年度SLA统计：
             if str_month <= str(cur_month) and str_year == str(cur_year):
                 if log.get("type") == 1:
