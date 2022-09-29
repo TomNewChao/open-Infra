@@ -1,11 +1,12 @@
 import logging
 from alarm.models import Alarm, AlarmNotify, AlarmNotifyStrategy
-from alarm.resources.alarm_module.alarm_code import AlarmName, AlarmModule, AlarmLevel
+from alarm.resources.alarm_module.alarm_code import AlarmName, AlarmLevel
 from open_infra.utils.common import get_suitable_range
 
 logger = logging.getLogger("django")
 
 
+# noinspection PyMethodMayBeStatic
 class AlarmEmailMgr:
 
     def list(self, kwargs):
@@ -17,10 +18,6 @@ class AlarmEmailMgr:
             email_list = AlarmNotify.objects.filter(email__contains=filter_value)
         elif filter_name and filter_name == "phone_number":
             email_list = AlarmNotify.objects.filter(phone_number__contains=filter_value)
-        # elif filter_name and filter_name == "alarm_name":
-        #     email_list = AlarmNotify.objects.filter(alarm_name__contains=filter_value)
-        # elif filter_name and filter_name == "keywords":
-        #     email_list = AlarmNotify.objects.filter(alarm_keywords__contains=filter_value)
         else:
             email_list = AlarmNotify.objects.all()
         total = len(email_list)
@@ -51,6 +48,7 @@ class AlarmEmailMgr:
         return res
 
 
+# noinspection PyMethodMayBeStatic
 class AlarmMgr:
     def list(self, kwargs):
         page, size = kwargs['page'], kwargs['size']

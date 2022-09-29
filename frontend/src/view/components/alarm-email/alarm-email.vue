@@ -27,7 +27,7 @@
               </FormItem>
             </Col>
           </Row>
-          <FormItem label="报警详细信息关键字" label-position="top">
+          <FormItem label="报警详细信息关键字：" label-position="top"><label style="color:red">*多个标签以英文逗号进行分割</label>
             <Input v-model="alarmEmailFormData.alarmKeywords"
                    placeholder="请输入报警详细信息关键字:   为空代表监控选中报警名称的所有报警"/>
           </FormItem>
@@ -64,7 +64,7 @@
               </FormItem>
             </Col>
           </Row>
-          <FormItem label="报警详细信息关键字" label-position="top">
+          <FormItem label="报警详细信息关键字：" label-position="top"><label style="color:red">*多个标签以英文逗号进行分割</label>
             <Input v-model="alarmEmailFormData.alarmKeywords"
                    placeholder="请输入报警详细信息关键字:   为空代表监控选中报警名称的所有报警"/>
           </FormItem>

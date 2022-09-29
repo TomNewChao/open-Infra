@@ -76,7 +76,6 @@ class AlarmBaseHandler(object):
                 if abs_value >= alarm_threshold:
                     alarm_info_dict = {
                         "alarm_type": AlarmType.ALARM,
-                        "report_retry_count": 2,
                         "alarm_info_dict": {
                             "alarm_id": alarm_code,
                             "des_var": [name, "{}%".format(alarm_threshold)],
@@ -85,7 +84,6 @@ class AlarmBaseHandler(object):
                 else:
                     alarm_info_dict = {
                         "alarm_type": AlarmType.RECOVER,
-                        "report_retry_count": 2,
                         "alarm_info_dict": {
                             "alarm_id": alarm_code,
                             "des_var": [name, "{}%".format(alarm_threshold)],
@@ -118,7 +116,6 @@ class AlarmBaseHandler(object):
                 if abs_value >= alarm_threshold:
                     alarm_info_dict = {
                         "alarm_type": AlarmType.ALARM,
-                        "report_retry_count": 2,
                         "alarm_info_dict": {
                             "alarm_id": alarm_code,
                             "des_var": [name, "{}%".format(alarm_threshold)],
@@ -127,7 +124,6 @@ class AlarmBaseHandler(object):
                 else:
                     alarm_info_dict = {
                         "alarm_type": AlarmType.RECOVER,
-                        "report_retry_count": 2,
                         "alarm_info_dict": {
                             "alarm_id": alarm_code,
                             "des_var": [name, "{}%".format(alarm_threshold)],
@@ -158,12 +154,13 @@ class AlarmBaseHandler(object):
                     key = "{}/{}/{}".format(account, cluster, namespace)
                     count_server_count[key] += 1
             for name, value in count_server_count.items():
-                if value >= alarm_threshold:
+                alarm_threshold_number = alarm_threshold.get(name, 100)
+                if value/2 >= alarm_threshold_number:
                     alarm_info_dict = {
                         "alarm_type": AlarmType.ALARM,
                         "alarm_info_dict": {
                             "alarm_id": alarm_code,
-                            "des_var": [name, "{}".format(alarm_threshold)],
+                            "des_var": [name, "{}".format(alarm_threshold_number)],
                         }
                     }
                 else:
@@ -171,7 +168,7 @@ class AlarmBaseHandler(object):
                         "alarm_type": AlarmType.RECOVER,
                         "alarm_info_dict": {
                             "alarm_id": alarm_code,
-                            "des_var": [name, "{}".format(alarm_threshold)],
+                            "des_var": [name, "{}".format(alarm_threshold_number)],
                         }
                     }
                 alarm_list_data.append(alarm_info_dict)

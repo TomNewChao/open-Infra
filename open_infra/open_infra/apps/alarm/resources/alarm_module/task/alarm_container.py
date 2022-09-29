@@ -57,8 +57,8 @@ class ContainerAlarm(BaseAlarm):
     @BaseAlarm.add()
     @AlarmTask(exec_interval=2 * 60)
     def res_count_alarm(self):
-        """容器文件容量报警"""
-        query = AlarmHandlerConfig.container_fs_query.format(settings.ALARM_PROMETHEUS_URL, int(time.time()))
+        """容器服务数量超限报警"""
+        query = AlarmHandlerConfig.container_res_count_query.format(settings.ALARM_PROMETHEUS_URL, int(time.time()))
         alarm_threshold = settings.ALARM_RES_COUNT_THRESHOLD
         alarm_code = AlarmCode.MONITOR_DESC_CODE_CONTAINER_REST_COUNT_OVERFLOW
         alarm_list_data = AlarmBaseHandler.get_container_count_info(query, alarm_threshold, alarm_code)

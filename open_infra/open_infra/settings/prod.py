@@ -326,5 +326,21 @@ IS_SSL = True
 ALARM_EMAIL_USERNAME = os.getenv("alarm_email_user")
 ALARM_EMAIL_PWD = os.getenv("alarm_email_pwd")
 ALARM_PROMETHEUS_URL = "https://monitor.osinfra.cn"
-ALARM_CCE_THRESHOLD = 80
-ALARM_ECS_THRESHOLD = 80
+ALARM_CCE_THRESHOLD = 90
+ALARM_ECS_THRESHOLD = 90
+ALARM_RES_COUNT_THRESHOLD = {
+    'mindspore-hk-test-cluster/mindspore-hk-test-cluster/default': 100,
+    'mindspore-playground-hk-cluster/mindspore-playground-hk-cluster/opengauss-mooc': 100,
+    'mindspore-playground-hk-cluster/mindspore-playground-hk-cluster/default': 100,
+    'mindspore-playground-hk-cluster/mindspore-playground-hk-cluster/opengauss-tryme': 100,
+    'tencent-beijing-playground-cluster/tencent-beijing-playground-cluster/openeuler-mooc': 100,
+    'tencent-beijing-playground-cluster/tencent-beijing-playground-cluster/default': 100
+}
+ALARM_DELAY = 10
+ALARM_SMS_URL = os.getenv("ALARM_SMS_URL", "https://smsapi.cn-south-1.myhuaweicloud.com:443/sms/batchSendSms/v1")  # guangzhou
+ALARM_SMS_KEY = os.getenv("ALARM_SMS_KEY")
+ALARM_SMS_SECRET = os.getenv("ALARM_SMS_SECRET")
+ALARM_SMS_SENDER = os.getenv("ALARM_SMS_SENDER")
+ALARM_SMS_ALARM_TEMPLATE = os.getenv("ALARM_SMS_ALARM_TEMPLATE")
+ALARM_SMS_RECOVER_TEMPLATE = os.getenv("ALARM_SMS_RECOVER_TEMPLATE")
+ALARM_SMS_SIGNATURE = "OpenInfraOps监控告警"

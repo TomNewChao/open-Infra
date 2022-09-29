@@ -64,7 +64,8 @@ class ErrCode(object):
     # sub module: alarm_email
     STATUS_CLOUDS_ALARM = STATUS_FACILITY_DASHBOARD + 300
     STATUS_ALARM_EMAIL_NOT_EXIST = STATUS_SEREVITY_ERROR + STATUS_CLOUDS_ALARM + 1
-    STATUS_ALARM_EMAIL_IS_EXIST = STATUS_SEREVITY_ERROR + STATUS_CLOUDS_ALARM + 1
+    STATUS_ALARM_EMAIL_IS_EXIST = STATUS_SEREVITY_ERROR + STATUS_CLOUDS_ALARM + 2
+    STATUS_ALARM_PHONE_NUMBER_IS_EXIST = STATUS_SEREVITY_ERROR + STATUS_CLOUDS_ALARM + 3
     # STATUS_SCAN_FAILED = STATUS_SEREVITY_ERROR + STATUS_CLOUDS_ALARM + 2
     # STATUS_SCAN_CLEAN = STATUS_SEREVITY_ERROR + STATUS_CLOUDS_ALARM + 3
     # STATUS_PORT_EXIST = STATUS_SEREVITY_ERROR + STATUS_CLOUDS_ALARM + 4
@@ -97,6 +98,7 @@ class ErrCode(object):
         # for alarm
         STATUS_ALARM_EMAIL_NOT_EXIST: "The email is not exist, Operation failed.",
         STATUS_ALARM_EMAIL_IS_EXIST: "The email is exist, Operation failed.",
+        STATUS_ALARM_PHONE_NUMBER_IS_EXIST: "The Phone number is exist, Operation failed.",
 
     }
 
@@ -127,8 +129,9 @@ class ErrCode(object):
         STATUS_PORT_EXIST: "高危端口已存在，操作失败。",
 
         # for alarm
-        STATUS_ALARM_EMAIL_NOT_EXIST: "邮件不存在，操作失败。",
-        STATUS_ALARM_EMAIL_IS_EXIST: "邮件存在，操作失败。",
+        STATUS_ALARM_EMAIL_NOT_EXIST: "报警通知策略不存在，操作失败。",
+        STATUS_ALARM_EMAIL_IS_EXIST: "邮件已存在，操作失败。",
+        STATUS_ALARM_PHONE_NUMBER_IS_EXIST: "手机号已存在，操作失败。",
 
     }
 

@@ -135,8 +135,10 @@ class AlarmNotifyView(AuthView):
         if len(desc) > 255:
             return assemble_api_result(ErrCode.STATUS_PARAMETER_ERROR)
         try:
-            if AlarmNotify.objects.filter(email=email).filter(phone_number=phone_number):
+            if AlarmNotify.objects.filter(email=email):
                 return assemble_api_result(ErrCode.STATUS_ALARM_EMAIL_IS_EXIST)
+            if AlarmNotify.objects.filter(phone_number=phone_number):
+                return assemble_api_result(ErrCode.STATUS_ALARM_PHONE_NUMBER_IS_EXIST)
         except AlarmNotify.DoesNotExist as e:
             logger.info("[AlarmEmailView] current email is not exist, could create:{}".format(email, e))
         try:

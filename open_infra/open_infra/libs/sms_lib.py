@@ -46,3 +46,4 @@ def hw_send_sms(url, app_key, app_secret, sender, receiver, template_id, templat
     r = requests.post(url, data=form_data, headers=header, verify=False)
     if not str(r.status_code).startswith("2"):
         raise Exception("[send_sms] send sms failed:{}, content:{}".format(r.status_code, r.text))
+    return r.content
