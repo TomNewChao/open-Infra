@@ -66,9 +66,10 @@ export default {
   alarm_email: 'AlarmNotification',
 
   // monitor
-  Monitor: "Monitor",
+  Monitor: "ResourcesMonitor",
   prometheus: "Prometheus",
   grafana: "Grafana",
+  uptime_status: "Uptime-Status",
 
 
 }
