@@ -66,9 +66,10 @@ export default {
   alarm_email: '告警通知',
 
   // monitor
-  Monitor: "性能监控",
+  Monitor: "资源监控",
   prometheus: "Prometheus",
   grafana: "Grafana",
+  uptime_status: "Uptime-Status",
 
 
 }

@@ -212,6 +212,15 @@ export default [
           title: 'grafana'
         },
         component: () => import('@/view/components/grafana/grafana.vue')
+      },
+      {
+        path: 'uptime_status',
+        name: 'uptime_status',
+        meta: {
+          icon: 'md-arrow-round-forward',
+          title: 'uptime_status'
+        },
+        component: () => import('@/view/components/uptime-status/uptime-status.vue')
       }
     ]
   },
