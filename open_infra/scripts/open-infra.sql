@@ -315,4 +315,33 @@ CREATE TABLE IF NOT EXISTS `users_user_permissions`  (
   CONSTRAINT `users_user_permissions_user_id_92473840_fk_users_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
+--
+-- Table structure for table `kubeconfig_info`
+--
+CREATE TABLE IF NOT EXISTS `kubeconfig_info` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `username` varchar(64) NOT NULL,
+  `email` varchar(254) NOT NULL,
+  `role` varchar(16) NOT NULL,
+  `create_time` datetime(6) NOT NULL,
+  `review_time` datetime(6) DEFAULT NULL,
+  `expired_time` int DEFAULT NULL,
+  `send_ok` tinyint(1) DEFAULT NULL,
+  `service_name` varchar(128) DEFAULT NULL,
+  `modify_time` datetime(6) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
+
+--
+-- Table structure for table `service_info`
+--
+CREATE TABLE IF NOT EXISTS `service_info` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `service_name` varchar(64) NOT NULL,
+  `namespace` varchar(64) DEFAULT NULL,
+  `cluster` varchar(64) DEFAULT NULL,
+  `url` varchar(64) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
+
 SET FOREIGN_KEY_CHECKS = 1;

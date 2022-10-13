@@ -128,7 +128,6 @@ def execute_cmd3(cmd, timeout=30, err_log=True):
         out, err = p.communicate()
         out, err = bytes_convert_str(out), bytes_convert_str(err)
         ret = p.returncode
-
         if ret != 0 and err_log:
             logger.error("execute_cmd3 cmd %s return %s, std output: %s, err output: %s.", cmd, ret, out, err)
 
@@ -146,15 +145,17 @@ def execute_cmd3_with_tmp(cmd_str, timeout=30):
     """
     try:
         with tempfile.NamedTemporaryFile() as out_tmp_file:
-            # 1.写入内存临时文件
             cmd = cmd_str + ' > {}'.format(out_tmp_file.name)
             ret, out, err = execute_cmd3(cmd, timeout=timeout)
+            # logger.error("--------------------------execute_cmd3_with_tmp0:{}".format(out))
+            # logger.error("--------------------------execute_cmd3_with_tmp1:{}".format(err))
             if ret != 0:
                 return ret, out, err
-            # 2.读取到变量
-            out_tmp_file.seek(0)  # 游标归0
+            out_tmp_file.seek(0)
             with open(out_tmp_file.name, 'r') as f:
                 out_data = f.read()
+            # logger.error("--------------------------execute_cmd3_with_tmp2:{}".format(out_data))
+            # logger.error("--------------------------execute_cmd3_with_tmp3:{}".format(err))
             return ret, out_data, err
     except Exception as e:
         return -1, "", "execute_cmd3_with_tmp exceeded raise, e={0}, trace={1}".format(e.args[0],

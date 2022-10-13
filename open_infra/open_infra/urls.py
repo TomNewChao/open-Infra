@@ -22,4 +22,5 @@ urlpatterns = [
     url(r'^api/clouds_tools/', include("clouds_tools.urls")),
     url(r'^api/users/', include("users.urls")),
     url(r'^api/alarm/', include("alarm.urls")),
+    url(r'^api/permission/', include("permission.urls")),
 ]

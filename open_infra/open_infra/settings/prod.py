@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'clouds_tools.apps.CloudsToolsConfig',
     'users.apps.UsersConfig',
     'alarm.apps.AlarmConfig',
+    'permission.apps.PermissionConfig',
 ]
 
 MIDDLEWARE = [
@@ -344,3 +345,12 @@ ALARM_SMS_SENDER = os.getenv("ALARM_SMS_SENDER")
 ALARM_SMS_ALARM_TEMPLATE = os.getenv("ALARM_SMS_ALARM_TEMPLATE")
 ALARM_SMS_RECOVER_TEMPLATE = os.getenv("ALARM_SMS_RECOVER_TEMPLATE")
 ALARM_SMS_SIGNATURE = "OpenInfraOps监控告警"
+
+
+# permission
+GITHUB_SECRET = os.getenv("GITHUB_SECRET")
+GITHUB_DOMAIN = "https://api.github.com"
+KUBECONFIG_EMAIL_SUBJECT = "ops.osinfra.cn: Kubeconfig Notify"
+GITHUB_REVIEWER = ["githubliuyang777", ]
+GITHUB_COMMIT_INFO = {"name": "TomNewChao", "email": "353712216@qq.com"}
+
