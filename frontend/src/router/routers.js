@@ -158,6 +158,35 @@ export default [
     ]
   },
   {
+    path: '/permission_control',
+    name: 'PermissionControl',
+    meta: {
+      icon: 'logo-buffer',
+      title: '权限管控'
+    },
+    component: Main,
+    children: [
+      {
+        path: 'kubeconfig',
+        name: 'KubeConfig',
+        meta: {
+          icon: 'md-arrow-round-forward',
+          title: 'KubeConfig'
+        },
+        component: () => import('@/view/components/kubeconfig/kubeconfig.vue')
+      },
+      {
+        path: 'service_info',
+        name: 'ServiceInfo',
+        meta: {
+          icon: 'md-arrow-round-forward',
+          title: '服务信息'
+        },
+        component: () => import('@/view/components/service_info/service_info.vue')
+      }
+    ]
+  },
+  {
     path: '/alarm',
     name: 'Alarm',
     meta: {
@@ -191,7 +220,7 @@ export default [
     name: 'Monitor',
     meta: {
       icon: 'logo-buffer',
-      title: '性能监控'
+      title: '系统监控'
     },
     component: Main,
     children: [

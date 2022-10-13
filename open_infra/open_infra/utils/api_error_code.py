@@ -17,9 +17,9 @@ class ErrCode(object):
     STATUS_RESULT_WARNING = -3
     INTERNAL_ERROR = -4
     SYSTEM_BUSY = -5
-    NAME_NOT_STANDARD = -6  # 名称不规范
-    RESULT_IS_EMPTY = -7  # 返回结果为空
-    STATUS_PARAMETER_CORRESPONDING_ERROR = -8  # 参数格式正确，对应关系错误
+    NAME_NOT_STANDARD = -6
+    RESULT_IS_EMPTY = -7
+    STATUS_PARAMETER_CORRESPONDING_ERROR = -8
 
     STATUS_FAILED = 100000
 
@@ -66,9 +66,10 @@ class ErrCode(object):
     STATUS_ALARM_EMAIL_NOT_EXIST = STATUS_SEREVITY_ERROR + STATUS_CLOUDS_ALARM + 1
     STATUS_ALARM_EMAIL_IS_EXIST = STATUS_SEREVITY_ERROR + STATUS_CLOUDS_ALARM + 2
     STATUS_ALARM_PHONE_NUMBER_IS_EXIST = STATUS_SEREVITY_ERROR + STATUS_CLOUDS_ALARM + 3
-    # STATUS_SCAN_FAILED = STATUS_SEREVITY_ERROR + STATUS_CLOUDS_ALARM + 2
-    # STATUS_SCAN_CLEAN = STATUS_SEREVITY_ERROR + STATUS_CLOUDS_ALARM + 3
-    # STATUS_PORT_EXIST = STATUS_SEREVITY_ERROR + STATUS_CLOUDS_ALARM + 4
+
+    # sub module: permission
+    STATUS_CLOUDS_PERMISSION = STATUS_FACILITY_DASHBOARD + 400
+    STATUS_KUBECONFIG_DELETE_FAILED = STATUS_CLOUDS_PERMISSION + 1
 
     _en_err_desc = {
         STATUS_SUCCESS: "Successfully",
@@ -99,6 +100,9 @@ class ErrCode(object):
         STATUS_ALARM_EMAIL_NOT_EXIST: "The email is not exist, Operation failed.",
         STATUS_ALARM_EMAIL_IS_EXIST: "The email is exist, Operation failed.",
         STATUS_ALARM_PHONE_NUMBER_IS_EXIST: "The Phone number is exist, Operation failed.",
+
+        # for permission
+        STATUS_KUBECONFIG_DELETE_FAILED: "Partial deletion failed, list of failures: %s.",
 
     }
 
@@ -132,6 +136,9 @@ class ErrCode(object):
         STATUS_ALARM_EMAIL_NOT_EXIST: "报警通知策略不存在，操作失败。",
         STATUS_ALARM_EMAIL_IS_EXIST: "邮件已存在，操作失败。",
         STATUS_ALARM_PHONE_NUMBER_IS_EXIST: "手机号已存在，操作失败。",
+
+        # for permission
+        STATUS_KUBECONFIG_DELETE_FAILED: "删除失败，部分失败名单：%s。",
 
     }
 

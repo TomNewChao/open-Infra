@@ -84,7 +84,7 @@ class ScanToolsThread(object):
 
     @classmethod
     def scan_port(cls):
-        logger.info("----------------4.start scan_port-----------------------")
+        logger.info("----------------1.start scan_port-----------------------")
         now_account_info_list = ScanBaseTools.get_decrypt_hw_account_project_info_from_database()
         tcp_info, udp_info, account_list = scan_port(now_account_info_list)
         with transaction.atomic():
@@ -92,11 +92,11 @@ class ScanToolsThread(object):
             HWCloudScanEipPortStatus.objects.all().delete()
             ScanOrmTools.save_scan_eip_port_info_status(tcp_info, udp_info, account_list)
             HighRiskPort.cur_port_list = None
-        logger.info("----------------4.finish scan_port-----------------------")
+        logger.info("----------------1.finish scan_port-----------------------")
 
     @classmethod
     def scan_obs(cls):
-        logger.info("----------------5.start scan_obs-----------------------")
+        logger.info("----------------2.start scan_obs-----------------------")
         now_account_info_list = ScanBaseTools.get_decrypt_hw_account_project_info_from_database()
         list_anonymous_bucket, list_anonymous_file, account_list = scan_obs(now_account_info_list)
         with transaction.atomic():
@@ -104,19 +104,21 @@ class ScanToolsThread(object):
             HWCloudScanObsAnonymousBucket.objects.all().delete()
             HWCloudScanObsAnonymousFile.objects.all().delete()
             ScanOrmTools.save_scan_obs_info_status(list_anonymous_bucket, list_anonymous_file, account_list)
-        logger.info("----------------5.finish scan_obs-----------------------")
+        logger.info("----------------2.finish scan_obs-----------------------")
 
     @classmethod
-    def cron_job(cls):
+    def immediately_cron_job(cls):
         cls.query_account_info()
         cls.scan_eip()
         cls.scan_sla()
+
+    @classmethod
+    def cron_job(cls):
         try:
             ScanToolsLock.scan_port.acquire()
             cls.scan_port()
         finally:
             ScanToolsLock.scan_port.release()
-
         try:
             ScanToolsLock.scan_obs.acquire()
             cls.scan_obs()

@@ -66,10 +66,15 @@ export default {
   alarm_email: 'AlarmNotification',
 
   // monitor
-  Monitor: "ResourcesMonitor",
+  Monitor: "SystemMonitor",
   prometheus: "Prometheus",
   grafana: "Grafana",
   uptime_status: "Uptime-Status",
+
+  // permission
+  PermissionControl: "PermissionControl",
+  KubeConfig: "KubeConfig",
+  ServiceInfo: "ServiceInfo",
 
 
 }

@@ -1,0 +1,1 @@
+本路径主要存储kubeconfig的admin的yaml配置文件

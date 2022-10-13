@@ -6,6 +6,7 @@ from django.conf import settings
 
 
 class CloudsToolsConfig(AppConfig):
+    default_auto_field = 'django.db.models.BigAutoField'
     name = 'clouds_tools'
     _scheduler = BackgroundScheduler()
 
@@ -14,7 +15,8 @@ class CloudsToolsConfig(AppConfig):
         from clouds_tools.resources.scan_thread import ScanToolsThread
         if settings.IS_RUNSERVER and not settings.DEBUG:
             cls._scheduler.add_job(ScanToolsThread.once_job, 'date', run_date=datetime.datetime.now())
-            cls._scheduler.add_job(ScanToolsThread.cron_job, 'cron', hour='0', next_run_time=datetime.datetime.now())
+            cls._scheduler.add_job(ScanToolsThread.immediately_cron_job, 'cron', hour='0', next_run_time=datetime.datetime.now())
+            cls._scheduler.add_job(ScanToolsThread.cron_job, 'cron', hour='1')
             cls._scheduler.start()
 
     @runserver_executor

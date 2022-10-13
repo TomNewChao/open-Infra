@@ -66,10 +66,15 @@ export default {
   alarm_email: '告警通知',
 
   // monitor
-  Monitor: "资源监控",
+  Monitor: "系统监控",
   prometheus: "Prometheus",
   grafana: "Grafana",
   uptime_status: "Uptime-Status",
+
+  // permission
+  PermissionControl: "权限管控",
+  KubeConfig: "KubeConfig",
+  ServiceInfo: "服务信息",
 
 
 }
