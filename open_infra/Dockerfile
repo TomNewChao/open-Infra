@@ -15,6 +15,7 @@ RUN yum install -y python3-devel
 RUN yum install -y java-1.8.0-openjdk*
 RUN yum install -y nmap
 RUN yum install -y kubectl
+RUN yum install -y git
 RUN pip3 install -r /opt/open_infra/requirements.txt
 COPY ./docker-entrypoint.sh /usr/local/bin/
 RUN chmod 777 /usr/local/bin/docker-entrypoint.sh
