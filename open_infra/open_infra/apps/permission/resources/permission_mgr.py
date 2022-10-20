@@ -153,7 +153,7 @@ class GitHubPrLib(PrBaseLib):
                 if len(service_info_list) == 0:
                     is_ok = False
                     ret_data.append("Invalid ServiceName, Please check ServiceName.")
-                if not service_info_list[0].cluster or not service_info_list[0].namespace:
+                elif not service_info_list[0].cluster or not service_info_list[0].namespace:
                     is_ok = False
                     ret_data.append("Invalid ServiceName, Please check the namespace or cluster of ServiceName.")
         if not len(list_data):
