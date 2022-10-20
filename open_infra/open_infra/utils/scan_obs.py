@@ -7,18 +7,84 @@ import json
 import argparse
 import yaml
 import traceback
+import re
+from itertools import groupby
 from collections import defaultdict
 from obs.client import ObsClient
-from cocoNLP.extractor import extractor
 from django.conf import settings
 from logging import getLogger
 
 logger = getLogger("django")
 
 
+class Extractor(object):
+    def __init__(self):
+        pass
+
+    def replace_chinese(self, text):
+        """
+        remove all the chinese characters in text
+        eg: replace_chinese('我的email是ifee@baidu.com和dsdsd@dsdsd.com,李林的邮箱是eewewe@gmail.com哈哈哈')
+
+
+        :param: raw_text
+        :return: text_without_chinese<str>
+        """
+        filtrate = re.compile(u'[\u4E00-\u9FA5]')
+        text_without_chinese = filtrate.sub(r' ', text)
+        return text_without_chinese
+
+    def extract_email(self, text):
+        """
+        extract all email addresses from texts<string>
+        eg: extract_email('我的email是ifee@baidu.com和dsdsd@dsdsd.com,李林的邮箱是eewewe@gmail.com哈哈哈')
+
+
+        :param: raw_text
+        :return: email_addresses_list<list>
+        """
+        eng_texts = self.replace_chinese(text)
+        eng_texts = eng_texts.replace(' at ', '@').replace(' dot ', '.')
+        sep = ',!?:; ，。！？《》、|\\/'
+        eng_split_texts = [''.join(g) for k, g in groupby(eng_texts, sep.__contains__) if not k]
+
+        email_pattern = r'^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$'
+
+        emails = []
+        for eng_text in eng_split_texts:
+            result = re.match(email_pattern, eng_text, flags=0)
+            if result:
+                emails.append(result.string)
+        return emails
+
+    def extract_cellphone(self, text, nation):
+        """
+        extract all cell phone numbers from texts<string>
+        eg: extract_email('my email address is sldisd@baidu.com and dsdsd@dsdsd.com,李林的邮箱是eewewe@gmail.com哈哈哈')
+
+
+        :param: raw_text
+        :return: email_addresses_list<list>
+        """
+        eng_texts = self.replace_chinese(text)
+        sep = ',!?:; ：，。！？《》、|\\/abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+        eng_split_texts = [''.join(g) for k, g in groupby(eng_texts, sep.__contains__) if not k]
+        eng_split_texts_clean = [ele for ele in eng_split_texts if len(ele) >= 7 and len(ele) < 17]
+        if nation == 'CHN':
+            phone_pattern = '((\+86)?([- ])?)?(|(13[0-9])|(14[0-9])|(15[0-9])|(17[0-9])|(18[0-9])|(19[0-9]))([- ])?\d{3}([- ])?\d{4}([- ])?\d{4}'
+        else:
+            phone_pattern = '((\+86)?([- ])?)?(|(13[0-9])|(14[0-9])|(15[0-9])|(17[0-9])|(18[0-9])|(19[0-9]))([- ])?\d{3}([- ])?\d{4}([- ])?\d{4}'
+        phones = []
+        for eng_text in eng_split_texts_clean:
+            result = re.match(phone_pattern, eng_text, flags=0)
+            if result:
+                phones.append(result.string.replace('+86', '').replace('-', ''))
+        return phones
+
+
 # noinspection DuplicatedCode
 class EipTools(object):
-    _ex = extractor()
+    _ex = Extractor()
 
     def __init__(self, *args, **kwargs):
         super(EipTools, self).__init__(*args, **kwargs)
@@ -140,12 +206,12 @@ class EipTools(object):
     @classmethod
     def get_sensitive_data(cls, content):
         sensitive_dict_data = dict()
-        try:
-            name = cls._ex.extract_name(content)
-            if name:
-                sensitive_dict_data["name"] = name
-        except Exception:
-            pass
+        # try:
+        #     name = cls._ex.extract_name(content)
+        #     if name:
+        #         sensitive_dict_data["name"] = name
+        # except Exception:
+        #     pass
         sensitive_email = cls._ex.extract_email(content)
         sensitive_phone = cls._ex.extract_cellphone(content, nation='CHN')
         if sensitive_email:
@@ -189,8 +255,9 @@ class EipTools(object):
                         sensitive_data = str()
                         if content:
                             sensitive_data = cls.get_sensitive_data(content)
-                        logger.info("[check_bucket_info] collect obs account:{}, bucket_name:{},file_name:{},sensitive data:{}".format(
-                            account, bucket_name, file_name, str(sensitive_data)))
+                        logger.info(
+                            "[check_bucket_info] collect obs account:{}, bucket_name:{},file_name:{},sensitive data:{}".format(
+                                account, bucket_name, file_name, str(sensitive_data)))
                         list_anonymous_file.append([account, bucket_name, file_url, file_name, str(sensitive_data)])
         return list_anonymous_bucket, list_anonymous_file
 
@@ -257,7 +324,9 @@ def scan_obs(query_account_list):
             url = settings.OBS_URL.format(location)
             with ObsClientConn(ak, sk, url) as obs_client:
                 for bucket_name in bucket_name_list:
-                    list_anonymous_bucket_temp, ret_anonymous_file_temp = eip_tools.check_bucket_info(obs_client, bucket_name, account, location)
+                    list_anonymous_bucket_temp, ret_anonymous_file_temp = eip_tools.check_bucket_info(obs_client,
+                                                                                                      bucket_name,
+                                                                                                      account, location)
                     list_anonymous_bucket.extend(list_anonymous_bucket_temp or [])
                     list_anonymous_file.extend(ret_anonymous_file_temp or [])
     logger.info("############2.finish to collect obs anonymous bucket:{}######".format(",".join(account_list)))
