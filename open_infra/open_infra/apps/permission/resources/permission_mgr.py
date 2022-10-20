@@ -148,9 +148,17 @@ class GitHubPrLib(PrBaseLib):
             elif not data["timelimit"].isdigit() or (int(data["timelimit"]) <= 0):
                 is_ok = False
                 ret_data.append("Invalid TimeLimit, Please check TimeLimit")
-            elif len(ServiceInfo.objects.filter(service_name=data["servicename"])) == 0:
-                is_ok = False
-                ret_data.append("Invalid ServiceName, Please check ServiceName.")
+            else:
+                service_info_list = ServiceInfo.objects.filter(service_name=data["servicename"])
+                if len(service_info_list) == 0:
+                    is_ok = False
+                    ret_data.append("Invalid ServiceName, Please check ServiceName.")
+                if not service_info_list[0].cluster or not service_info_list[0].namespace:
+                    is_ok = False
+                    ret_data.append("Invalid ServiceName, Please check the namespace or cluster of ServiceName.")
+        if not len(list_data):
+            is_ok = False
+            ret_data.append("The pr content of parse is empty, Please check the data of submit.")
         if ret_data:
             desc_str = "***{}***".format(",".join(ret_data))
         else:
