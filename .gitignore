@@ -6,6 +6,8 @@ __pycache__/
 # C extensions
 *.so
 *.xml
+open_infra/*.idea/
+open_infra/*.idea
 *.idea/
 *.idea
 *.iml
