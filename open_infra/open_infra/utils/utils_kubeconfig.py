@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Time    : 2022/10/10 18:04
 # @Author  : Tom_zc
-# @FileName: kubeconfig_lib.py
+# @FileName: utils_kubeconfig.py
 # @Software: PyCharm
 import os
 import shutil
@@ -19,10 +19,8 @@ logger = logging.getLogger("django")
 
 class KubeconfigGlobalConfig:
     script_path = "config/kubeconfig/script"
-
     create_cmd = "cd {path} && {script_path} {namespace} {cluster} {new_kubeconfig_path} {server} {username} {role} {kubeconfig_path}"
     delete_cmd = "{script_path} {namespace} {kubeconfig_path} {username} {role}"
-    pass
 
 
 # noinspection PyMethodMayBeStatic

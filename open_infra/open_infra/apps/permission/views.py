@@ -6,29 +6,32 @@
 import json
 import logging
 import traceback
-
 from django.db import transaction
 from django.views.generic import View
 from open_infra.utils.api_error_code import ErrCode
 from open_infra.utils.auth_permisson import AuthView
 from open_infra.utils.common import assemble_api_result, list_param_check_and_trans
-from open_infra.utils.kubeconfig_lib import KubeconfigLib
+from open_infra.utils.utils_git import GitHubPrStatus
+from open_infra.utils.utils_kubeconfig import KubeconfigLib
 from permission.models import KubeConfigInfo, ServiceInfo
-from permission.resources.constants import GitHubPrStatus, PrComment, KubeConfigRole, KubeConfigLock
-from permission.resources.permission_mgr import GitHubPr, KubeconfigEmailTool, ServiceInfoMgr, KubeconfigMgr
+from permission.resources.constants import PrComment, KubeConfigRole, KubeConfigLock
+from permission.resources.permission_mgr import KubeConfigGitBase, KubeconfigEmailTool, ServiceInfoMgr, KubeconfigMgr
 from django.utils import timezone
 
 logger = logging.getLogger("django")
 
 
 # noinspection PyMethodMayBeStatic
-class GitHubPrView(View):
+class KubeConfigGitView(View):
     def post(self, request):
+        """this api is to receive the pr request from github： kubeconfig-interact
+           Detail: https://github.com/Open-Infra-Ops/kubeconfig-interact
+        """
         dict_data = json.loads(request.body)
         if not GitHubPrStatus.is_in_github_pr_status(dict_data.get("action")):
             logger.error("[GitHubPrView] receive param fault:{}".format(dict_data.get("action")))
             return assemble_api_result(err_code=ErrCode.STATUS_SUCCESS)
-        github_pr = GitHubPr(dict_data)
+        github_pr = KubeConfigGitBase(dict_data)
         try:
             # logger.error("data is:{}".format(dict_data))
             # new pr
@@ -61,7 +64,7 @@ class GitHubPrView(View):
 # noinspection PyMethodMayBeStatic
 class KubeConfigView(AuthView):
     def get(self, request):
-        """kubeconfig detail"""
+        """get the detail of kubeconfig"""
         dict_data = request.GET.dict()
         config_id = dict_data.get("id")
         if not config_id or not config_id.isdigit():
@@ -75,7 +78,7 @@ class KubeConfigView(AuthView):
         return assemble_api_result(ErrCode.STATUS_SUCCESS, data=ret_dict)
 
     def put(self, request):
-        """kubeconfig modify"""
+        """modify kubeconfig"""
         dict_data = json.loads(request.body)
         config_id = dict_data.get("id")
         role = dict_data.get("role")
@@ -130,14 +133,14 @@ class KubeConfigView(AuthView):
 # noinspection PyMethodMayBeStatic
 class BatchKubeConfigView(AuthView):
     def get(self, request):
-        """kubeconfig list"""
+        """get the list of kubeconfig"""
         params_dict = list_param_check_and_trans(request.GET.dict(), order_by="create_time")
         kubeconfig_mgr = KubeconfigMgr()
         data = kubeconfig_mgr.list(params_dict)
         return assemble_api_result(ErrCode.STATUS_SUCCESS, data=data)
 
     def post(self, request):
-        """kubeconfig batch delete"""
+        """batch delete kubeconfig"""
         dict_data = json.loads(request.body)
         kubeconfig_ids = dict_data.get("kubeconfig_ids")
         if kubeconfig_ids is None or not isinstance(kubeconfig_ids, list):
@@ -167,7 +170,7 @@ class BatchKubeConfigView(AuthView):
 # noinspection PyMethodMayBeStatic
 class ServiceInfoView(AuthView):
     def get(self, request):
-        """service info list"""
+        """get the list of service info"""
         params_dict = list_param_check_and_trans(request.GET.dict(), order_by="create_time")
         kubeconfig_mgr = ServiceInfoMgr()
         data = kubeconfig_mgr.list(params_dict)

@@ -6,13 +6,12 @@
 
 
 from django.conf.urls import url
-from permission.views import GitHubPrView, KubeConfigView, BatchKubeConfigView, ServiceInfoView
+from permission.views import KubeConfigGitView, KubeConfigView, BatchKubeConfigView, ServiceInfoView
 
 urlpatterns = [
-    url(r'^github_pr', GitHubPrView.as_view()),
+    url(r'^github_pr', KubeConfigGitView.as_view()),
     url(r'^kubeconfig', KubeConfigView.as_view()),
     url(r'^batch_kubeconfig', BatchKubeConfigView.as_view()),
     url(r'^service_info', ServiceInfoView.as_view()),
-
 
 ]

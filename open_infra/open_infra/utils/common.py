@@ -6,6 +6,8 @@
 
 import time
 import base64
+import string
+import random
 import pickle
 import subprocess
 import tempfile
@@ -162,20 +164,6 @@ def execute_cmd3_with_tmp(cmd_str, timeout=30):
                                                                                        traceback.format_exc())
 
 
-class MgrException(Exception):
-    def __init__(self, code, trans_para=None, trans_code=None, message=None, desc=None):
-        self.code = code
-        if isinstance(trans_para, str):
-            trans_para = [trans_para]
-        self.trans_para = trans_para
-        self.trans_code = trans_code
-        if desc is None:
-            self.desc = translate_error_desc(code, [] if trans_para is None else trans_para)
-        else:
-            self.desc = desc
-        super(MgrException, self).__init__(self.desc if message is None else message)
-
-
 def auto_response():
     """
     Decorator that reports the execution time.
@@ -204,7 +192,6 @@ def auto_response():
     return decorator
 
 
-# noinspection DuplicatedCode
 def translate_error_desc(trans_code, trans_para=None):
     if trans_para is None:
         trans_para = list()
@@ -228,7 +215,6 @@ def translate_error_desc(trans_code, trans_para=None):
     return trans_desc
 
 
-# noinspection DuplicatedCode
 def assemble_api_result(err_code, trans_code=None, trans_para=None, data=None, lang_flag=None, replace_none=True):
     """
     : lang_flag: 指定返回结果描述的语言类型  cn/en
@@ -427,3 +413,42 @@ def get_suitable_range(total, page, size):
     start = (suitable_page - 1) * size
     end = min(start + size, total)
     return suitable_page, slice(start, end)
+
+
+def get_random_password(bit=12):
+    words = string.ascii_lowercase + string.ascii_uppercase + string.digits
+    return "".join(random.sample(words, bit))
+
+
+class MgrException(Exception):
+    def __init__(self, code, trans_para=None, trans_code=None, message=None, desc=None):
+        self.code = code
+        if isinstance(trans_para, str):
+            trans_para = [trans_para]
+        self.trans_para = trans_para
+        self.trans_code = trans_code
+        if desc is None:
+            self.desc = translate_error_desc(code, [] if trans_para is None else trans_para)
+        else:
+            self.desc = desc
+        super(MgrException, self).__init__(self.desc if message is None else message)
+
+
+class BaseStatus:
+    """eg: FREEZED = (0, "冻结")"""
+
+    @classmethod
+    def get_status_comment(cls):
+        dict_data = dict()
+        for attr, content in cls.__dict__.items():
+            if attr.isupper() and isinstance(content, tuple):
+                dict_data[content[0]] = content[1]
+        return dict_data
+
+    @classmethod
+    def get_comment_status(cls):
+        dict_data = dict()
+        for attr, content in cls.__dict__.items():
+            if attr.isupper() and isinstance(content, tuple):
+                dict_data[content[1]] = content[0]
+        return dict_data

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Time    : 2022/10/11 14:02
 # @Author  : Tom_zc
-# @FileName: collect_server_info.py
+# @FileName: scan_server_info.py
 # @Software: PyCharm
 import os
 import logging
@@ -19,7 +19,7 @@ class CollectServerInfoGlobalConfig:
     default_domain = "https://119.8.122.167:5443"
 
 
-class CollectServerInfoGlobal:
+class CollectServerInfo:
 
     @staticmethod
     def get_data():
@@ -43,7 +43,8 @@ class CollectServerInfoGlobal:
                         cluster_alias_list = dict_data["spec"]["destinations"]
                         for cluster_alias in cluster_alias_list:
                             if cluster_alias["server"] == "https://kubernetes.default.svc":
-                                cluster_domain_temp = {cluster_alias["name"]: CollectServerInfoGlobalConfig.default_domain}
+                                cluster_domain_temp = {
+                                    cluster_alias["name"]: CollectServerInfoGlobalConfig.default_domain}
                             else:
                                 cluster_domain_temp = {cluster_alias["name"]: cluster_alias["server"]}
                             cluster_domain_dict.update(cluster_domain_temp)
@@ -85,5 +86,10 @@ class CollectServerInfoGlobal:
                 shutil.rmtree(infra_community_dir)
 
 
+def scan_server_info():
+    collect_server_info = CollectServerInfo()
+    collect_server_info.get_data()
+
+
 if __name__ == '__main__':
-    CollectServerInfoGlobal.get_data()
+    scan_server_info()

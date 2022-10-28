@@ -10,12 +10,11 @@ from clouds_tools.models import HWCloudAccount, HWCloudProjectInfo, HWCloudEipIn
     HWCloudHighRiskPort
 from clouds_tools.resources.constants import ScanToolsLock
 from clouds_tools.resources.scan_tools import ScanBaseTools, ScanOrmTools
-from open_infra.utils import scan_obs
 from open_infra.utils.common import func_retry
 from open_infra.utils.default_port_list import HighRiskPort
-from open_infra.utils.scan_eip import get_eip_info
-from open_infra.utils.scan_port import scan_port
-from open_infra.utils.scan_obs import scan_obs
+from open_infra.tools.scan_eip import scan_eip
+from open_infra.tools.scan_port import scan_port
+from open_infra.tools.scan_obs import scan_obs
 from logging import getLogger
 from django.db import transaction
 
@@ -51,7 +50,7 @@ class ScanToolsThread(object):
     def scan_eip(cls):
         logger.info("----------------2.start scan_eip-----------------------")
         account_info = ScanBaseTools.get_decrypt_hw_account_project_info_from_database()
-        eip_dict = get_eip_info(account_info)
+        eip_dict = scan_eip(account_info)
         with transaction.atomic():
             HWCloudEipInfo.objects.all().delete()
             cur_datetime = datetime.datetime.now()

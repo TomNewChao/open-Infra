@@ -6,28 +6,6 @@
 from threading import Lock
 
 
-class GitHubPrStatus(object):
-    """the status of webhook"""
-    create = "created"
-    opened = "opened"
-    reopened = "reopened"
-    closed = "closed"
-
-    @classmethod
-    def is_in_github_pr_status(cls, status):
-        if status in [cls.create, cls.opened, cls.reopened, cls.closed]:
-            return True
-        else:
-            return False
-
-    @classmethod
-    def is_in_new_pr_status(cls, status):
-        if status in [cls.opened, cls.reopened]:
-            return True
-        else:
-            return False
-
-
 class KubeConfigRole:
     """the Role of kubeconfig"""
     admin = "admin"
@@ -49,8 +27,6 @@ class KubeConfigLock:
 
 class PermissionGlobalConfig:
     """The permission of global config"""
-    comment_github_url = "{}/repos/{}/{}/issues/{}/comments"
-    merge_github_url = "{}/repos/{}/{}/pulls/{}/merge"
     service_txt_url = "https://api.github.com/repos/Open-Infra-Ops/kubeconfig-community/contents/doc/ServiceName.txt"
 
 

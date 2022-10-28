@@ -244,12 +244,15 @@ CORS_ALLOW_HEADERS = (
     'x-requested-with'
 )
 
-# obs account setting
-AK = os.getenv("obs_ak")
-SK = os.getenv("obs_sk")
-URL = os.getenv("obs_url")
+# obs setting
+OBS_AK = os.getenv("obs_ak")
+OBS_SK = os.getenv("obs_sk")
+OBS_URL = os.getenv("obs_url")
+OBS_DOMAIN_ID = os.getenv("obs_domain_id")
+
+# obs bucketname and path
 DOWNLOAD_BUCKET_NAME = "obs-for-openeuler-developer"
-DOWNLOAD_KEY_NAME = "secret-files/collect_elastic_public_ip.yaml"
+DOWNLOAD_EIP_KEY_NAME = "secret-files/collect_elastic_public_ip.yaml"
 DOWNLOAD_SLA_KEY_NAME = "secret-files/sla.yaml"
 
 # hw account
@@ -285,7 +288,7 @@ EXCEL_UDP_PAGE_NAME = "UDP"
 IGNORE_ZONE = ["cn-northeast-1", "MOS", "ap-southeast-1_tryme", "cn-north-1_1"]
 
 # scan obs setting
-OBS_URL = "https://obs.{}.myhuaweicloud.com"
+OBS_URL_FORMAT = "https://obs.{}.myhuaweicloud.com"
 OBS_BASE_URL = "obs.cn-north-4.myhuaweicloud.com"
 OBS_FILE_POSTFIX = ["sh", "java", "jsp", "sql", "conf", "cer",
                     "php", "php5", "asp", "cgi", "aspx", "war", "bat",
@@ -316,17 +319,21 @@ CLA_EXPLAIN = {
     "openlookeng": "openLooKeng",
 }
 
-# alarm email config
+# email config
+EMAIL_SENDER_EMAIL = "infra@lists.osinfra.cn"
+EMAIL_SENDER_NAME = "infra"
+EMAIL_SENDER_SERVER = "lists.osinfra.cn"
+EMAIL_SENDER_PORT = 465
+EMAIL_USERNAME = os.getenv("alarm_email_user")
+EMAIL_PWD = os.getenv("alarm_email_pwd")
+EMAIL_IS_SSL = True
+
+# the alarm email config
 ALARM_EMAIL_SUBJECT = "Open-ops.osinfra.cn: alarm notify"
 ALARM_EMAIL_DEFAULT_LEVEL = 1  # le 1
-ALARM_EMAIL_SENDER_EMAIL = "infra@lists.osinfra.cn"
-ALARM_EMAIL_SENDER_NAME = "infra"
-ALARM_EMAIL_SENDER_SERVER = "lists.osinfra.cn"
-ALARM_EMAIL_SENDER_PORT = 465
-IS_SSL = True
-ALARM_EMAIL_USERNAME = os.getenv("alarm_email_user")
-ALARM_EMAIL_PWD = os.getenv("alarm_email_pwd")
 ALARM_PROMETHEUS_URL = "https://monitor.osinfra.cn"
+ALARM_DELAY = 10
+# the alarm threshold config
 ALARM_CCE_THRESHOLD = 90
 ALARM_ECS_THRESHOLD = 90
 ALARM_RES_COUNT_THRESHOLD = {
@@ -337,7 +344,7 @@ ALARM_RES_COUNT_THRESHOLD = {
     'tencent-beijing-playground-cluster/tencent-beijing-playground-cluster/openeuler-mooc': 100,
     'tencent-beijing-playground-cluster/tencent-beijing-playground-cluster/default': 100
 }
-ALARM_DELAY = 10
+# the alarm sms
 ALARM_SMS_URL = os.getenv("ALARM_SMS_URL", "https://smsapi.cn-south-1.myhuaweicloud.com:443/sms/batchSendSms/v1")  # guangzhou
 ALARM_SMS_KEY = os.getenv("ALARM_SMS_KEY")
 ALARM_SMS_SECRET = os.getenv("ALARM_SMS_SECRET")
@@ -347,10 +354,21 @@ ALARM_SMS_RECOVER_TEMPLATE = os.getenv("ALARM_SMS_RECOVER_TEMPLATE")
 ALARM_SMS_SIGNATURE = "OpenInfraOps监控告警"
 
 
-# permission
+# the kubeconfig of permission
+KUBECONFIG_EMAIL_SUBJECT = "ops.osinfra.cn: Kubeconfig Notify"
+
+# the github config
 GITHUB_SECRET = os.getenv("GITHUB_SECRET")
 GITHUB_DOMAIN = "https://api.github.com"
-KUBECONFIG_EMAIL_SUBJECT = "ops.osinfra.cn: Kubeconfig Notify"
-GITHUB_REVIEWER = ["githubliuyang777", ]
 GITHUB_COMMIT_INFO = {"name": "TomNewChao", "email": "353712216@qq.com"}
 
+
+GITHUB_REVIEWER = ["githubliuyang777", ]
+
+
+# the obs-interact
+OBS_INTERACT_EMAIL_SUBJECT = "ops.osinfra.cn: Obs-Interact Notify"
+OBS_INTERACT_ZONE = "cn-north-4"
+OBS_INTERACT_BUCEKT_NAME = "obs-transfer"
+OBS_INTERACT_BUCKET_PATH = "/{}/{}"
+OBS_INTERACT_REPO = "https://github.com/{}.git"

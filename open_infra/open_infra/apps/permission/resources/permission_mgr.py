@@ -3,12 +3,9 @@
 # @Author  : Tom_zc
 # @FileName: permission_mgr.py
 # @Software: PyCharm
-import abc
-import re
 import smtplib
 import traceback
 import datetime
-import requests
 import logging
 from email.header import Header
 from email.mime.text import MIMEText
@@ -17,116 +14,19 @@ from django.db import transaction
 from django.db.models import Q
 from pytz import timezone as convert_time_zone
 from django.conf import settings
-from open_infra.utils.kubeconfig_lib import KubeconfigLib
+
+from open_infra.libs.lib_email import EmailBaseLib
+from open_infra.utils.utils_git import GitBaseToolsLib, GitBase
+from open_infra.utils.utils_kubeconfig import KubeconfigLib
 from permission.models import KubeConfigInfo, ServiceInfo
 from open_infra.utils.common import get_suitable_range
-from permission.resources.constants import PermissionGlobalConfig, KubeConfigRole
+from permission.resources.constants import KubeConfigRole
+
 
 logger = logging.getLogger("django")
 
 
-class PrBase(metaclass=abc.ABCMeta):
-    Pr_Base_lib = None
-
-    def __init__(self, pr_dict):
-        self.pr_dict = pr_dict
-
-    def create_pr(self):
-        raise NotImplemented
-
-    def comment_pr(self, comment):
-        raise NotImplemented
-
-    def merge_pr(self):
-        raise NotImplemented
-
-
-class PrBaseLib(object):
-    @classmethod
-    def request_comment(cls, url, token, body_data, timeout=60):
-        raise NotImplemented
-
-    @classmethod
-    def request_diff(cls, url, timeout=60):
-        raise NotImplemented
-
-    @classmethod
-    def request_merge(cls, url, token, timeout=60):
-        raise NotImplemented
-
-    @classmethod
-    def parse_diff(cls, parse_content):
-        raise NotImplemented
-
-    @classmethod
-    def check_params(cls, list_data):
-        raise NotImplemented
-
-
-class GitHubPrLib(PrBaseLib):
-    @classmethod
-    def request_comment(cls, url, token, body_data, timeout=60):
-        header = {
-            "Accept": "application/vnd.github+json",
-            "Authorization": "Bearer {}".format(token)
-        }
-        result = requests.post(url, headers=header, json={"body": body_data}, timeout=(timeout, timeout))
-        if not str(result.status_code).startswith("2"):
-            raise Exception(
-                "[request_comment] request url:{} failed,code:{}, content:{}".format(url, result.content,
-                                                                                     result.content))
-        return result
-
-    @classmethod
-    def request_url(cls, url, timeout=60):
-        result = requests.get(url, timeout=(timeout, timeout))
-        if not str(result.status_code).startswith("2"):
-            raise Exception(
-                "[request_diff] request url:{} failed,code:{}, content:{}".format(url, result.content, result.content))
-        return result.content.decode("utf-8")
-
-    @classmethod
-    def request_merge(cls, url, token, timeout=60):
-        header = {
-            "Accept": "application/vnd.github+json",
-            "Authorization": "Bearer {}".format(token)
-        }
-        result = requests.put(url, headers=header, timeout=(timeout, timeout))
-        if not str(result.status_code).startswith("2"):
-            raise Exception(
-                "[request_merge] request url:{} failed,code:{}, content:{}".format(url, result.content, result.content))
-        return result
-
-    @classmethod
-    def parse_diff(cls, parse_content):
-        result_list = parse_content.split("+++ ")
-        list_data = list()
-        for result in result_list:
-            dict_data = dict()
-            for line in result.split("\n"):
-                if line.startswith("+") and not line.startswith("++"):
-                    list_line = line[1:].split(":")
-                    if len(list_line) != 2:
-                        continue
-                    dict_data[list_line[0].strip().lower()] = list_line[1].strip()
-            if len(dict_data):
-                list_data.append(dict_data)
-        logger.info("[parse_diff] parse data:{}".format(list_data))
-        return list_data
-
-    @classmethod
-    def parse_patch(cls, parse_content):
-        result_list = parse_content.split("+++ ")
-        email_str = str()
-        for result in result_list:
-            for line in result.split("\n"):
-                if line.startswith("From:"):
-                    email_temp = re.findall(r"<.*?>", line)
-                    if len(email_temp):
-                        email_str = email_temp[0][1:-1]
-                        break
-        logger.info("[parse_patch] parse email:{}".format(email_str))
-        return email_str
+class KubeconfigInteractGitToolsLib(GitBaseToolsLib):
 
     @classmethod
     def check_params(cls, list_data):
@@ -166,8 +66,8 @@ class GitHubPrLib(PrBaseLib):
         return is_ok, desc_str
 
 
-class GitHubPr(PrBase):
-    Pr_Base_lib = GitHubPrLib
+class KubeConfigGitBase(GitBase):
+    kubeconfig_interact_tools_lib = KubeconfigInteractGitToolsLib
 
     def parse_create_pr(self):
         if self.pr_dict.get("pull_request"):
@@ -176,11 +76,11 @@ class GitHubPr(PrBase):
         else:
             diff_url = self.pr_dict["issue"]["pull_request"]["diff_url"]
             patch_url = self.pr_dict["issue"]["pull_request"]["patch_url"]
-        content = self.Pr_Base_lib.request_url(diff_url)
-        parse_data = self.Pr_Base_lib.parse_diff(content)
-        content = self.Pr_Base_lib.request_url(patch_url)
-        email_str = self.Pr_Base_lib.parse_patch(content)
-        is_ok, msg = self.Pr_Base_lib.check_params(parse_data)
+        content = self.kubeconfig_interact_tools_lib.request_url(diff_url)
+        parse_data = self.kubeconfig_interact_tools_lib.parse_diff(content)
+        content = self.kubeconfig_interact_tools_lib.request_url(patch_url)
+        email_str = self.kubeconfig_interact_tools_lib.parse_patch(content)
+        is_ok, msg = self.kubeconfig_interact_tools_lib.check_params(parse_data)
         return is_ok, msg, parse_data, email_str
 
     def comment_pr(self, comment):
@@ -193,27 +93,30 @@ class GitHubPr(PrBase):
         repo = list_data[4]
         issue_number = list_data[6]
         domain = settings.GITHUB_DOMAIN
-        url = PermissionGlobalConfig.comment_github_url.format(domain, owner, repo, issue_number)
+        url = self.comment_github_url.format(domain, owner, repo, issue_number)
         token = settings.GITHUB_SECRET
-        result = self.Pr_Base_lib.request_comment(url, token, comment)
+        result = self.kubeconfig_interact_tools_lib.request_comment(url, token, comment)
         return result
 
     def merge_pr(self):
-        list_data = self.pr_dict["pull_request"]["html_url"].split("/")
+        if self.pr_dict.get("pull_request"):
+            list_data = self.pr_dict["pull_request"]["html_url"].split("/")
+        else:
+            list_data = self.pr_dict["issue"]["pull_request"]["patch_url"].split("/")
         owner = list_data[3]
         repo = list_data[4]
         issue_number = list_data[6]
         domain = settings.GITHUB_DOMAIN
-        url = PermissionGlobalConfig.merge_github_url.format(domain, owner, repo, issue_number)
+        url = self.merge_github_url.format(domain, owner, repo, issue_number)
         token = settings.GITHUB_SECRET
-        result = self.Pr_Base_lib.request_merge(url, token)
+        result = self.kubeconfig_interact_tools_lib.request_merge(url, token)
         return result
 
 
-class KubeconfigEmailTool(object):
+class KubeconfigEmailTool(EmailBaseLib):
 
     @classmethod
-    def _get_kubeconfig_email_content(cls, kubeconfig_info):
+    def get_content(cls, kubeconfig_info):
         """根据类型返回对应模板
         :param kubeconfig_info:
         :return:
@@ -258,6 +161,7 @@ class KubeconfigEmailTool(object):
         except Exception as e:
             logger.error('[_get_kubeconfig_email_content] format email content failed,e=%s,t=%s', e.args[0],
                          traceback.format_exc())
+            raise Exception("[KubeconfigEmailTool] ")
 
     @classmethod
     def _send_email(cls, email_conf):
@@ -267,8 +171,6 @@ class KubeconfigEmailTool(object):
             email_content = email_conf.get('email_content')
             email_receivers = email_conf.get('email_receivers')
             sender_email = settings.ALARM_EMAIL_SENDER_EMAIL
-            server_address = settings.ALARM_EMAIL_SENDER_SERVER
-            server_port = int(settings.ALARM_EMAIL_SENDER_PORT)
             # text
             message = MIMEMultipart()
             message['From'] = Header(sender_email)
@@ -282,18 +184,8 @@ class KubeconfigEmailTool(object):
             attachment["Content-Type"] = 'application/octet-stream'
             attachment["Content-Disposition"] = 'attachment;filename="{}"'.format(file_name)
             message.attach(attachment)
-
-            if not settings.IS_SSL:
-                smt_obj = smtplib.SMTP(server_address, port=int(server_port))
-                smt_obj.login(settings.ALARM_EMAIL_USERNAME, settings.ALARM_EMAIL_PWD)
-                smt_obj.starttls()
-                smt_obj.sendmail(sender_email, email_receivers, message.as_string())
-            else:
-                smt_obj = smtplib.SMTP_SSL(server_address, port=int(server_port))
-                smt_obj.login(settings.ALARM_EMAIL_USERNAME, settings.ALARM_EMAIL_PWD)
-                smt_obj.sendmail(sender_email, email_receivers, message.as_string())
-            logger.info(
-                "[KubeconfigEmailTool][_send_email] send email success! send data is:{}".format(email_receivers))
+            cls.send_email(email_receivers, message)
+            logger.info("[KubeconfigEmailTool][_send_email] send email success! send data is:{}".format(email_receivers))
             return True
         except Exception as e:
             logger.error('[KubeconfigEmailTool] send email failed,e=%s,t=%s', e.args[0], traceback.format_exc())
@@ -310,7 +202,7 @@ class KubeconfigEmailTool(object):
             raise Exception("[send_kubeconfig_email] receive param failed")
         kubeconfig_info['email_receivers'] = email_list
         kubeconfig_info['email_subject'] = settings.KUBECONFIG_EMAIL_SUBJECT
-        kubeconfig_info['email_content'] = cls._get_kubeconfig_email_content(kubeconfig_info)
+        kubeconfig_info['email_content'] = cls.get_content(kubeconfig_info)
         return cls._send_email(kubeconfig_info)
 
 
@@ -377,6 +269,10 @@ class KubeconfigMgr:
                 send_ok=is_send_ok)
 
     def list(self, kwargs):
+        """list kubeconfig info
+        @param kwargs: dict, the parse of dict data
+        @return: dict
+        """
         page, size = kwargs['page'], kwargs['size']
         order_type, order_by = kwargs.get("order_type"), kwargs.get("order_by")
         filter_name = kwargs.get("filter_name")
@@ -419,6 +315,10 @@ class KubeconfigMgr:
 class ServiceInfoMgr:
 
     def list(self, kwargs):
+        """list service info
+        @param kwargs: dict, the parse of dict data
+        @return: dict
+        """
         page, size = kwargs['page'], kwargs['size']
         order_type, order_by = kwargs.get("order_type"), kwargs.get("order_by")
         filter_name = kwargs.get("filter_name")

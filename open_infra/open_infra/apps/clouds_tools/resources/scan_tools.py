@@ -12,18 +12,18 @@ from clouds_tools.models import HWCloudProjectInfo, HWCloudAccount, HWCloudEipIn
     HWCloudScanEipPortStatus, HWCloudScanObsAnonymousBucket, HWCloudScanObsAnonymousFile, HWCloudScanObsAnonymousStatus, \
     HWCloudHighRiskPort
 from clouds_tools.resources.constants import NetProtocol, ScanToolsLock, ScanPortStatus, ScanObsStatus, HWCloudEipStatus
-from open_infra.libs.obs_utils import ObsLib, HWCloudIAM
+from open_infra.libs.lib_cloud import HWCloudObs, HWCloudIAM
 from open_infra.utils.common import output_scan_port_excel, output_scan_obs_excel, get_suitable_range, convert_yaml, \
     output_cla_excel
-from open_infra.utils.crypto import AESCrypt
+from open_infra.libs.lib_crypto import AESCrypt
 from open_infra.utils.default_port_list import HighRiskPort
-from open_infra.utils.scan_port import scan_port
-from open_infra.utils.scan_obs import EipTools as ScanObsEipTools, scan_obs
+from open_infra.tools.scan_port import scan_port
+from open_infra.tools.scan_obs import ObsTools, scan_obs
 from django.conf import settings
 from threading import Thread, Lock
 from logging import getLogger
 
-from open_infra.utils.scan_sla import scan_cla
+from open_infra.tools.scan_sla import scan_cla
 
 logger = getLogger("django")
 
@@ -73,7 +73,7 @@ class ScanOrmTools(object):
     def query_scan_eip_port_status(account):
         try:
             return HWCloudScanEipPortStatus.objects.get(account=account)
-        except HWCloudScanEipPortStatus.DoesNotExist as e:
+        except HWCloudScanEipPortStatus.DoesNotExist:
             logger.error("[query_scan_eip_status] dont find account:{}".format(account))
             return None
 
@@ -111,7 +111,7 @@ class ScanOrmTools(object):
     def query_scan_obs_status(account):
         try:
             return HWCloudScanObsAnonymousStatus.objects.get(account=account)
-        except HWCloudScanObsAnonymousStatus.DoesNotExist as e:
+        except HWCloudScanObsAnonymousStatus.DoesNotExist:
             logger.error("[query_scan_obs_status] dont find account:{}".format(account))
             return None
 
@@ -123,7 +123,7 @@ class ScanOrmTools(object):
     def query_high_risk_port(port):
         try:
             return HWCloudHighRiskPort.objects.get(port=port)
-        except HWCloudHighRiskPort.DoesNotExist as e:
+        except HWCloudHighRiskPort.DoesNotExist:
             logger.error("[query_high_risk_port] dont find port:{}".format(port))
             return None
 
@@ -146,15 +146,15 @@ class ScanBaseTools(object):
     @classmethod
     def get_sla_yaml_config(cls):
         if not cls.sla_yaml_list:
-            ak, sk, url, bucket_name, obs_key = settings.AK, settings.SK, settings.URL, settings.DOWNLOAD_BUCKET_NAME, settings.DOWNLOAD_SLA_KEY_NAME
-            content = ScanObsEipTools.get_obs_data(ak, sk, url, bucket_name, obs_key)
+            ak, sk, url, bucket_name, obs_key = settings.OBS_AK, settings.OBS_SK, settings.OBS_URL, settings.DOWNLOAD_BUCKET_NAME, settings.DOWNLOAD_SLA_KEY_NAME
+            content = ObsTools.get_obs_data(ak, sk, url, bucket_name, obs_key)
             cls.sla_yaml_list = convert_yaml(content)
         return cls.sla_yaml_list
 
     @staticmethod
     def get_hw_account_from_obs():
-        obs_lib = ObsLib(settings.AK, settings.SK, settings.URL)
-        content = obs_lib.get_obs_data(settings.DOWNLOAD_BUCKET_NAME, settings.DOWNLOAD_KEY_NAME)
+        obs_lib = HWCloudObs(settings.OBS_AK, settings.OBS_SK, settings.OBS_URL)
+        content = obs_lib.get_obs_data(settings.DOWNLOAD_BUCKET_NAME, settings.DOWNLOAD_EIP_KEY_NAME)
         return content
 
     @classmethod
@@ -162,7 +162,7 @@ class ScanBaseTools(object):
         if not isinstance(now_account_info_list, list):
             raise Exception("now_account_info_list must be list")
         for account_info in now_account_info_list:
-            account_info["project_info"] = HWCloudIAM.get_project_zone(account_info["ak"], account_info["sk"])
+            account_info["project_info"] = HWCloudIAM(account_info["ak"], account_info["sk"]).get_project_zone()
 
     @classmethod
     def handle_sensitive_data(cls, account_list):
@@ -176,12 +176,6 @@ class ScanBaseTools(object):
         cls.get_hw_project_info_from_obs(content)
         cls.handle_sensitive_data(content)
         return content
-        #  it is for test
-        # list_data = list()
-        # for data in content:
-        #     if data["account"] == "hwstaff_h00223369":
-        #         list_data.append(data)
-        # return list_data
 
     @classmethod
     def get_hw_account_project_info_from_database(cls):
@@ -211,7 +205,7 @@ class ScanBaseTools(object):
 
     @staticmethod
     def get_random_cloud_config(ak, sk):
-        return HWCloudIAM.get_project_zone(ak, sk)
+        return HWCloudIAM(ak, sk).get_project_zone()
 
     @staticmethod
     def get_project_info(ak, sk):
@@ -359,7 +353,7 @@ class SingleScanObsMgr(ScanToolsMgr):
     def start_collect_thread(self, ak, sk, account):
         """start a collect thread"""
         try:
-            eip_tools = ScanObsEipTools()
+            eip_tools = ObsTools()
             eip_tools.get_all_bucket(ak, sk, settings.OBS_BASE_URL, inhibition_fault=False)
             account_dict = ScanBaseTools.get_account_dict(ak, sk, account)
         except Exception as e:
@@ -392,9 +386,54 @@ class SingleScanObsMgr(ScanToolsMgr):
         return 1, content
 
 
+# noinspection PyMethodMayBeStatic
+class HighRiskPortMgr(ScanToolsMgr):
+    _create_lock = Lock()
+
+    def list(self, kwargs):
+        page, size = kwargs['page'], kwargs['size']
+        order_type, order_by = kwargs.get("order_type"), kwargs.get("order_by")
+        filter_name = kwargs.get("filter_name")
+        filter_value = kwargs.get("filter_value")
+        if filter_name and filter_name == "port":
+            eip_list = HWCloudHighRiskPort.objects.filter(port__contains=filter_value)
+        else:
+            eip_list = HWCloudHighRiskPort.objects.all()
+        total = len(eip_list)
+        page, slice_obj = get_suitable_range(total, page, size)
+        order_by = order_by if order_by else "create_time"
+        order_type = order_type if order_type else 0
+        if order_type != 0:
+            order_by = "-" + order_by
+        eip_list = eip_list.order_by(order_by)
+        task_list = [task.to_dict() for task in eip_list[slice_obj]]
+        res = {
+            "size": size,
+            "page": page,
+            "total": total,
+            "data": task_list
+        }
+        return res
+
+    def create(self, port, desc):
+        with HighRiskPortMgr._create_lock:
+            if ScanOrmTools.query_high_risk_port(port):
+                return 1
+            HWCloudHighRiskPort.objects.create(port=port, desc=desc)
+            HighRiskPort.cur_port_dict.update({port: desc})
+            return 0
+
+    def delete(self, port_list):
+        HWCloudHighRiskPort.objects.filter(port__in=port_list).delete()
+        for port in port_list:
+            if port in HighRiskPort.cur_port_dict.keys():
+                del HighRiskPort.cur_port_dict[port]
+        return True
+
+
+# noinspection PyMethodMayBeStatic
 class EipMgr(ScanToolsMgr):
 
-    # noinspection PyMethodMayBeStatic
     def list_eip(self, kwargs):
         page, size = kwargs['page'], kwargs['size']
         order_type, order_by = kwargs.get("order_type"), kwargs.get("order_by")
@@ -435,51 +474,6 @@ class EipMgr(ScanToolsMgr):
             "data": task_list
         }
         return res
-
-
-# noinspection PyMethodMayBeStatic
-class HighRiskPortMgr(ScanToolsMgr):
-    _create_lock = Lock()
-
-    def list(self, kwargs):
-        page, size = kwargs['page'], kwargs['size']
-        order_type, order_by = kwargs.get("order_type"), kwargs.get("order_by")
-        filter_name = kwargs.get("filter_name")
-        filter_value = kwargs.get("filter_value")
-        if filter_name and filter_name == "port":
-            eip_list = HWCloudHighRiskPort.objects.filter(port__contains=filter_value)
-        else:
-            eip_list = HWCloudHighRiskPort.objects.all()
-        total = len(eip_list)
-        page, slice_obj = get_suitable_range(total, page, size)
-        order_by = order_by if order_by else "create_time"
-        order_type = order_type if order_type else 0
-        if order_type != 0:
-            order_by = "-" + order_by
-        eip_list = eip_list.order_by(order_by)
-        task_list = [task.to_dict() for task in eip_list[slice_obj]]
-        res = {
-            "size": size,
-            "page": page,
-            "total": total,
-            "data": task_list
-        }
-        return res
-
-    def create(self, port, desc):
-        with HighRiskPortMgr._create_lock:
-            if ScanOrmTools.query_high_risk_port(port):
-                return 1
-            HWCloudHighRiskPort.objects.create(port=port, desc=desc)
-            HighRiskPort.cur_port_dict.update({port:desc})
-            return 0
-
-    def delete(self, port_list):
-        HWCloudHighRiskPort.objects.filter(port__in=port_list).delete()
-        for port in port_list:
-            if port in HighRiskPort.cur_port_dict.keys():
-                del HighRiskPort.cur_port_dict[port]
-        return True
 
 
 # noinspection PyMethodMayBeStatic
@@ -555,5 +549,3 @@ class SlaMgr:
             ret_list.append(ret_dict)
         ret_list = sorted(ret_list, key=lambda keys: keys["sla_year_remain"])
         return output_cla_excel(ret_list)
-
-
