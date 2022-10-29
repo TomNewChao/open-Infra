@@ -1,138 +1,225 @@
-- name: Community Scan Tool
-  introduce: 安全扫描工具社区版
-- name: Community Talent Certification
-  introduce: openEuler社区人才认证IT系统
-- name: Contributor License Agreement
-  introduce: 开源社区SLA签署
-- name: Etherpad
-  introduce: 记事本
-- name: Explainshell
-  introduce: Shell命令解释服务
-- name: Infra Scan Tools
-  introduce: 安全扫描工具基础设施专用版
-- name: Kunpenghui Jenkins
-  introduce: 鲲鹏Jenkins
-- name: MAJUN
-  introduce: 代码门禁
-- name: Metadata Service
-  introduce: 代码仓元数据下载
-- name: MindSpore Binaries
-  introduce: MindSpore包管理
-- name: MindSpore Datastat
-  introduce: MindSpore社区数据展示
-- name: MindSpore Download
-  introduce: MindSpore资源下载
-- name: MindSpore Jenkins
-  introduce: MindSpore社区Jenkins
-- name: MindSpore Mailweb
-  introduce: MindSpore社区邮箱列表
-- name: MindSpore Meetings
-  introduce: MindSpore会议小程序
-- name: MindSpore paste
-  introduce: 上传代码生成分享链接
-- name: MindSpore SMTP
-  introduce: MindSpore社区邮件发送服务
-- name: MindSpore Sunmao
-  introduce: MindSpore社区标签机器人服务
-- name: MindSpore Website
-  introduce: MindSpore官网
-- name: MindSpore WWW
-  introduce: MindSpore官网
-- name: openEuler Beijing Mirror
-  introduce: openEuler镜像北京下载地址
-- name: openEuler Bugzilla
-  introduce: 漏洞搜索服务
-- name: openEuler Community Certificate
-  introduce: openEuler社区认证服务
-- name: openEuler Compass CI Platform
-  introduce: 开发式测试服务平台Compass CI首页
-- name: openEuler CVE Manager
-  introduce: openEuler社区CVE管理状态展示
-- name: openEuler Datastat
-  introduce: openEuler社区数据展示
-- name: openEuler Document
-  introduce: openEuler社区文档
-- name: openEuler Etherpad
-  introduce: 记事本
-- name: openEuler HongKong
-  introduce: openEuler官网
-- name: openEuler HongKong Mirror
-  introduce: openEuler镜像下载网站
-- name: openEuler Jenkins CI
-  introduce: openEuler镜像构建Jenkins服务
-- name: openEuler License Show Room
-  introduce: 貂蝉License展示
-- name: openEuler Mailling List
-  introduce: openEuler社区邮箱列表
-- name: openEuler Meetings
-  introduce: openEuler社区会议小程序
-- name: openEuler MirrorManager
-  introduce: openEuler官网
-- name: openEuler Moscow
-  introduce: openEuler俄语官网
-- name: openEuler Moscow Mirror
-  introduce: openEuler俄罗斯镜像下载网站
-- name: openEuler OmniBuildPlatform
-  introduce: openEuler社区镜像构建下载服务
-- name: openEuler Package Build
-  introduce: openEuler社区OBS
-- name: openEuler Package Manage
-  introduce: openEuler Package Management
-- name: openEuler paste
-  introduce: 上传代码生成分享链接
-- name: openEuler PlayGround
-  introduce: openEuler学习平台
-- name: openEuler PlayGround2
-  introduce: openEuler学习平台
-- name: openEuler SMTP
-  introduce: openEuler社区邮件发送服务
-- name: openEuler-ECS-Prometheus
-  introduce: prometheus监控服务
-- name: openGauss Blog
-  introduce: openGauss博客
-- name: openGauss Datastat
-  introduce: openGauss社区数据展示
-- name: openGauss Etherpad
-  introduce: 记事本
-- name: openGauss HongKong Website
-  introduce: openGauss官网
-- name: openGauss Jenkins
-  introduce: openGauss社区jenkins服务
-- name: openGauss Mailweb
-  introduce: openGauss社区邮箱
-- name: openGauss Meetings
-  introduce: openGauss社区会议小程序
-- name: openGauss Moocstudio
-  introduce: openGauss社区学习平台
-- name: openGauss odd
-  introduce: openGauss社区开发者大会人传人海报生成服务
-- name: openGauss paste
-  introduce: 上传代码生成分享链接
-- name: openGauss SMTP
-  introduce: openGauss社区邮件发送服务
-- name: openLooKeng Datastat
-  introduce: openLooKeng社区数据展示
-- name: openLooKeng docs
-  introduce: openLooKeng社区文档服务
-- name: openLooKeng docs-bug
-  introduce: openLooKeng社区文档捉虫服务
-- name: openLooKeng Download
-  introduce: openLooKeng社区资源下载服务
-- name: openLooKeng Jenkins
-  introduce: openLooKeng社区Jenkins服务
-- name: openLooKeng Mailweb
-  introduce: openLooKeng社区邮件列表
-- name: openLooKeng paste
-  introduce: 上传代码生成分享链接
-- name: openLooKeng SMTP
-  introduce: openLooKeng社区邮件发送服务
-- name: openLooKeng Tryme
-  introduce: openLooKeng集群部署介绍网站
-- name: openLooKeng Website
-  introduce: openLooKeng社区官网
-- name: paas robot
-  introduce: Kurator项目prow机器人
-- name: Ptadapter Jenkins
-  introduce: 昇腾Jenkins服务
-- name: Software Composition Analysis
-  introduce: 风险数据看板
+- introduce: 安全扫描工具社区版
+  name: community-scan-tools
+  name-alias: Community Scan Tool
+- introduce: openEuler社区人才认证IT系统
+  name: community-certification-system
+  name-alias: Community Talent Certification
+- introduce: 开源社区SLA签署
+  name: infrastructure-cla
+  name-alias: Contributor License Agreement
+- introduce: 记事本
+  name: ''
+  name-alias: Etherpad
+- introduce: Shell命令解释服务
+  name: infrastructure-cla
+  name-alias: Explainshell
+- introduce: 安全扫描工具基础设施专用版
+  name: infra-scan-tools
+  name-alias: Infra Scan Tools
+- introduce: 鲲鹏Jenkins
+  name: ''
+  name-alias: Kunpenghui Jenkins
+- introduce: 代码门禁
+  name: ''
+  name-alias: MAJUN
+- introduce: 代码仓元数据下载
+  name: ''
+  name-alias: Metadata Service
+- introduce: MindSpore包管理
+  name: mindspore-cn-north4-repo
+  name-alias: MindSpore Binaries
+- introduce: MindSpore社区数据展示
+  name: opendesign-datapertus-control
+  name-alias: MindSpore Datastat
+- introduce: MindSpore资源下载
+  name: mindspore-cn-north4-repo-download-new
+  name-alias: MindSpore Download
+- introduce: MindSpore社区Jenkins
+  name: mindspore-jenkins-master
+  name-alias: MindSpore Jenkins
+- introduce: MindSpore社区邮箱列表
+  name: mindspore-mail
+  name-alias: MindSpore Mailweb
+- introduce: MindSpore会议小程序
+  name: mindspore-cn-north4-meetingserver
+  name-alias: MindSpore Meetings
+- introduce: 上传代码生成分享链接
+  name: control-paste
+  name-alias: MindSpore paste
+- introduce: MindSpore社区邮件发送服务
+  name: ''
+  name-alias: MindSpore SMTP
+- introduce: MindSpore社区标签机器人服务
+  name: ''
+  name-alias: MindSpore Sunmao
+- introduce: MindSpore官网
+  name: mindspore-cn-north4-website
+  name-alias: MindSpore Website
+- introduce: MindSpore官网
+  name: mindspore-cn-north4-website
+  name-alias: MindSpore WWW
+- introduce: openEuler镜像北京下载地址
+  name: openeuler-beijing-repo
+  name-alias: openEuler Beijing Mirror
+- introduce: 漏洞搜索服务
+  name: openeuler-hk-bugzilla
+  name-alias: openEuler Bugzilla
+- introduce: openEuler社区认证服务
+  name: openeuler-ccs
+  name-alias: openEuler Community Certificate
+- introduce: 开发式测试服务平台Compass CI首页
+  name: openeuler-hk-compass-ci
+  name-alias: openEuler Compass CI Platform
+- introduce: openEuler社区CVE管理状态展示
+  name: openeuler-hk-cve-manager
+  name-alias: openEuler CVE Manager
+- introduce: openEuler社区数据展示
+  name: opendesign-datapertus-control
+  name-alias: openEuler Datastat
+- introduce: openEuler社区文档
+  name: openeuler-hk-website-docs
+  name-alias: openEuler Document
+- introduce: 记事本
+  name: openeuler-hk-etherpad
+  name-alias: openEuler Etherpad
+- introduce: openEuler官网
+  name: openeuler-hk-website-v2
+  name-alias: openEuler HongKong
+- introduce: openEuler镜像下载网站
+  name: openeuler-hk-repo
+  name-alias: openEuler HongKong Mirror
+- introduce: openEuler镜像构建Jenkins服务
+  name: openeuler-cn-north4-jenkins-2
+  name-alias: openEuler Jenkins CI
+- introduce: 貂蝉License展示
+  name: ''
+  name-alias: openEuler License Show Room
+- introduce: openEuler社区邮箱列表
+  name: openeuler-hk-mail
+  name-alias: openEuler Mailling List
+- introduce: openEuler社区会议小程序
+  name: openeuler-hk-meetingserver
+  name-alias: openEuler Meetings
+- introduce: openEuler官网
+  name: openeuler-hk-repo-mirrorbits
+  name-alias: openEuler MirrorManager
+- introduce: openEuler俄语官网
+  name: openeuler-mos-website-ru
+  name-alias: openEuler Moscow
+- introduce: openEuler俄罗斯镜像下载网站
+  name: openeuler-mos-repo
+  name-alias: openEuler Moscow Mirror
+- introduce: openEuler社区镜像构建下载服务
+  name: openeuler-hk-omni-manager-website
+  name-alias: openEuler OmniBuildPlatform
+- introduce: openEuler社区OBS
+  name: ''
+  name-alias: openEuler Package Build
+- introduce: openEuler Package Management
+  name: openeuler-hk-package-manage
+  name-alias: openEuler Package Manage
+- introduce: 上传代码生成分享链接
+  name: control-paste
+  name-alias: openEuler paste
+- introduce: openEuler学习平台
+  name: moocstudio-openeuler-webiste-frontend
+  name-alias: openEuler PlayGround
+- introduce: openEuler学习平台
+  name: moocstudio-openeuler-webiste-frontend
+  name-alias: openEuler PlayGround2
+- introduce: openEuler社区邮件发送服务
+  name: ''
+  name-alias: openEuler SMTP
+- introduce: prometheus监控服务
+  name: control-openeuler-ecs-cn-north4-promethues-ingress
+  name-alias: openEuler-ECS-Prometheus
+- introduce: openGauss博客
+  name: opengauss-hk-blog
+  name-alias: openGauss Blog
+- introduce: openGauss社区数据展示
+  name: opendesign-datapertus-control
+  name-alias: openGauss Datastat
+- introduce: 记事本
+  name: opengauss-hk-etherpad
+  name-alias: openGauss Etherpad
+- introduce: openGauss官网
+  name: opengauss-hk-website
+  name-alias: openGauss HongKong Website
+- introduce: openGauss社区jenkins服务
+  name: opengauss-hk-jenkins
+  name-alias: openGauss Jenkins
+- introduce: openGauss社区邮箱
+  name: opengauss-mail
+  name-alias: openGauss Mailweb
+- introduce: openGauss社区会议小程序
+  name: opengauss-hk-meetingserver
+  name-alias: openGauss Meetings
+- introduce: openGauss社区学习平台
+  name: moocstudio-opengauss-website
+  name-alias: openGauss Moocstudio
+- introduce: openGauss社区开发者大会人传人海报生成服务
+  name: opengauss-website-odd
+  name-alias: openGauss odd
+- introduce: 上传代码生成分享链接
+  name: control-paste
+  name-alias: openGauss paste
+- introduce: openGauss社区邮件发送服务
+  name: ''
+  name-alias: openGauss SMTP
+- introduce: openLooKeng社区数据展示
+  name: opendesign-datapertus-control
+  name-alias: openLooKeng Datastat
+- introduce: openLooKeng社区文档服务
+  name: openlookeng-website-docs
+  name-alias: openLooKeng docs
+- introduce: openLooKeng社区文档捉虫服务
+  name: openlookeng-website-bugs
+  name-alias: openLooKeng docs-bug
+- introduce: openLooKeng社区资源下载服务
+  name: ''
+  name-alias: openLooKeng Download
+- introduce: openLooKeng社区Jenkins服务
+  name: openlookeng-jenkins-ingress
+  name-alias: openLooKeng Jenkins
+- introduce: openLooKeng社区邮件列表
+  name: openlookeng-mail-ingress
+  name-alias: openLooKeng Mailweb
+- introduce: 上传代码生成分享链接
+  name: control-paste
+  name-alias: openLooKeng paste
+- introduce: openLooKeng社区邮件发送服务
+  name: ''
+  name-alias: openLooKeng SMTP
+- introduce: openLooKeng集群部署介绍网站
+  name: openlookeng-tryme-ingress
+  name-alias: openLooKeng Tryme
+- introduce: openLooKeng社区官网
+  name: openlookeng-website-ingress
+  name-alias: openLooKeng Website
+- introduce: Kurator项目prow机器人
+  name: ''
+  name-alias: paas robot
+- introduce: 昇腾Jenkins服务
+  name: ''
+  name-alias: Ptadapter Jenkins
+- introduce: 风险数据看板
+  name: ''
+  name-alias: Software Composition Analysis
+- introduce: openEuler巴黎镜像站点
+  name: ''
+  name-alias: openEuler France Mirror
+- introduce: openEuler可重复构建
+  name: openeuler-reproducible-production-environment
+  name-alias: openEuler Reproducible Builds
+- introduce: MindSpore可重复构建
+  name: mindspore-reproducible-production-environment
+  name-alias: MindSpore Reproducible Builds
+- introduce: openGauss可重复构建
+  name: opengauss-reproducible-production-environment
+  name-alias: openGauss Reproducible Builds
+- introduce: helios投票服务
+  name: helios-server
+  name-alias: voting
+- introduce: openEuler社区客服机器人欧拉小智
+  name: openeuler-qa-robot-production-environment
+  name-alias: openEuler QA Robot

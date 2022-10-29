@@ -18,55 +18,7 @@ from permission.resources.constants import PermissionGlobalConfig
 logger = logging.getLogger("django")
 
 
-class KubeconfigRefreshServiceInfoThread:
-    @classmethod
-    def push_service_txt(cls, content, token, timeout=60):
-        """push service txt to github"""
-        url = PermissionGlobalConfig.service_txt_url
-        result = requests.get(url, timeout=(timeout, timeout))
-        if not str(result.status_code).startswith("2"):
-            raise Exception("[refresh_service_txt] get url failed, code:{}, err:{}".format(result.status_code, result.content))
-        sha = result.json()["sha"]
-        base64_content = str(base64.b64encode(content.encode("utf-8")), 'utf-8')
-        headers = {
-            "Accept": "application/vnd.github+json",
-            "Authorization": "Bearer {}".format(token)
-        }
-        json_data = {
-            "message": "refresh service info {}".format(int(time.time())),
-            "committer": settings.GITHUB_COMMIT_INFO,
-            "sha": sha,
-            "content": base64_content
-        }
-        result = requests.put(url=url, headers=headers, json=json_data, timeout=(timeout, timeout))
-        if not str(result.status_code).startswith("2"):
-            raise Exception("[refresh_service_txt] put url failed, code:{}, err:{}".format(result.status_code, result.content))
-        return result.content
 
-    @classmethod
-    def update_service(cls):
-        """refresh service data from obs to mysql"""
-        try:
-            logger.info("------------------start to update service----------------------")
-            dict_data = scan_server_info()
-            with transaction.atomic():
-                ServiceInfo.objects.all().delete()
-                for service_name, server_info in dict_data.items():
-                    ServiceInfo.objects.create(service_name=service_name,
-                                               namespace=server_info["namespace"],
-                                               cluster=server_info["cluster"],
-                                               url=server_info["cluster_url"])
-            service_obj_list = ServiceInfo.objects.all().values("service_name")
-            service_name_list = [service_obj["service_name"] for service_obj in service_obj_list]
-            content = "\n".join(service_name_list)
-            cls.push_service_txt(content, settings.GITHUB_SECRET)
-            logger.info("------------------end to update service----------------------")
-        except Exception as e:
-            logger.error("[update_service] e:{}, traceback:{}".format(e, traceback.format_exc()))
-
-    @classmethod
-    def immediately_cron_job(cls):
-        cls.update_service()
 
 
 class KubeconfigClearExpiredThread:

@@ -44,16 +44,3 @@ class KubeConfigInfo(BaseModel):
     def __str__(self):
         return self.id
 
-
-class ServiceInfo(BaseModel):
-    service_name = models.CharField(max_length=64, verbose_name="服务名称")
-    namespace = models.CharField(max_length=64, null=True, verbose_name="命名空间")
-    cluster = models.CharField(max_length=64, null=True, verbose_name="集群名")
-    url = models.CharField(max_length=64, null=True, verbose_name="url")
-
-    class Meta:
-        db_table = "service_info"
-        verbose_name = "service_info生成信息表"
-
-    def __str__(self):
-        return self.id

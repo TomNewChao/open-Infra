@@ -219,10 +219,10 @@ class HWCloudIAM(object):
             logger.info("[get_project_zone] collect project total:{}".format(len(list_data)))
             return list_data
         except exceptions.ClientRequestException as e:
-            logger.error(
-                "[HWCloudIAM] ak:{}, sk:{} get project zone failed:{},{},{},{}".format(self.ak[:5], self.sk[:5],
-                                                                                       e.status_code, e.request_id,
-                                                                                       e.error_code, e.error_msg))
+            msg = "[HWCloudIAM] ak:{}, sk:{} get project zone failed:{},{},{},{}".format(self.ak[:5], self.sk[:5],
+                                                                                         e.status_code, e.request_id,
+                                                                                         e.error_code, e.error_msg)
+            logger.error(msg)
             return list_data
 
     # noinspection PyTypeChecker

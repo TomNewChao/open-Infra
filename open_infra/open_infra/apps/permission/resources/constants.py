@@ -25,9 +25,7 @@ class KubeConfigLock:
     ProcessLock = Lock()
 
 
-class PermissionGlobalConfig:
-    """The permission of global config"""
-    service_txt_url = "https://api.github.com/repos/Open-Infra-Ops/kubeconfig-community/contents/doc/ServiceName.txt"
+
 
 
 class PrComment:

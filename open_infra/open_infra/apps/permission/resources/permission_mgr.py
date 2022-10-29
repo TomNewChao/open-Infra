@@ -3,7 +3,6 @@
 # @Author  : Tom_zc
 # @FileName: permission_mgr.py
 # @Software: PyCharm
-import smtplib
 import traceback
 import datetime
 import logging
@@ -14,11 +13,14 @@ from django.db import transaction
 from django.db.models import Q
 from pytz import timezone as convert_time_zone
 from django.conf import settings
-
+from alarm.resources.alarm_module.alarm_code import AlarmCode
+from alarm.resources.alarm_module.constants import AlarmType
+from clouds_tools.models import ServiceInfo
 from open_infra.libs.lib_email import EmailBaseLib
+from open_infra.utils.utils_alarm import ActiveAlarmBase
 from open_infra.utils.utils_git import GitBaseToolsLib, GitBase
 from open_infra.utils.utils_kubeconfig import KubeconfigLib
-from permission.models import KubeConfigInfo, ServiceInfo
+from permission.models import KubeConfigInfo
 from open_infra.utils.common import get_suitable_range
 from permission.resources.constants import KubeConfigRole
 
@@ -35,11 +37,12 @@ class KubeconfigInteractGitToolsLib(GitBaseToolsLib):
             if not isinstance(data, dict):
                 is_ok = False
                 ret_data.append("Parse file fault.")
-            elif not data.get("username") or not data.get("role") or not data.get("timelimit") or not data.get("servicename"):
+            if all([data.get("username"), data.get("role"), data.get("timelimit"), data.get("servicename"), data.get("email")]):
                 is_ok = False
-                ret_data.append(
-                    "Whether the input parameters are complete, Please check whether the parameters include UserName, Role, TimeLimit, ServiceName.")
-            elif not KubeConfigRole.is_in_kubeconfig_role(data["role"]):
+                msg = "Whether the input parameters are complete, Please check whether the parameters include " \
+                      "UserName, Role, TimeLimit, ServiceName, Email."
+                ret_data.append(msg)
+            if not KubeConfigRole.is_in_kubeconfig_role(data["role"]):
                 is_ok = False
                 ret_data.append("Role must be in the scope of admin, developer, viewer, Please check Role.")
             elif len(data["username"]) > 20 or len(data["username"]) <= 0 or not data["username"].isalnum() or data["username"].lower() != data["username"]:
@@ -72,16 +75,16 @@ class KubeConfigGitBase(GitBase):
     def parse_create_pr(self):
         if self.pr_dict.get("pull_request"):
             diff_url = self.pr_dict["pull_request"]["diff_url"]
-            patch_url = self.pr_dict["pull_request"]["patch_url"]
+            # patch_url = self.pr_dict["pull_request"]["patch_url"]
         else:
             diff_url = self.pr_dict["issue"]["pull_request"]["diff_url"]
-            patch_url = self.pr_dict["issue"]["pull_request"]["patch_url"]
+            # patch_url = self.pr_dict["issue"]["pull_request"]["patch_url"]
         content = self.kubeconfig_interact_tools_lib.request_url(diff_url)
         parse_data = self.kubeconfig_interact_tools_lib.parse_diff(content)
-        content = self.kubeconfig_interact_tools_lib.request_url(patch_url)
-        email_str = self.kubeconfig_interact_tools_lib.parse_patch(content)
+        # content = self.kubeconfig_interact_tools_lib.request_url(patch_url)
+        # email_str = self.kubeconfig_interact_tools_lib.parse_patch(content)
         is_ok, msg = self.kubeconfig_interact_tools_lib.check_params(parse_data)
-        return is_ok, msg, parse_data, email_str
+        return is_ok, msg, parse_data
 
     def comment_pr(self, comment):
         """comment pr"""
@@ -206,14 +209,31 @@ class KubeconfigEmailTool(EmailBaseLib):
         return cls._send_email(kubeconfig_info)
 
 
+class KubeconfigAlarm(ActiveAlarmBase):
+    @classmethod
+    def get_alarm_info(cls, username):
+        """get alarm info, Overload the method of ActiveAlarmBase"""
+        alarm_info_dict = {
+            "alarm_type": AlarmType.ALARM,
+            "alarm_info_dict": {
+                "alarm_id": AlarmCode.PERMISSION_APPLY_KUBECONFIG_FAILED,
+                "des_var": [username, ],
+            }
+        }
+        return alarm_info_dict
+
+    @classmethod
+    def active_alarm_thread(cls, username):
+        cls.active_alarm(username)
+
+
 # noinspection PyMethodMayBeStatic
 class KubeconfigMgr:
     @classmethod
-    def create_kubeconfig(cls, kubeconfig_info, dict_data, email_str, create_time, merge_at):
+    def create_kubeconfig(cls, kubeconfig_info, dict_data, create_time, merge_at):
         """create new kubeconfig
         @param kubeconfig_info: dict, the parse of dict data
         @param dict_data: dict, the initial of receive params
-        @param email_str:  email
         @param create_time: create time
         @param merge_at:  merge time
         @return: None or raise Exception()
@@ -223,6 +243,7 @@ class KubeconfigMgr:
         service_name = kubeconfig_info["servicename"]
         role = kubeconfig_info["role"]
         timelimit = kubeconfig_info["timelimit"]
+        email_str = kubeconfig_info["email"]
         kubeconfig_list = KubeConfigInfo.objects.filter(username=username).filter(service_name=service_name)
         service_info_list = ServiceInfo.objects.filter(service_name=service_name)
         # 1.add new record, if exist before, and delete record and kubeconfig
@@ -267,6 +288,8 @@ class KubeconfigMgr:
             is_send_ok = KubeconfigEmailTool.send_kubeconfig_email(need_create, email_list)
             KubeConfigInfo.objects.filter(username=username).filter(service_name=service_name).update(
                 send_ok=is_send_ok)
+            if not is_send_ok:
+                KubeconfigAlarm.active_alarm_thread(username)
 
     def list(self, kwargs):
         """list kubeconfig info
@@ -301,45 +324,6 @@ class KubeconfigMgr:
         if order_type != 0:
             order_by = "-" + order_by
         eip_list = kubeconfig_info_list.order_by(order_by)
-        task_list = [task.to_dict() for task in eip_list[slice_obj]]
-        res = {
-            "size": size,
-            "page": page,
-            "total": total,
-            "data": task_list
-        }
-        return res
-
-
-# noinspection PyMethodMayBeStatic
-class ServiceInfoMgr:
-
-    def list(self, kwargs):
-        """list service info
-        @param kwargs: dict, the parse of dict data
-        @return: dict
-        """
-        page, size = kwargs['page'], kwargs['size']
-        order_type, order_by = kwargs.get("order_type"), kwargs.get("order_by")
-        filter_name = kwargs.get("filter_name")
-        filter_value = kwargs.get("filter_value")
-        if filter_name and filter_name == "service_name":
-            service_info_list = ServiceInfo.objects.filter(service_name__contains=filter_value)
-        elif filter_name and filter_name == "namespace":
-            service_info_list = ServiceInfo.objects.filter(namespace__contains=filter_value)
-        elif filter_name and filter_name == "cluster":
-            service_info_list = ServiceInfo.objects.filter(cluster__contains=filter_value)
-        elif filter_name and filter_name == "url":
-            service_info_list = ServiceInfo.objects.filter(url__contains=filter_value)
-        else:
-            service_info_list = ServiceInfo.objects.all()
-        total = len(service_info_list)
-        page, slice_obj = get_suitable_range(total, page, size)
-        order_by = order_by if order_by else "create_time"
-        order_type = order_type if order_type else 0
-        if order_type != 0:
-            order_by = "-" + order_by
-        eip_list = service_info_list.order_by(order_by)
         task_list = [task.to_dict() for task in eip_list[slice_obj]]
         res = {
             "size": size,

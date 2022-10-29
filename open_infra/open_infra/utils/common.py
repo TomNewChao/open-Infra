@@ -36,6 +36,7 @@ logger = getLogger("django")
 
 
 def func_retry(tries=3, delay=1):
+    """the func retry decorator"""
     def deco_retry(fn):
         @wraps(fn)
         def inner(*args, **kwargs):
@@ -53,7 +54,19 @@ def func_retry(tries=3, delay=1):
     return deco_retry
 
 
+def func_catch_exception(fn):
+    """the func catch exception fun"""
+    @wraps(fn)
+    def inner(*args, **kwargs):
+        try:
+            return fn(*args, **kwargs)
+        except Exception as e:
+            logger.error("func_retry:{} e:{} traceback: {}".format(fn.__name__, e, traceback.format_exc()))
+    return inner
+
+
 def pick_dumps(json_dict):
+    """pick dumps"""
     json_bytes = pickle.dumps(json_dict)
     json_secret = base64.b64encode(json_bytes)
     json_str = json_secret.decode()
@@ -61,6 +74,7 @@ def pick_dumps(json_dict):
 
 
 def pick_loads(json_str):
+    """pick loads"""
     json_secret = json_str.encode()
     json_bytes = base64.b64decode(json_secret)
     json_dict = pickle.loads(json_bytes)
@@ -69,6 +83,7 @@ def pick_loads(json_str):
 
 # noinspection PyShadowingBuiltins
 def bytes_convert_str(input):
+    """convert bytes to str, Can be processed recursively"""
     if isinstance(input, dict):
         return {bytes_convert_str(key): bytes_convert_str(value) for key, value in input.items()}
     elif isinstance(input, (list, tuple)):
@@ -85,6 +100,7 @@ def bytes_convert_str(input):
 
 # noinspection PyShadowingBuiltins
 def unicode_convert(input):
+    """convert bytes to str, Can be processed recursively"""
     if isinstance(input, Mapping):
         return {unicode_convert(key): unicode_convert(value) for key, value in input.items()}
     elif isinstance(input, (tuple, list)):
@@ -96,14 +112,14 @@ def unicode_convert(input):
 
 
 def dumps(json_dict, expires):
-    """加密: 将字典加密成字节，再解码"""
+    """Encryption: Encrypt the dictionary into bytes, then decode"""
     serial_alter = TimedJSONWebSignatureSerializer(secret_key=settings.SECRET_KEY, expires_in=expires)
     json_str = serial_alter.dumps(json_dict).decode()
     return json_str
 
 
 def loads(json_str, expires):
-    """解密：将字符串解密成字典，"""
+    """Decrypt: Decrypt the string into a dictionary"""
     serial_alter = TimedJSONWebSignatureSerializer(secret_key=settings.SECRET_KEY, expires_in=expires)
     try:
         json_dict = serial_alter.loads(json_str)
@@ -115,6 +131,7 @@ def loads(json_str, expires):
 
 
 def execute_cmd3(cmd, timeout=30, err_log=True):
+    """execute cmd"""
     try:
         logger.debug("execute_cmd3 call cmd: %s" % cmd)
         p = subprocess.Popen(cmd, stderr=subprocess.PIPE, stdout=subprocess.PIPE, shell=True, close_fds=True)
@@ -139,10 +156,9 @@ def execute_cmd3(cmd, timeout=30, err_log=True):
 
 
 def execute_cmd3_with_tmp(cmd_str, timeout=30):
-    """
-    针对输出结果超量的命令执行
-    :param cmd_str 执行的命令
-    :param timeout 超时时间
+    """Execution of commands with excessive output results
+    :param cmd_str
+    :param timeout
     :return:
     """
     try:
@@ -193,6 +209,7 @@ def auto_response():
 
 
 def translate_error_desc(trans_code, trans_para=None):
+    """translate return error desc"""
     if trans_para is None:
         trans_para = list()
     tmp_desc = ErrCode.get_err_desc(trans_code)
@@ -216,9 +233,7 @@ def translate_error_desc(trans_code, trans_para=None):
 
 
 def assemble_api_result(err_code, trans_code=None, trans_para=None, data=None, lang_flag=None, replace_none=True):
-    """
-    : lang_flag: 指定返回结果描述的语言类型  cn/en
-    """
+    """return api result"""
     if trans_para is None:
         trans_para = []
     else:
@@ -226,7 +241,6 @@ def assemble_api_result(err_code, trans_code=None, trans_para=None, data=None, l
             trans_para = [trans_para]
     if replace_none and data is None:
         data = {}
-
     api_ret = {'err_code': err_code}
     if not trans_code:
         trans_code = err_code
@@ -254,20 +268,20 @@ def assemble_api_result(err_code, trans_code=None, trans_para=None, data=None, l
 
 
 def load_yaml(file_path, method="load"):
-    """
-    method: load_all/load
-    """
+    """read yaml to yaml obj"""
     yaml_load_method = getattr(yaml, method)
     with open(file_path, "r", encoding="utf-8") as file:
         return yaml_load_method(file, Loader=yaml.FullLoader)
 
 
 def convert_yaml(content, method="load"):
+    """str to  yaml obj"""
     yaml_load_method = getattr(yaml, method)
     return yaml_load_method(content, Loader=yaml.FullLoader)
 
 
 def output_scan_port_excel(tcp_info, udp_info):
+    """output scan port list data to excel"""
     work_book = openpyxl.Workbook()
     if settings.EXCEL_TCP_PAGE_NAME not in work_book.get_sheet_names():
         work_book.create_sheet(settings.EXCEL_TCP_PAGE_NAME)
@@ -295,6 +309,7 @@ def output_scan_port_excel(tcp_info, udp_info):
 
 
 def output_scan_obs_excel(anonymous_file_list, anonymous_bucket_list):
+    """output scan obs list data to excel"""
     work_book = openpyxl.Workbook()
     if settings.OBS_ANONYMOUS_BUCKET_PAGE_NAME not in work_book.get_sheet_names():
         work_book.create_sheet(settings.OBS_ANONYMOUS_BUCKET_PAGE_NAME)
@@ -320,6 +335,7 @@ def output_scan_obs_excel(anonymous_file_list, anonymous_bucket_list):
 
 
 def output_cla_excel(list_data):
+    """output list data to excel"""
     work_book = openpyxl.Workbook()
     if settings.CLA_EXCEL_PAGE_NAME not in work_book.get_sheet_names():
         work_book.create_sheet(settings.CLA_EXCEL_PAGE_NAME)
@@ -330,7 +346,10 @@ def output_cla_excel(list_data):
     table.delete_rows(1, 65536)
     table.append(settings.CLA_EXCEL_TITLE)
     for bucket_dict in list_data:
-        table.append(list(bucket_dict.values()))
+        values = list(bucket_dict.values())
+        values[6] = "%{}".format(values[6])
+        values[7] = "%{}".format(values[7])
+        table.append(values)
     buf = StringIO()
     work_book.save(buf)
     buf.seek(0)
@@ -338,18 +357,21 @@ def output_cla_excel(list_data):
 
 
 def runserver_executor(func):
-    """运行服务时才执行方法的装饰器v
-    """
-
+    """A decorator for a method to be executed only when the service is run"""
     @wraps(func)
     def wrapper(*args, **kw):
         if settings.IS_RUNSERVER:
             return func(*args, **kw)
-
     return wrapper
 
 
 def list_param_check_and_trans(params, order_type=0, order_by="account"):
+    """Handling list input parameters
+    :param params : query param, ege: page, size
+    :param order_type: 1 is descending, 2 is ascending
+    :param order_by: the order_by
+    :return: dict data, include: page, size, order_by, order_type, filter_name, filter_value
+    """
     dict_data = dict()
     page, size = params.get("page", "1"), params.get("size", "100")
     # 1是降序， 0是升序
@@ -377,12 +399,10 @@ def list_param_check_and_trans(params, order_type=0, order_by="account"):
 
 
 def get_max_page(total, size):
-    """
-    获取最大页码数
-    :param total: 总数
-    :param size: 每页展示数量
-    :return: 最大页码数
-    注意：当total为0时，返回最大页码数为1
+    """Get the maximum number of pages
+    :param total: total page
+    :param size: total size
+    :return: max page size
     """
     if total == 0:
         return 1
@@ -395,19 +415,11 @@ def get_max_page(total, size):
 
 
 def get_suitable_range(total, page, size):
-    """获取合适的页码，对应范围的切片。（合适即传入的页码无对应数据时，返回有数据的最后一页。）
-
-    Example:
-        page, slice_obj = get_suitable_range(total, page, size)
-        new_data = data[slice_obj]
-
-        # 注意 slice_obj 的 start 属性可作为 sql 语句中的 offset 值
-        sql = 'select * from xxx limit {offset}, {limit}'.format(offset=slice_obj.start, limit=size)
-
-    :param total: 数据总量
-    :param page: 页码
-    :param size: 页大小
-    :return: 页码，切片对象
+    """Get the appropriate page number, corresponding to the slice of the range.
+    :param total: the count of total
+    :param page: the page of query
+    :param size: the page size of query
+    :return: page number, slice object
     """
     suitable_page = min(get_max_page(total, size), page)
     start = (suitable_page - 1) * size
@@ -416,11 +428,13 @@ def get_suitable_range(total, page, size):
 
 
 def get_random_password(bit=12):
+    """Automatically generate password"""
     words = string.ascii_lowercase + string.ascii_uppercase + string.digits
     return "".join(random.sample(words, bit))
 
 
 class MgrException(Exception):
+    """The Mgr Exception, use it to re"""
     def __init__(self, code, trans_para=None, trans_code=None, message=None, desc=None):
         self.code = code
         if isinstance(trans_para, str):
@@ -439,6 +453,7 @@ class BaseStatus:
 
     @classmethod
     def get_status_comment(cls):
+        """get the dict eg: dict[0] = 冻结"""
         dict_data = dict()
         for attr, content in cls.__dict__.items():
             if attr.isupper() and isinstance(content, tuple):
@@ -447,6 +462,7 @@ class BaseStatus:
 
     @classmethod
     def get_comment_status(cls):
+        """get the dict eg: dict["冻结"] = 0"""
         dict_data = dict()
         for attr, content in cls.__dict__.items():
             if attr.isupper() and isinstance(content, tuple):

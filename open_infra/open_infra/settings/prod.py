@@ -98,7 +98,6 @@ DATABASES = {
     }
 }
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
-# DATABASE_ROUTERS = ['meiduo_mall.utils.db_router.MasterSlaveDBRouter']
 
 # Password validation
 # https://docs.djangoproject.com/en/2.1/ref/settings/#auth-password-validators
@@ -361,8 +360,7 @@ KUBECONFIG_EMAIL_SUBJECT = "ops.osinfra.cn: Kubeconfig Notify"
 GITHUB_SECRET = os.getenv("GITHUB_SECRET")
 GITHUB_DOMAIN = "https://api.github.com"
 GITHUB_COMMIT_INFO = {"name": "TomNewChao", "email": "353712216@qq.com"}
-
-
+# the github reviewer, include obs-interact and kubeconfig-interact
 GITHUB_REVIEWER = ["githubliuyang777", ]
 
 
@@ -370,5 +368,4 @@ GITHUB_REVIEWER = ["githubliuyang777", ]
 OBS_INTERACT_EMAIL_SUBJECT = "ops.osinfra.cn: Obs-Interact Notify"
 OBS_INTERACT_ZONE = "cn-north-4"
 OBS_INTERACT_BUCEKT_NAME = "obs-transfer"
-OBS_INTERACT_BUCKET_PATH = "/{}/{}"
 OBS_INTERACT_REPO = "https://github.com/{}.git"

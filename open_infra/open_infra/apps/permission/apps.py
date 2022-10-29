@@ -18,9 +18,8 @@ class PermissionConfig(AppConfig):
 
     @classmethod
     def _start_thread(cls):
-        from permission.resources.permission_thread import KubeconfigRefreshServiceInfoThread, KubeconfigClearExpiredThread
+        from permission.resources.permission_thread import KubeconfigClearExpiredThread
         if settings.IS_RUNSERVER:
-            cls._permission_scheduler.add_job(KubeconfigRefreshServiceInfoThread.immediately_cron_job, 'cron', hour='0', next_run_time=datetime.datetime.now())
             cls._permission_scheduler.add_job(KubeconfigClearExpiredThread.cron_job, 'interval', minutes=10)
             cls._permission_scheduler.start()
 

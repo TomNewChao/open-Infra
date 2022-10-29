@@ -7,10 +7,13 @@ import datetime
 import traceback
 
 from django.db import transaction
+from django.conf import settings
+from threading import Thread, Lock
+from logging import getLogger
 
 from clouds_tools.models import HWCloudProjectInfo, HWCloudAccount, HWCloudEipInfo, HWCloudScanEipPortInfo, \
     HWCloudScanEipPortStatus, HWCloudScanObsAnonymousBucket, HWCloudScanObsAnonymousFile, HWCloudScanObsAnonymousStatus, \
-    HWCloudHighRiskPort
+    HWCloudHighRiskPort, ServiceInfo
 from clouds_tools.resources.constants import NetProtocol, ScanToolsLock, ScanPortStatus, ScanObsStatus, HWCloudEipStatus
 from open_infra.libs.lib_cloud import HWCloudObs, HWCloudIAM
 from open_infra.utils.common import output_scan_port_excel, output_scan_obs_excel, get_suitable_range, convert_yaml, \
@@ -19,10 +22,6 @@ from open_infra.libs.lib_crypto import AESCrypt
 from open_infra.utils.default_port_list import HighRiskPort
 from open_infra.tools.scan_port import scan_port
 from open_infra.tools.scan_obs import ObsTools, scan_obs
-from django.conf import settings
-from threading import Thread, Lock
-from logging import getLogger
-
 from open_infra.tools.scan_sla import scan_cla
 
 logger = getLogger("django")
@@ -478,21 +477,25 @@ class EipMgr(ScanToolsMgr):
 
 # noinspection PyMethodMayBeStatic
 class SlaMgr:
-    def list(self, kwargs):
-        page, size = kwargs['page'], kwargs['size']
-        order_type, order_by = kwargs.get("order_type"), kwargs.get("order_by")
-        sla_detail_list = scan_cla(kwargs["year"], kwargs["month"], kwargs["day"])
+    _ignore_service_name_alias = ["Ascend-repo", "openEuler Jenkins ISO", "Ptadapter Jenkins"]
+
+    def query_all_sla_info(self):
+        """query all sla info from uptime-robot"""
+        cur_date = datetime.datetime.now()
+        logger.info("[SlaMgr] query_all_sla_info query year:{} month:{} day:{}".format(cur_date.year, cur_date.month, cur_date.day))
+        sla_detail_list = scan_cla(year=int(cur_date.year), month=int(cur_date.month), day=int(cur_date.day))
         sla_info_list = ScanBaseTools.get_sla_yaml_config()
-        sla_info_dict = {sla_info["name"]: sla_info["introduce"] for sla_info in sla_info_list}
+        sla_info_dict = {sla_info["name-alias"]: {"introduce": sla_info["introduce"], "name": sla_info.get("name", "")} for sla_info in sla_info_list}
         ret_list = list()
         for sla_temp in sla_detail_list:
             ret_dict = dict()
             del sla_temp[0]
-            sla_data = sla_info_dict.get(sla_temp[0], "unknown introduce")
-            if sla_temp[0] in ["Ascend-repo", "openEuler Jenkins ISO", "Ptadapter Jenkins"]:
+            if sla_temp[0] in self._ignore_service_name_alias:
                 continue
-            ret_dict["service_name"] = sla_temp[0]
-            ret_dict["introduce"] = sla_data
+            sla_data = sla_info_dict.get(sla_temp[0], dict())
+            ret_dict["name-alias"] = sla_temp[0]
+            ret_dict["name"] = sla_data.get("name")
+            ret_dict["introduce"] = sla_data.get("introduce")
             ret_dict["sla_url"] = sla_temp[-1]
             ret_dict["sla_zone"] = settings.CLA_EXPLAIN.get(sla_temp[3].lower())
             ret_dict["month_exp_min"] = sla_temp[4]
@@ -501,51 +504,49 @@ class SlaMgr:
             ret_dict["year_sla"] = sla_temp[7]
             ret_dict["sla_year_remain"] = round(sla_temp[8], 4)
             ret_list.append(ret_dict)
-        # filter
+        return ret_list
+
+    def list(self, kwargs):
+        """The list of service"""
+        page, size = kwargs['page'], kwargs['size']
+        order_type, order_by = kwargs.get("order_type"), kwargs.get("order_by")
         filter_name = kwargs.get("filter_name")
         filter_value = kwargs.get("filter_value")
         if filter_name and filter_name == "service_name":
-            ret_list = [i for i in ret_list if i["service_name"] == filter_value]
-        # 排序, 0-升序
-        if order_type == 0:
-            ret_list = sorted(ret_list, key=lambda keys: keys[order_by])
+            service_info_list = ServiceInfo.objects.filter(service_name__contains=filter_value)
+        elif filter_name and filter_name == "namespace":
+            service_info_list = ServiceInfo.objects.filter(namespace__contains=filter_value)
+        elif filter_name and filter_name == "cluster":
+            service_info_list = ServiceInfo.objects.filter(cluster__contains=filter_value)
+        elif filter_name and filter_name == "url":
+            service_info_list = ServiceInfo.objects.filter(url__contains=filter_value)
         else:
-            ret_list = sorted(ret_list, key=lambda keys: keys[order_by], reverse=True)
-        total = len(ret_list)
+            service_info_list = ServiceInfo.objects.all()
+        total = len(service_info_list)
         page, slice_obj = get_suitable_range(total, page, size)
-        task_list = [task for task in ret_list[slice_obj]]
+        order_by = order_by if order_by else "create_time"
+        order_type = order_type if order_type else 0
+        if order_type != 0:
+            order_by = "-" + order_by
+        service_result_list = service_info_list.order_by(order_by).values(
+            "service_name", "service_alias", "namespace", "cluster",
+            "service_introduce", "url_alias", "community", "month_abnormal_time",
+            "year_abnormal_time", "month_sla", "year_sla", "remain_time")
+        service_slice = service_result_list[slice_obj]
+        for task in service_slice:
+            task["month_sla"] = "{}%".format(task["month_sla"])
+            task["year_sla"] = "{}%".format(task["year_sla"])
         res = {
             "size": size,
             "page": page,
             "total": total,
-            "data": task_list
+            "data": service_slice
         }
         return res
 
     def export(self):
-        cur_date = datetime.datetime.now()
-        year = cur_date.year
-        month = cur_date.month
-        day = cur_date.day
-        sla_detail_list = scan_cla(year, month, day)
-        sla_info_list = ScanBaseTools.get_sla_yaml_config()
-        sla_info_dict = {sla_info["name"]: sla_info["introduce"] for sla_info in sla_info_list}
-        ret_list = list()
-        for sla_temp in sla_detail_list:
-            ret_dict = dict()
-            del sla_temp[0]
-            sla_data = sla_info_dict.get(sla_temp[0], "unknown introduce")
-            if sla_temp[0] in ["Ascend-repo", "openEuler Jenkins ISO", "Ptadapter Jenkins"]:
-                continue
-            ret_dict["service_name"] = sla_temp[0]
-            ret_dict["introduce"] = sla_data
-            ret_dict["sla_url"] = sla_temp[-1]
-            ret_dict["sla_zone"] = settings.CLA_EXPLAIN.get(sla_temp[3].lower())
-            ret_dict["month_exp_min"] = sla_temp[4]
-            ret_dict["year_exp_min"] = sla_temp[5]
-            ret_dict["month_sla"] = sla_temp[6]
-            ret_dict["year_sla"] = sla_temp[7]
-            ret_dict["sla_year_remain"] = round(sla_temp[8], 4)
-            ret_list.append(ret_dict)
-        ret_list = sorted(ret_list, key=lambda keys: keys["sla_year_remain"])
-        return output_cla_excel(ret_list)
+        service_info_list = ServiceInfo.objects.filter().exclude(service_alias=None).order_by("sla_year_remain").values(
+            "service_alias", "service_introduce", "url_alias",
+            "community", "month_abnormal_time", "year_abnormal_time",
+            "month_sla", "year_sla", "remain_time")
+        return output_cla_excel(service_info_list)

@@ -4,11 +4,11 @@
 # @FileName: scan_thread.py
 # @Software: PyCharm
 from threading import Lock
-
 from open_infra.utils.common import BaseStatus
 
 
 class HWCloudEipStatus(BaseStatus):
+    """Eip Status"""
     FREEZED = (0, "冻结")
     BIND_ERROR = (1, "绑定失败")
     BINDING = (2, "绑定中")
@@ -25,15 +25,18 @@ class HWCloudEipStatus(BaseStatus):
 
 
 class HWCloudEipType(BaseStatus):
+    """Eip Type"""
     EIP = (0, "全动态BGP")
 
 
 class NetProtocol(object):
+    """Network  Protocol"""
     TCP = 1
     UDP = 0
 
 
 class ScanBaseStatus(object):
+    """the scan base status"""
     handler = 1
     finish = 2
 
@@ -47,12 +50,14 @@ class ScanObsStatus(ScanBaseStatus):
 
 
 class ScanToolsLock:
+    """the all lock about app clouds tools"""
     scan_port = Lock()
     scan_obs = Lock()
+    refresh_service_info_lock = Lock()
 
 
 class ObsInteractComment(object):
-    """The permission of comment"""
+    """The Obs Interact of comment"""
     error = "The internal service is abnormal, Please contact the warehouse administrator."
     welcome = """Hi ***{}***, welcome to the Open-Infra-Ops Community.\nI'm the Bot here serving you.Thank you for submitting the obs request.\nApplication check result: ***{}***.\nDetail: {}"""
     lgtm = """Hi, Thank you for your application. The information about your application has been sent to you by email, please check it carefully."""
@@ -62,6 +67,7 @@ class ObsInteractComment(object):
 
 
 class Community(BaseStatus):
+    """The all community"""
     Infrastructure = (0, "infrastructure")
     MindSpore = (1, "mindspore")
     openGauss = (2, "opengauss")
@@ -70,7 +76,13 @@ class Community(BaseStatus):
 
     @classmethod
     def is_in_community(cls, community):
+        """judge community is in this community"""
         if community in cls.get_comment_status():
             return True
         else:
             return False
+
+
+class ClousToolsGlobalConfig:
+    """The clouds tools of global config"""
+    service_txt_url = "https://api.github.com/repos/Open-Infra-Ops/kubeconfig-community/contents/doc/ServiceName.txt"

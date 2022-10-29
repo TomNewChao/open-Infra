@@ -23,7 +23,6 @@ class AlarmHandlerConfig(object):
     node_cpu_query = "{}/api/v1/query?query=node_cpu_seconds_total&time={}"
     node_mem_query = "{}/api/v1/query?query=node_memory_MemUsed&time={}"
     node_fs_query = "{}/api/v1/query?query=node_filesystem_usage_rate&time={}"
-    pass
 
 
 class AlarmBaseHandler(object):

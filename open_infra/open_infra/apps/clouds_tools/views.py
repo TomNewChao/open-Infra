@@ -196,32 +196,12 @@ class EipView(AuthView):
 
 
 # noinspection DuplicatedCode,PyMethodMayBeStatic
-class SlaView(AuthView):
+class ServiceView(AuthView):
     def get(self, request):
-        """get the list of sla"""
-        dict_data = request.GET.dict()
-        params_dict = list_param_check_and_trans(dict_data, order_by="sla_year_remain")
-        sla_date = dict_data.get("sla_date")
-        try:
-            if not isinstance(sla_date, str):
-                return assemble_api_result(ErrCode.STATUS_PARAMETER_ERROR)
-            sla_date_list = sla_date.split("-")
-            year = int(sla_date_list[0])
-            month = int(sla_date_list[1])
-            day = int(sla_date_list[2].split("T")[0])
-        except Exception as e:
-            logger.error("[SlaView] e:{}".format(e))
-            return assemble_api_result(ErrCode.STATUS_PARAMETER_ERROR)
-        try:
-            params_dict["year"] = year
-            params_dict["month"] = month
-            params_dict["day"] = day
-            logger.info("[SlaView] get year:{} month:{} day:{}".format(year, month, day))
-            sla_mgr = SlaMgr()
-            data = sla_mgr.list(params_dict)
-        except Exception as e:
-            logger.error("[SlaView] e:{}, traceback：{}".format(e, traceback.format_exc()))
-            return assemble_api_result(ErrCode.INTERNAL_ERROR)
+        """get the list of serive"""
+        params_dict = list_param_check_and_trans(request.GET.dict(), order_by="create_time")
+        sla_mgr = SlaMgr()
+        data = sla_mgr.list(params_dict)
         return assemble_api_result(ErrCode.STATUS_SUCCESS, data=data)
 
 

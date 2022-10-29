@@ -1,6 +1,6 @@
 from django.conf.urls import url
 from clouds_tools.views import ScanPortView, ScanObsView, SingleScanPortView, SingleScanObsView, PortsListView, EipView, \
-    PortsListDeleteView, SlaView, SlaExportView, ObsInteractView
+    PortsListDeleteView, ServiceView, SlaExportView, ObsInteractView
 
 urlpatterns = [
     # query/create/delete high level port
@@ -19,7 +19,7 @@ urlpatterns = [
     url(r'^eip$', EipView.as_view()),
 
     #  query cla
-    url(r'^sla$', SlaView.as_view()),
+    url(r'^service$', ServiceView.as_view()),
     url(r'^sla_export$', SlaExportView.as_view()),
 
     # obs_interact is solve for using github to get config to upload file to obs

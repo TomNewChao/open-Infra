@@ -105,12 +105,12 @@ class ObsTools(object):
         return None
 
     @classmethod
-    def get_bucket_obj(cls, obs_client, bucket_name):
+    def get_bucket_obj(cls, obs_client, bucket_name, prefix=None):
         if not isinstance(obs_client, ObsClient):
             raise Exception("obs_client must be instantiated")
         list_result = list()
         try:
-            resp = obs_client.listObjects(bucket_name, max_keys=100000)
+            resp = obs_client.listObjects(bucket_name, prefix=prefix, max_keys=100000)
             if resp.status < 300:
                 for content in resp.body.contents:
                     list_result.append(content)
@@ -166,6 +166,25 @@ class ObsTools(object):
         if sensitive_phone:
             sensitive_dict_data["phone_number"] = sensitive_phone
         return sensitive_dict_data
+
+    @classmethod
+    def check_bucket_info_and_mdsum(cls, obs_client, md5sum_dict, prefix, bucket_name):
+        md5sum_not_consistency_list, sensitive_file,  sensitive_dict = list(), list(), dict()
+        bucket_info_list = cls.get_bucket_obj(obs_client, bucket_name, prefix=prefix)
+        for bucket_info in bucket_info_list:
+            file_name = bucket_info["key"]
+            etag = bucket_info["etag"]
+            relative_path = file_name[len(prefix) + 1:]
+            file_name_list = file_name.rsplit(sep=".", maxsplit=1)
+            if len(file_name_list) >= 2:
+                if file_name_list[-1] in settings.OBS_FILE_POSTFIX:
+                    sensitive_file.append(file_name)
+            content = cls.download_obs_data(obs_client, bucket_name, file_name)
+            if content:
+                sensitive_dict[file_name] = cls.get_sensitive_data(content)
+            if md5sum_dict.get(relative_path, "").lower() != etag.lower():
+                md5sum_not_consistency_list.append(file_name)
+        return md5sum_not_consistency_list, sensitive_file,  sensitive_dict
 
     @classmethod
     def check_bucket_info(cls, obs_client, bucket_name, account, zone):
