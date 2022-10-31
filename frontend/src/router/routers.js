@@ -91,13 +91,13 @@ export default [
         component: () => import('@/view/components/eip/eip.vue')
       },
       {
-        path: 'sla',
-        name: 'Sla',
+        path: 'service_info',
+        name: 'ServiceInfo',
         meta: {
           icon: 'md-arrow-round-forward',
-          title: 'sla信息查询'
+          title: '服务信息'
         },
-        component: () => import('@/view/components/sla/sla.vue')
+        component: () => import('@/view/components/service_info/service_info.vue')
       }
     ]
   },
@@ -176,13 +176,13 @@ export default [
         component: () => import('@/view/components/kubeconfig/kubeconfig.vue')
       },
       {
-        path: 'service_info',
-        name: 'ServiceInfo',
+        path: 'fortress_machine',
+        name: 'Fortress-Machine',
         meta: {
           icon: 'md-arrow-round-forward',
-          title: '服务信息'
+          title: 'Fortress-Machine'
         },
-        component: () => import('@/view/components/service_info/service_info.vue')
+        component: () => import('@/view/components/fortress-machine/fortress-machine.vue')
       }
     ]
   },
@@ -253,7 +253,6 @@ export default [
       }
     ]
   },
-
 
   {
     path: '/argu',

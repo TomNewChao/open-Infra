@@ -88,7 +88,7 @@ class CollectServerInfo:
 
 def scan_server_info():
     collect_server_info = CollectServerInfo()
-    collect_server_info.get_data()
+    return collect_server_info.get_data()
 
 
 if __name__ == '__main__':

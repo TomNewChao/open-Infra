@@ -3,8 +3,10 @@
 # @Author  : Tom_zc
 # @FileName: obs_interact_mgr.py
 # @Software: PyCharm
+import copy
 import os
 import shutil
+import stat
 import subprocess
 import traceback
 import threading
@@ -14,7 +16,7 @@ from email.mime.text import MIMEText
 from django.conf import settings
 from logging import getLogger
 from clouds_tools.models import HWColudObsInteract
-from clouds_tools.resources.constants import ObsInteractComment, Community
+from clouds_tools.resources.constants import ObsInteractComment, Community, ScanToolsLock
 from open_infra.libs.lib_cloud import HWCloudIAM, HWCloudObs
 from open_infra.libs.lib_crypto import AESCrypt
 from open_infra.libs.lib_email import EmailBaseLib
@@ -41,7 +43,7 @@ class ObsInteractGitToolsLib(GitBaseToolsLib):
         return list_data
 
     @classmethod
-    def prepare_env(cls, work_dir, git_pr_info, path_list, branch="master", reuse=False):
+    def prepare_env(cls, work_dir, git_pr_info, path_list, branch="main", reuse=False):
         """prepare local reposity base and PR branch
         Notice: this will change work directory,
         action related to obtain path need do before this.
@@ -51,6 +53,7 @@ class ObsInteractGitToolsLib(GitBaseToolsLib):
         pull_id = git_pr_info[2]
         if not os.path.exists(work_dir):
             os.makedirs(work_dir)
+            os.chmod(work_dir, stat.S_IXGRP | stat.S_IWGRP)
         repo = group + "/" + repo_name
         git_url = settings.OBS_INTERACT_REPO.format(repo)
         local_path = os.path.join(work_dir, "{}_{}_{}".format(group, repo_name, pull_id))
@@ -60,25 +63,35 @@ class ObsInteractGitToolsLib(GitBaseToolsLib):
             if os.path.exists(local_path) and not reuse:
                 logger.info("WARNING: %s already exist, delete it." % local_path)
                 shutil.rmtree(local_path)
+            logger.error("path is {}".format(local_path))
             if not os.path.exists(local_path):
-                if execute_cmd3_with_tmp(["git", "clone", git_url, local_path]) != 0:
+                cmd = "git clone {} {}".format(git_url, local_path)
+                if execute_cmd3_with_tmp(cmd)[0] != 0:
                     return False, "Failed to git clone {}".format(git_url), list()
             os.chdir(local_path)
-            if execute_cmd3_with_tmp(["git", "checkout", branch]) != 0:
+            cmd = "git checkout {}".format(branch)
+            if execute_cmd3_with_tmp(cmd)[0] != 0:
                 return False, "Failed to checkout {} branch".format(branch), list()
-            if execute_cmd3_with_tmp(["git", "pull"]) != 0:
+            cmd = "git pull"
+            if execute_cmd3_with_tmp(cmd)[0] != 0:
                 return False, "Failed to update to latest commit in %s branch".format(branch), list()
             lines = subprocess.getoutput("git branch | grep pr_{n}".format(n=pull_id))
             for br_name in lines.splitlines():
-                execute_cmd3_with_tmp(["git", "branch", "-D", br_name.strip()])
-            if execute_cmd3_with_tmp(["git", "fetch", git_url, "pull/{n}/head:pr_{n}".format(n=pull_id)]) != 0:
+                cmd = "git branch -D {}".format(br_name.strip())
+                execute_cmd3_with_tmp(cmd)
+            cmd = "git fetch {} pull/{}/head:pr_{}".format(git_url, pull_id, pull_id)
+            if execute_cmd3_with_tmp(cmd)[0] != 0:
                 return False, "Failed to fetch PR:{n}".format(n=pull_id), list()
-            if execute_cmd3_with_tmp(["git", "checkout", "-b", "working_pr_{n}".format(n=pull_id)]) != 0:
+            cmd = "git checkout -b working_pr_{}".format(pull_id)
+            if execute_cmd3_with_tmp(cmd)[0] != 0:
                 return False, "Failed to create working branch working_pr_{n}".format(n=pull_id), list()
-            if execute_cmd3_with_tmp(["git", "merge", "--no-edit", "pr_{n}".format(n=pull_id)], 3) != 0:
+            cmd = "git merge --no-edit pr_{}".format(pull_id)
+            if execute_cmd3_with_tmp(cmd)[0] != 0:
                 return False, "Failed to merge PR:{n} to branch:{base}".format(n=pull_id, base=branch), list()
             list_data = []
             for path in path_list:
+                if path.startswith(r"/"):
+                    path = path[1:]
                 file = os.path.join(local_path, path)
                 logger.info("[prepare_env] file path :{}".format(file))
                 if os.path.exists(file):
@@ -107,18 +120,20 @@ class ObsInteractGitToolsLib(GitBaseToolsLib):
     def check_params(cls, list_data):
         """check params"""
         is_ok, ret_data = True, list()
+        logger.error("data is *************{}".format(list_data))
         for data in list_data:
             if not isinstance(data, dict):
                 is_ok = False
                 ret_data.append("Parse file fault.")
-            if all([data.get("username"), data.get("community"), data.get("email"), data.get("anonymously_read"), data.get("file_list")]):
+            if not all([data.get("username"), data.get("community"), data.get("email"),
+                        data.get("anonymously_read"), data.get("file_list")]):
                 is_ok = False
-                ret_data.append(
-                    "Whether the input parameters are complete, Please check whether the parameters include username, community, email, anonymously_read, file_list")
+                msg = "Whether the input parameters are complete, Please check whether the parameters include username, community, email, anonymously_read, file_list"
+                ret_data.append(msg)
             if not Community.is_in_community(data["community"].lower()):
                 is_ok = False
-                ret_data.append(
-                    "Community must be in the scope of Infrastructure, MindSpore, openGauss, openEuler,openLooKeng, Please check Community.")
+                msg = "Community must be in the scope of Infrastructure, MindSpore, openGauss, openEuler,openLooKeng, Please check Community."
+                ret_data.append(msg)
             if len(data["username"]) > 16 or len(data["username"]) <= 0 or not data["username"].isalnum():
                 is_ok = False
                 ret_data.append("Invalid UserName, Please check UserName.")
@@ -127,29 +142,43 @@ class ObsInteractGitToolsLib(GitBaseToolsLib):
                 ret_data.append("Invalid anonymously_read, Please check anonymously_read")
             if not isinstance(data["file_list"], list):
                 is_ok = False
-                ret_data.append("Invalid file_list, Please check file_list")
+                ret_data.append("Invalid file_list, File_list must be list")
             for file in data["file_list"]:
                 if not isinstance(file, dict):
                     is_ok = False
                     ret_data.append("Invalid file_list, missing file_list keyword")
-                if file.get("filename"):
+                if file.get("filename") is None:
                     is_ok = False
                     ret_data.append("Invalid file_list, missing file_list filename")
-                if file.get("md5sum"):
+                if file.get("md5sum") is None:
                     is_ok = False
                     ret_data.append("Invalid file_list, missing file_list md5sum")
         if not len(list_data):
             is_ok = False
             ret_data.append("The pr content of parse is empty, Please check the data of submit.")
         if ret_data:
-            desc_str = "***{}***".format(",".join(ret_data))
+            desc_str = "***{}***".format(",\n".join(ret_data))
         else:
-            desc_str = "***Pending Review by @{}***".format(",".join(settings.GITHUB_REVIEWER))
+            desc_str = "***Pending Review by @{}***".format(",@".join(settings.GITHUB_REVIEWER))
         return is_ok, desc_str
 
 
 class ObsInteractGitBase(GitBase):
     obs_interact_git_tools_lib = ObsInteractGitToolsLib
+
+    # noinspection PyMethodMayBeStatic
+    def convert_filed_to_lower(self, parse_data_list):
+        """convert filed to lower"""
+        ret_list = list()
+        for obj_data in parse_data_list:
+            dict_temp = dict()
+            for key, value in obj_data.items():
+                if key.lower().strip() == "community":
+                    dict_temp[key.lower()] = value.lower()
+                else:
+                    dict_temp[key.lower()] = value
+            ret_list.append(dict_temp)
+        return ret_list
 
     def parse_create_pr(self):
         """parse crate pr"""
@@ -158,7 +187,7 @@ class ObsInteractGitBase(GitBase):
             list_data = self.pr_dict["pull_request"]["html_url"].split("/")
         else:
             diff_url = self.pr_dict["issue"]["pull_request"]["diff_url"]
-            list_data = self.pr_dict["issue"]["pull_request"]["patch_url"].split("/")
+            list_data = self.pr_dict["issue"]["pull_request"]["html_url"].split("/")
         owner = list_data[3]
         repo = list_data[4]
         issue_number = list_data[6]
@@ -167,8 +196,9 @@ class ObsInteractGitBase(GitBase):
         path_list = self.obs_interact_git_tools_lib.parse_diff(content)
         is_ok, msg, parse_data_list = self.obs_interact_git_tools_lib.parse_data(git_pr_info, path_list)
         if not is_ok:
+            logger.error("[ObsInteractGitBase] parse create pr:{}, {}, {}".format(is_ok, msg, parse_data_list))
             return is_ok, msg, parse_data_list
-        parse_data_list = [{key.lower(): value} for obj_data in parse_data_list for key, value in obj_data.items()]
+        parse_data_list = self.convert_filed_to_lower(parse_data_list)
         is_ok, msg = self.obs_interact_git_tools_lib.check_params(parse_data_list)
         return is_ok, msg, parse_data_list
 
@@ -237,7 +267,7 @@ class ObsInteractEmailTool(EmailBaseLib):
     def _send_email(cls, email_subject, email_content, email_receivers):
         """send email"""
         try:
-            sender_email = settings.ALARM_EMAIL_SENDER_EMAIL
+            sender_email = settings.EMAIL_SENDER_EMAIL
             message = MIMEMultipart()
             message['From'] = Header(sender_email)
             message['To'] = Header(','.join(email_receivers))
@@ -278,7 +308,7 @@ class ObsInteractMgr(object):
             username = "obs-interact-{}-{}".format(community, real_name)
             is_anonymously_read = obj_data["anonymously_read"]
             hw_cloud_obs_interact = HWColudObsInteract.objects.filter(username=username, community=community,
-                                                                      is_delete=True)
+                                                                      is_delete=False)
             if len(hw_cloud_obs_interact):
                 user_id = hw_cloud_obs_interact[0].user_id
                 encry_password = hw_cloud_obs_interact[0].password
@@ -286,6 +316,7 @@ class ObsInteractMgr(object):
             else:
                 password = get_random_password()
                 encry_password = cls._aes_crypt.encrypt(password)
+                # create user
                 hw_cloud_iam = HWCloudIAM(settings.OBS_AK, settings.OBS_SK, settings.OBS_INTERACT_ZONE)
                 create_user_obj = hw_cloud_iam.create_iam_user(username, password, settings.OBS_DOMAIN_ID)
                 user_id = create_user_obj.user.id
@@ -296,61 +327,77 @@ class ObsInteractMgr(object):
                     is_delete=False,
                     password=encry_password,
                 )
+            # set obs_policy
             with HWCloudObs(settings.OBS_AK, settings.OBS_SK, settings.OBS_BASE_URL) as hw_clouds_obs:
-                path = "/{}/{}".format(community, username)
-                default_policy = hw_clouds_obs.get_obs_default_policy(settings.DOMAIN_ID, user_id=user_id,
-                                                                      path=path, is_anonymous_read=is_anonymously_read)
+                path = "{}/{}".format(community, username)
                 bucket_name = settings.OBS_INTERACT_BUCEKT_NAME
-                hw_clouds_obs.set_obs_policy(bucket_name, default_policy)
-            # 3.邮件发送
+                dir_path = "{}/".format(path)
+                hw_clouds_obs.create_dir(bucket_name, dir_path)
+                obs_policy_template = hw_clouds_obs.get_obs_policy(bucket_name)
+                default_policy = hw_clouds_obs.get_obs_default_policy(settings.OBS_DOMAIN_ID, user_id, path, username,
+                                                                      is_anonymous_read=is_anonymously_read)
+                obs_policy_template.extend(default_policy)
+                json_policy = {"Statement": obs_policy_template}
+                hw_clouds_obs.set_obs_policy(bucket_name, json_policy)
             dict_data = {
                 "realname": real_name,
-                "username": obj_data["username"],
+                "username": username,
                 "password": password,
-                "path": "{}:{}".format(settings.OBS_INTERACT_BUCEKT_NAME, path)
+                "path": "obs://{}/{}/".format(settings.OBS_INTERACT_BUCEKT_NAME, path)
             }
+            # send email
             ObsInteractEmailTool.send_obs_interact_email(dict_data, obj_data["email"])
-        # 4.评论
         comment = ObsInteractComment.lgtm.format(username)
         obs_interact_git_base.comment_pr(comment)
 
     @classmethod
     def check_upload_process(cls, obs_interact_git_base, list_data):
-        for obj_data in list_data:
-            try:
-                community = obj_data["community"]
-                real_name = obj_data["username"]
-                username = "obs-interact-{}-{}".format(community, real_name)
-                obs_prefix = "{}/{}".format(community, username)
-                md5sum_dict = {file_name: md5sum for file_obj in obj_data["file_list"] for file_name, md5sum in
-                               file_obj.items()}
-                with HWCloudObs(settings.OBS_AK, settings.OBS_SK, settings.OBS_BASE_URL) as hw_clouds_obs:
-                    bucket_name = settings.OBS_INTERACT_BUCEKT_NAME
-                    md5sum_not_con, sen_file, sen_dict = ObsTools.check_bucket_info_and_mdsum(hw_clouds_obs, md5sum_dict,
-                                                                                              prefix=obs_prefix,
-                                                                                              bucket_name=bucket_name, )
-                if len(md5sum_not_con) or len(sen_file) or len(sen_dict):
-                    sen_data_str = str()
-                    for file_name, data in sen_dict.items():
-                        sen_data_str += "{}--->{}\n".format(file_name, data)
-                    msg = "{}\n{}\n{}\n{}\n{}\n{}".format("md5sum inconsistent files:", ",\n".join(md5sum_not_con),
-                                                          "sensitive files:", ",\n".join(sen_file),
-                                                          "sensitive keywords:", sen_data_str)
-                    comment = ObsInteractComment.check_upload_false.format(msg)
-                    obs_interact_git_base.comment_pr(comment)
-                else:
-                    comment = ObsInteractComment.check_upload_ok
-                    obs_interact_git_base.comment_pr(comment)
-                    obs_interact_git_base.merge_pr()
-                    HWColudObsInteract.objects.filter(community=community, username=username).update(is_delete=True)
-            except Exception as e:
-                logger.error("[check_upload_process] e:{},trace_back:{}".format(e, traceback.format_exc()))
-                obs_interact_git_base.comment_pr(ObsInteractComment.error)
+        with ScanToolsLock.obs_interact_merge_lock:
+            for obj_data in list_data:
+                try:
+                    community = obj_data["community"]
+                    real_name = obj_data["username"]
+                    is_anonymously_read = obj_data["anonymously_read"]
+                    username = "obs-interact-{}-{}".format(community, real_name)
+                    obs_prefix = "{}/{}".format(community, username)
+                    md5sum_dict = {file_name: md5sum for file_obj in obj_data["file_list"] for file_name, md5sum in
+                                   file_obj.items()}
+                    with HWCloudObs(settings.OBS_AK, settings.OBS_SK, settings.OBS_BASE_URL) as hw_clouds_obs:
+                        bucket_name = settings.OBS_INTERACT_BUCEKT_NAME
+                        md5sum_not_con, sen_file, sen_dict = ObsTools.check_bucket_info_and_mdsum(hw_clouds_obs.obs_client,
+                                                                                                  md5sum_dict,
+                                                                                                  prefix=obs_prefix,
+                                                                                                  bucket_name=bucket_name, )
+                    if len(md5sum_not_con) or len(sen_file) or len(sen_dict):
+                        sen_data_str = str()
+                        for file_name, data in sen_dict.items():
+                            sen_data_str += "{}--->{}\n".format(file_name, data)
+                        msg = "{}\n{}\n{}\n{}\n{}\n{}".format("md5sum inconsistent files:", ",\n".join(md5sum_not_con),
+                                                              "sensitive files:", ",\n".join(sen_file),
+                                                              "sensitive keywords:", sen_data_str)
+                        comment = ObsInteractComment.check_upload_false.format(msg)
+                        obs_interact_git_base.comment_pr(comment)
+                    else:
+                        comment = ObsInteractComment.check_upload_ok
+                        hw_clouds_obs_interact = HWColudObsInteract.objects.filter(community=community, username=username)
+                        if len(hw_clouds_obs_interact):
+                            user_id = hw_clouds_obs_interact[0].user_id
+                            obs_policy_template = hw_clouds_obs.get_obs_policy(bucket_name)
+                            new_obs_policy_template = hw_clouds_obs.get_need_remove_obs_policy(obs_policy_template, username, is_anonymously_read)
+                            hw_clouds_obs.set_obs_policy(bucket_name, new_obs_policy_template)
+                            hw_cloud_iam = HWCloudIAM(settings.OBS_AK, settings.OBS_SK, settings.OBS_INTERACT_ZONE)
+                            hw_cloud_iam.remove_iam_user(user_id)
+                            HWColudObsInteract.objects.filter(community=community, username=username).update(is_delete=True)
+                        obs_interact_git_base.comment_pr(comment)
+                        obs_interact_git_base.merge_pr()
+                except Exception as e:
+                    logger.error("[check_upload_process] e:{},trace_back:{}".format(e, traceback.format_exc()))
+                    obs_interact_git_base.comment_pr(ObsInteractComment.error)
 
     @classmethod
     def get_obs_interact(cls, obs_interact_git_base):
         dict_data = obs_interact_git_base.pr_dict
-        # logger.error("data is:{}".format(dict_data))
+        logger.error("data is:{}".format(dict_data))
         # new pr
         if GitHubPrStatus.is_in_new_pr_status(dict_data["action"]) and dict_data.get("pull_request") is not None:
             is_ok, msg, list_data = obs_interact_git_base.parse_create_pr()
@@ -370,8 +417,8 @@ class ObsInteractMgr(object):
         # comment /lgtm
         elif dict_data["action"] == GitHubPrStatus.create and dict_data["comment"].get("body") == "/lgtm":
             username = dict_data["issue"]["user"]["login"]
-            if username.lower() not in settings.GITHUB_REVIEWER:
-                msg = "***@{}***".format(",".join(settings.GITHUB_REVIEWER))
+            if username not in settings.GITHUB_REVIEWER:
+                msg = "***@{}***".format(",@".join(settings.GITHUB_REVIEWER))
                 comment = ObsInteractComment.valid_lgtm.format(msg)
                 obs_interact_git_base.comment_pr(comment)
                 return

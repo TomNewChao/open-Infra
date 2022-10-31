@@ -26,5 +26,5 @@ class EmailBaseLib(object):
             smt_obj.sendmail(cls.sender_email, email_receivers, message.as_string())
         else:
             smt_obj = smtplib.SMTP_SSL(cls.server_address, port=int(cls.server_port))
-            smt_obj.login(settings.ALARM_EMAIL_USERNAME, settings.ALARM_EMAIL_PWD)
+            smt_obj.login(settings.EMAIL_USERNAME, settings.EMAIL_PWD)
             smt_obj.sendmail(cls.sender_email, email_receivers, message.as_string())

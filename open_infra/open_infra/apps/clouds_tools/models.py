@@ -207,17 +207,17 @@ class HWColudObsInteract(BaseModel):
 
 
 class ServiceInfo(BaseModel):
-    service_name = models.CharField(max_length=64, verbose_name="服务名称:argocd")
+    service_name = models.CharField(max_length=64, null=True, verbose_name="服务名称:argocd")
     service_alias = models.CharField(max_length=64, null=True, verbose_name="服务别名")
-    url = models.URLField(verbose_name="域名： argocd")
+    url = models.URLField(null=True, verbose_name="域名： argocd")
     url_alias = models.URLField(null=True, verbose_name="域名别名")
-    namespace = models.CharField(max_length=64, verbose_name="命名空间")
+    namespace = models.CharField(max_length=64, null=True, verbose_name="命名空间")
     cluster = models.CharField(max_length=64, null=True, verbose_name="集群名")
     service_introduce = models.CharField(max_length=64, null=True, verbose_name="服务介绍")
     community = models.CharField(max_length=16, null=True, verbose_name="社区")
     month_abnormal_time = models.FloatField(null=True, verbose_name="月度异常累计时间")
     year_abnormal_time = models.FloatField(null=True, verbose_name="年度异常累计时间")
-    month_sla = models.FloatField(null=True,verbose_name="月度sla")
+    month_sla = models.FloatField(null=True, verbose_name="月度sla")
     year_sla = models.FloatField(null=True, verbose_name="年度sla")
     remain_time = models.FloatField(null=True, verbose_name="年度剩余sla配额")
 

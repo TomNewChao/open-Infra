@@ -4,6 +4,7 @@
 # @FileName: scan_tools.py
 # @Software: PyCharm
 import datetime
+import os
 import traceback
 
 from django.db import transaction
@@ -17,7 +18,7 @@ from clouds_tools.models import HWCloudProjectInfo, HWCloudAccount, HWCloudEipIn
 from clouds_tools.resources.constants import NetProtocol, ScanToolsLock, ScanPortStatus, ScanObsStatus, HWCloudEipStatus
 from open_infra.libs.lib_cloud import HWCloudObs, HWCloudIAM
 from open_infra.utils.common import output_scan_port_excel, output_scan_obs_excel, get_suitable_range, convert_yaml, \
-    output_cla_excel
+    output_cla_excel, load_yaml
 from open_infra.libs.lib_crypto import AESCrypt
 from open_infra.utils.default_port_list import HighRiskPort
 from open_infra.tools.scan_port import scan_port
@@ -144,10 +145,12 @@ class ScanBaseTools(object):
 
     @classmethod
     def get_sla_yaml_config(cls):
-        if not cls.sla_yaml_list:
+        if not cls.sla_yaml_list and not settings.DEBUG:
             ak, sk, url, bucket_name, obs_key = settings.OBS_AK, settings.OBS_SK, settings.OBS_URL, settings.DOWNLOAD_BUCKET_NAME, settings.DOWNLOAD_SLA_KEY_NAME
             content = ObsTools.get_obs_data(ak, sk, url, bucket_name, obs_key)
             cls.sla_yaml_list = convert_yaml(content)
+        else:
+            cls.sla_yaml_list = load_yaml(os.path.join(settings.BASE_DIR, "config", "sla.yaml"))
         return cls.sla_yaml_list
 
     @staticmethod
@@ -500,8 +503,8 @@ class SlaMgr:
             ret_dict["sla_zone"] = settings.CLA_EXPLAIN.get(sla_temp[3].lower())
             ret_dict["month_exp_min"] = sla_temp[4]
             ret_dict["year_exp_min"] = sla_temp[5]
-            ret_dict["month_sla"] = sla_temp[6]
-            ret_dict["year_sla"] = sla_temp[7]
+            ret_dict["month_sla"] = sla_temp[6].replace("%", "")
+            ret_dict["year_sla"] = sla_temp[7].replace("%", "")
             ret_dict["sla_year_remain"] = round(sla_temp[8], 4)
             ret_list.append(ret_dict)
         return ret_list
@@ -532,20 +535,23 @@ class SlaMgr:
             "service_name", "service_alias", "namespace", "cluster",
             "service_introduce", "url_alias", "community", "month_abnormal_time",
             "year_abnormal_time", "month_sla", "year_sla", "remain_time")
-        service_slice = service_result_list[slice_obj]
-        for task in service_slice:
-            task["month_sla"] = "{}%".format(task["month_sla"])
-            task["year_sla"] = "{}%".format(task["year_sla"])
+        ret_list = list()
+        for task in service_result_list[slice_obj]:
+            if task["month_sla"]:
+                task["month_sla"] = "{}%".format(task["month_sla"])
+            if task["year_sla"]:
+                task["year_sla"] = "{}%".format(task["year_sla"])
+            ret_list.append(task)
         res = {
             "size": size,
             "page": page,
             "total": total,
-            "data": service_slice
+            "data": ret_list
         }
         return res
 
     def export(self):
-        service_info_list = ServiceInfo.objects.filter().exclude(service_alias=None).order_by("sla_year_remain").values(
+        service_info_list = ServiceInfo.objects.filter().exclude(service_alias=None).order_by("remain_time").values(
             "service_alias", "service_introduce", "url_alias",
             "community", "month_abnormal_time", "year_abnormal_time",
             "month_sla", "year_sla", "remain_time")

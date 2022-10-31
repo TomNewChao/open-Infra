@@ -62,7 +62,7 @@ export const queryProgressSingleScanPortApi = (account) => {
   return axios.request({
     url: '/api/clouds_tools/single_scan_port/progress',
     method: 'get',
-    params: {account},
+    params: { account },
     responseType: 'blob'
   })
 }
@@ -99,7 +99,7 @@ export const queryProgressSingleScanObsApi = (account) => {
   return axios.request({
     url: '/api/clouds_tools/single_scan_obs/progress',
     method: 'get',
-    params: {account},
+    params: { account },
     responseType: 'blob'
   })
 }
@@ -115,12 +115,13 @@ export const eipListApi = (page, size, order_by, order_type, filter_name, filter
   })
 }
 
-export const slaListApi = (page, size, order_by, order_type, filter_name, filter_value, sla_date) => {
+// service info
+export const ServiceInfoListApi = (page, size, order_by, order_type, filter_name, filter_value) => {
   return axios.request({
-    url: '/api/clouds_tools/sla',
+    url: '/api/clouds_tools/service',
     method: 'get',
     params: {
-      page, size, order_by, order_type, filter_name, filter_value, sla_date
+      page, size, order_by, order_type, filter_name, filter_value
     }
   })
 }
@@ -144,7 +145,6 @@ export const AlarmListApi = (page, size, order_by, order_type, filter_name, filt
   })
 }
 
-
 export const batchDeleteAlarmPostApi = (alarm_ids) => {
   return axios.request({
     url: '/api/alarm/alarm',
@@ -159,7 +159,7 @@ export const batchDeleteAlarmPostApi = (alarm_ids) => {
 export const alarmNameGetApi = () => {
   return axios.request({
       url: '/api/alarm/alarm_name',
-      method: 'GET'
+      method: 'get'
     }
   )
 }
@@ -185,7 +185,6 @@ export const alarmNotifyPutApi = (phone, email, desc, name, keywords, id) => {
     }
   })
 }
-
 
 // Alarm notify get single alarmNotify
 export const alarmNotifyGetApi = (id) => {
@@ -266,16 +265,6 @@ export const kubeConfigDeletePostApi = (kubeconfig_ids) => {
   })
 }
 
-// service info
-export const ServiceInfoListApi = (page, size, order_by, order_type, filter_name, filter_value) => {
-  return axios.request({
-    url: '/api/permission/service_info',
-    method: 'get',
-    params: {
-      page, size, order_by, order_type, filter_name, filter_value
-    }
-  })
-}
 
 
 

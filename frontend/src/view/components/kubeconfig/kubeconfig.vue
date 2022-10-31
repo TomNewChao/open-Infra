@@ -107,7 +107,7 @@ export default {
         {title: '邮件', key: 'email'},
         {title: '服务名', key: 'service_name'},
         {title: '角色', key: 'role'},
-        {title: '邮件发送成功', key: 'send_ok'},
+        {title: '执行结果', key: 'send_ok'},
       ],
       kubeConfigColumns: [
         {
@@ -119,7 +119,7 @@ export default {
         {title: '邮件', key: 'email'},
         {title: '服务名', key: 'service_name'},
         {title: '角色', key: 'role'},
-        {title: '邮件发送成功', key: 'send_ok'},
+        {title: '执行结果', key: 'send_ok'},
         {title: '过期天数', key: 'expired_time', sortable: 'custom'},
         {title: '创建时间', key: 'create_time', sortable: 'custom', sortType: "desc"},
         {title: '审核时间', key: 'review_time', sortable: 'custom'},

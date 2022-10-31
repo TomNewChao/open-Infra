@@ -54,6 +54,7 @@ class ScanToolsLock:
     scan_port = Lock()
     scan_obs = Lock()
     refresh_service_info_lock = Lock()
+    obs_interact_merge_lock = Lock()
 
 
 class ObsInteractComment(object):
@@ -68,16 +69,17 @@ class ObsInteractComment(object):
 
 class Community(BaseStatus):
     """The all community"""
-    Infrastructure = (0, "infrastructure")
-    MindSpore = (1, "mindspore")
-    openGauss = (2, "opengauss")
-    openEuler = (3, "openeuler")
-    openLooKeng = (4, "openlookeng")
+    INFRASTRUECTURE = (0, "infrastructure")
+    MINDSPORE = (1, "mindspore")
+    OPENGUASS = (2, "opengauss")
+    OPENEULER = (3, "openeuler")
+    OPENLOOKENG = (4, "openlookeng")
 
     @classmethod
     def is_in_community(cls, community):
         """judge community is in this community"""
-        if community in cls.get_comment_status():
+        dict_data = cls.get_comment_status()
+        if community in dict_data.keys():
             return True
         else:
             return False

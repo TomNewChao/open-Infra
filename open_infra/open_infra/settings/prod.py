@@ -361,7 +361,7 @@ GITHUB_SECRET = os.getenv("GITHUB_SECRET")
 GITHUB_DOMAIN = "https://api.github.com"
 GITHUB_COMMIT_INFO = {"name": "TomNewChao", "email": "353712216@qq.com"}
 # the github reviewer, include obs-interact and kubeconfig-interact
-GITHUB_REVIEWER = ["githubliuyang777", ]
+GITHUB_REVIEWER = ["githubliuyang777", "TomNewChao"]
 
 
 # the obs-interact

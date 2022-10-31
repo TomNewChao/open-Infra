@@ -173,6 +173,10 @@ class ObsTools(object):
         bucket_info_list = cls.get_bucket_obj(obs_client, bucket_name, prefix=prefix)
         for bucket_info in bucket_info_list:
             file_name = bucket_info["key"]
+            is_dir = file_name.endswith(r"/")
+            if not is_dir:
+                logger.info("ObsTools check_bucket_info_and_mdsum it is file:{}, dont compare".format(file_name))
+                continue
             etag = bucket_info["etag"]
             relative_path = file_name[len(prefix) + 1:]
             file_name_list = file_name.rsplit(sep=".", maxsplit=1)
@@ -181,8 +185,15 @@ class ObsTools(object):
                     sensitive_file.append(file_name)
             content = cls.download_obs_data(obs_client, bucket_name, file_name)
             if content:
-                sensitive_dict[file_name] = cls.get_sensitive_data(content)
-            if md5sum_dict.get(relative_path, "").lower() != etag.lower():
+                sensitive_temp = cls.get_sensitive_data(content)
+                if sensitive_temp:
+                    sensitive_dict[file_name] = sensitive_temp
+            parse_md5 = md5sum_dict.get(relative_path, "").lower().strip()
+            logger.error("data is {}".format(md5sum_dict))
+            logger.error("data is {}".format(relative_path))
+            logger.error("data is {}".format(parse_md5))
+            logger.error("data is {}".format(etag.lower()))
+            if parse_md5 != etag.lower():
                 md5sum_not_consistency_list.append(file_name)
         return md5sum_not_consistency_list, sensitive_file,  sensitive_dict
 

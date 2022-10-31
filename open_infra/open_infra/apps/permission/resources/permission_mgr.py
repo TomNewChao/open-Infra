@@ -37,7 +37,7 @@ class KubeconfigInteractGitToolsLib(GitBaseToolsLib):
             if not isinstance(data, dict):
                 is_ok = False
                 ret_data.append("Parse file fault.")
-            if all([data.get("username"), data.get("role"), data.get("timelimit"), data.get("servicename"), data.get("email")]):
+            if not all([data.get("username"), data.get("role"), data.get("timelimit"), data.get("servicename"), data.get("email")]):
                 is_ok = False
                 msg = "Whether the input parameters are complete, Please check whether the parameters include " \
                       "UserName, Role, TimeLimit, ServiceName, Email."
@@ -45,27 +45,26 @@ class KubeconfigInteractGitToolsLib(GitBaseToolsLib):
             if not KubeConfigRole.is_in_kubeconfig_role(data["role"]):
                 is_ok = False
                 ret_data.append("Role must be in the scope of admin, developer, viewer, Please check Role.")
-            elif len(data["username"]) > 20 or len(data["username"]) <= 0 or not data["username"].isalnum() or data["username"].lower() != data["username"]:
+            if len(data["username"]) > 20 or len(data["username"]) <= 0 or not data["username"].isalnum() or data["username"].lower() != data["username"]:
                 is_ok = False
                 ret_data.append("Invalid UserName, Please check UserName.")
-            elif not data["timelimit"].isdigit() or (int(data["timelimit"]) <= 0):
+            if not data["timelimit"].isdigit() or (int(data["timelimit"]) <= 0):
                 is_ok = False
                 ret_data.append("Invalid TimeLimit, Please check TimeLimit")
-            else:
-                service_info_list = ServiceInfo.objects.filter(service_name=data["servicename"])
-                if len(service_info_list) == 0:
-                    is_ok = False
-                    ret_data.append("Invalid ServiceName, Please check ServiceName.")
-                elif not service_info_list[0].cluster or not service_info_list[0].namespace:
-                    is_ok = False
-                    ret_data.append("Invalid ServiceName, Please check the namespace or cluster of ServiceName.")
+            service_info_list = ServiceInfo.objects.filter(service_name=data["servicename"])
+            if len(service_info_list) == 0:
+                is_ok = False
+                ret_data.append("Invalid ServiceName, Please check ServiceName.")
+            elif not service_info_list[0].cluster or not service_info_list[0].namespace:
+                is_ok = False
+                ret_data.append("Invalid ServiceName, Please check the namespace or cluster of ServiceName.")
         if not len(list_data):
             is_ok = False
             ret_data.append("The pr content of parse is empty, Please check the data of submit.")
         if ret_data:
             desc_str = "***{}***".format(",".join(ret_data))
         else:
-            desc_str = "***Pending Review by @{}***".format(",".join(settings.GITHUB_REVIEWER))
+            desc_str = "***Pending Review by @{}***".format(",@".join(settings.GITHUB_REVIEWER))
         return is_ok, desc_str
 
 
@@ -173,7 +172,7 @@ class KubeconfigEmailTool(EmailBaseLib):
             email_subject = email_conf.get('email_subject')
             email_content = email_conf.get('email_content')
             email_receivers = email_conf.get('email_receivers')
-            sender_email = settings.ALARM_EMAIL_SENDER_EMAIL
+            sender_email = settings.EMAIL_SENDER_EMAIL
             # text
             message = MIMEMultipart()
             message['From'] = Header(sender_email)

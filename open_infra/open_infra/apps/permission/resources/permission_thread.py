@@ -6,19 +6,11 @@
 import logging
 import time
 import traceback
-import requests
-import base64
-from django.db import transaction
-from django.conf import settings
-from open_infra.tools.scan_server_info import scan_server_info
+from clouds_tools.models import ServiceInfo
 from open_infra.utils.utils_kubeconfig import KubeconfigLib
-from permission.models import KubeConfigInfo, ServiceInfo
-from permission.resources.constants import PermissionGlobalConfig
+from permission.models import KubeConfigInfo
 
 logger = logging.getLogger("django")
-
-
-
 
 
 class KubeconfigClearExpiredThread:

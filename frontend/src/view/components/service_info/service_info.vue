@@ -9,9 +9,13 @@
         <Button @click="handleSearchServiceInfo" class="search-btn" type="primary">
           <Icon type="search"/>&nbsp;&nbsp;搜索
         </Button>
+        <Button type="primary" @click="slaHandleSubmit" class="sla-export">导出SLA数据</Button>
       </div>
-      <tables ref="tables" search-place="top" v-model="tableDataServiceInfo" :columns="columnsServiceInfo" @on-sort-change="handlerServiceInfoSort"/>
-      <Page :total="pageTotalServiceInfo" :current="pageNumServiceInfo" :page-size="pageSizeServiceInfo" show-sizer show-total
+      <tables ref="tables" search-place="top" v-model="tableDataServiceInfo" :columns="columnsServiceInfo"
+              @on-sort-change="handlerServiceInfoSort"/>
+      <Page :total="pageTotalServiceInfo" :current="pageNumServiceInfo" :page-size="pageSizeServiceInfo"
+            show-sizer
+            show-total
             @on-change="handlerServiceInfoPage"
             @on-page-size-change="handlerServiceInfoPageSize"/>
     </Card>
@@ -21,7 +25,9 @@
 <script>
 import Tables from '_c/tables'
 import './index.less'
-import {ServiceInfoListApi} from '@/api/tools'
+import { exportSlaData, ServiceInfoListApi } from '@/api/tools'
+import { getStrDate } from '@/libs/tools'
+import { blobDownload } from '@/libs/download'
 
 export default {
   name: 'tables_page',
@@ -40,14 +46,20 @@ export default {
       filterColumnsServiceInfo: [
         { title: '服务名称', key: 'service_name' },
         { title: '集群名称', key: 'cluster' },
-        { title: '命名空间', key: 'namespace' },
-        { title: 'URL', key: 'url' }
+        { title: '命名空间', key: 'namespace' }
       ],
       columnsServiceInfo: [
-        { title: '服务名称', key: 'service_name', sortable: 'custom'},
+        { title: '服务名称', key: 'service_name', sortable: 'custom' },
+        { title: '服务别名', key: 'service_alias', sortable: 'custom' },
+        { title: '服务介绍', key: 'service_introduce' },
+        { title: '社区', key: 'community' },
         { title: '集群名称', key: 'cluster' },
-        { title: '命名空间', key: 'namespace' },
-        { title: 'URL', key: 'url'},
+        { title: '月度异常累计时间', key: 'month_abnormal_time' },
+        { title: '年度异常累计时间', key: 'year_abnormal_time' },
+        { title: '月度sla', key: 'month_sla' },
+        { title: '年度sla', key: 'year_sla' },
+        { title: '年度剩余sla配额', key: 'remain_time' }
+
       ],
       tableDataServiceInfo: []
     }
@@ -67,9 +79,9 @@ export default {
       this.pageSizeServiceInfo = value
       this.queryServiceInfoList()
     },
-    handlerServiceInfoSort(column){
+    handlerServiceInfoSort (column) {
       this.orderByServiceInfo = column.key
-      this.orderTypeServiceInfo = column.order === "asc" ? 0:1
+      this.orderTypeServiceInfo = column.order === 'asc' ? 0 : 1
       this.queryServiceInfoList()
     },
     queryServiceInfoList () {
@@ -83,6 +95,15 @@ export default {
           this.pageSizeServiceInfo = res.data.data.size
         }
       })
+    },
+    slaHandleSubmit () {
+      exportSlaData().then(res => {
+        if (res.headers['content-type'] === 'application/octet-stream') {
+          let strDate = getStrDate()
+          const fileName = 'Sla数据统计表_' + strDate + '.xlsx'
+          blobDownload(res.data, fileName)
+        }
+      })
     }
   }
 }
@@ -91,5 +112,12 @@ export default {
 .ivu-page {
   margin-top: 30px;
   text-align: center;
+}
+
+.search-col {
+  margin-left: 3px;
+}
+.sla-export {
+  margin-left: 5px;
 }
 </style>

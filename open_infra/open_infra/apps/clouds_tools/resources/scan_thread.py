@@ -167,18 +167,30 @@ class ScanToolsCronJobRefreshDataThread(object):
                         year_sla=float(sla_info["year_sla"]),
                         remain_time=float(sla_info["sla_year_remain"]),
                     )
+                else:
+                    ServiceInfo.objects.create(service_name=service_name,
+                                               service_alias=sla_info["name-alias"],
+                                               url_alias=sla_info["sla_url"],
+                                               service_introduce=sla_info["introduce"],
+                                               community=sla_info["sla_zone"],
+                                               month_abnormal_time=float(sla_info["month_exp_min"]),
+                                               year_abnormal_time=float(sla_info["year_exp_min"]),
+                                               month_sla=float(sla_info["month_sla"]),
+                                               year_sla=float(sla_info["year_sla"]),
+                                               remain_time=float(sla_info["sla_year_remain"]))
         service_obj_list = ServiceInfo.objects.all().values("service_name")
-        service_name_list = [service_obj["service_name"] for service_obj in service_obj_list]
+        service_name_list = [service_obj["service_name"] for service_obj in service_obj_list if service_obj["service_name"]]
         content = "\n".join(service_name_list)
         cls.push_service_txt(content, settings.GITHUB_SECRET)
         logger.info("------------------4.end to update service----------------------")
 
     @classmethod
     def immediately_cron_job(cls):
-        cls.query_account_info()
-        cls.scan_eip()
-        cls.scan_sla()
-        cls.update_service()
+        # cls.query_account_info()
+        # cls.scan_eip()
+        # cls.scan_sla()
+        # cls.update_service()
+        pass
 
 
 class ScanToolsCronJobScanThread(object):

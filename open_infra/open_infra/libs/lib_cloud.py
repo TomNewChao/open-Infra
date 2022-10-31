@@ -9,6 +9,7 @@ import traceback
 from obs import ObsClient
 from logging import getLogger
 from django.conf import settings
+from collections import defaultdict
 from open_infra.utils.common import convert_yaml
 from huaweicloudsdkcore.exceptions import exceptions
 from huaweicloudsdkcore.exceptions.exceptions import ClientRequestException
@@ -30,7 +31,7 @@ class HWCloudObs(object):
             self.obs_client = obs_client
 
     def __enter__(self):
-        return self.obs_client
+        return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         if self.obs_client:
@@ -96,20 +97,19 @@ class HWCloudObs(object):
         try:
             resp = self.obs_client.putContent(bucket_name, path, content=None)
             if resp.status < 300:
-                print('requestId:', resp.requestId)
                 return True
             else:
                 raise Exception('errorCode:{}, errorMessage:{}'.format(resp.errorCode, resp.errorMessage))
         except Exception as e:
-            print("e:{}, traceback:{}".format(e, traceback.format_exc()))
+            logger.error("e:{}, traceback:{}".format(e, traceback.format_exc()))
             return False
 
     @staticmethod
-    def get_obs_default_policy(domain_id, user_id, path, is_anonymous_read=False):
+    def get_obs_default_policy(domain_id, user_id, path, username, is_anonymous_read=False):
         json_policy = {
             "Statement": [
                 {
-                    "Sid": "自定义策略-{}".format(user_id[:10]),
+                    "Sid": "user-{}".format(username),
                     "Effect": "Allow",
                     "Principal": {
                         "ID": [
@@ -137,6 +137,7 @@ class HWCloudObs(object):
                     ],
                     "Resource": [
                         "obs-transfer",
+                        "obs-transfer/{}/".format(path),
                         "obs-transfer/{}/*".format(path)
                     ]
                 }
@@ -144,7 +145,7 @@ class HWCloudObs(object):
         }
         if is_anonymous_read:
             anonymous_dict = {
-                "Sid": "目录只读-{}".format(user_id[:10]),
+                "Sid": "anonymous-{}".format(username),
                 "Effect": "Allow",
                 "Principal": {
                     "ID": ["*"]
@@ -158,16 +159,34 @@ class HWCloudObs(object):
                 ]
             }
             json_policy["Statement"].append(anonymous_dict)
-        return json_policy
+        return json_policy["Statement"]
+
+    @staticmethod
+    def get_need_remove_obs_policy(obs_policy_template, username, is_anonymously_read):
+        new_obs_policy_template = defaultdict(list)
+        for policy in obs_policy_template:
+            if policy.Sid == "user-{}".format(username):
+                logger.info("[HWCloudObs] get_need_remove_obs_policy delete policy sid:{}".format(policy.Sid))
+            elif policy.Sid == "anonymous-{}".format(username) and not is_anonymously_read:
+                logger.info("[HWCloudObs] get_need_remove_obs_policy delete policy sid:{}".format(policy.Sid))
+            else:
+                new_obs_policy_template["Statement"].append(policy)
+        return new_obs_policy_template
 
     def get_obs_policy(self, bucket_name):
-        return self.obs_client.getBucketPolicy(bucket_name)
+        resp = self.obs_client.getBucketPolicy(bucket_name)
+        if resp.status < 300:
+            policy_json = json.loads(resp.body.policyJSON)
+            return policy_json["Statement"]
+        elif resp.errorCode == "NoSuchBucketPolicy":
+            return list()
+        else:
+            raise Exception('errorCode:{}, errorMessage:{}'.format(resp.errorCode, resp.errorMessage))
 
     def set_obs_policy(self, bucket_name, json_policy):
         try:
             resp = self.obs_client.setBucketPolicy(bucket_name, json_policy)
             if resp.status < 300:
-                print('requestId:', resp.requestId)
                 return True
             else:
                 raise Exception('errorCode:{}, errorMessage:{}'.format(resp.errorCode, resp.errorMessage))

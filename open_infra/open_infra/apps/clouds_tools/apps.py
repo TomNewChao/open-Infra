@@ -13,11 +13,11 @@ class CloudsToolsConfig(AppConfig):
     @classmethod
     def _start_thread(cls):
         from clouds_tools.resources.scan_thread import ScanToolsOnceJobThread, ScanToolsCronJobRefreshDataThread, ScanToolsCronJobScanThread, ScanToolsIntervalJobScanThread
-        if settings.IS_RUNSERVER and not settings.DEBUG:
+        if settings.IS_RUNSERVER:
             cls._scheduler.add_job(ScanToolsOnceJobThread.once_job, "date", run_date=datetime.datetime.now())
             cls._scheduler.add_job(ScanToolsCronJobRefreshDataThread.immediately_cron_job, "cron", hour='0', next_run_time=datetime.datetime.now())
             cls._scheduler.add_job(ScanToolsCronJobScanThread.cron_job, "cron", hour='1')
-            cls._scheduler.add_job(ScanToolsIntervalJobScanThread.interval_job, "interval", hour='1')
+            cls._scheduler.add_job(ScanToolsIntervalJobScanThread.interval_job, "interval", hours=1)
             cls._scheduler.start()
 
     @runserver_executor
