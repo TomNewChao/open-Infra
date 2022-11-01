@@ -163,14 +163,14 @@ class HWCloudObs(object):
 
     @staticmethod
     def get_need_remove_obs_policy(obs_policy_template, username, is_anonymously_read):
-        new_obs_policy_template = defaultdict(list)
+        new_obs_policy_template = list()
         for policy in obs_policy_template:
-            if policy.Sid == "user-{}".format(username):
-                logger.info("[HWCloudObs] get_need_remove_obs_policy delete policy sid:{}".format(policy.Sid))
-            elif policy.Sid == "anonymous-{}".format(username) and not is_anonymously_read:
-                logger.info("[HWCloudObs] get_need_remove_obs_policy delete policy sid:{}".format(policy.Sid))
+            if policy["Sid"] == "user-{}".format(username):
+                logger.info("[HWCloudObs] get_need_remove_obs_policy delete policy sid:{}".format(policy["Sid"]))
+            elif policy["Sid"] == "anonymous-{}".format(username) and not is_anonymously_read:
+                logger.info("[HWCloudObs] get_need_remove_obs_policy delete policy sid:{}".format(policy["Sid"]))
             else:
-                new_obs_policy_template["Statement"].append(policy)
+                new_obs_policy_template.append(policy)
         return new_obs_policy_template
 
     def get_obs_policy(self, bucket_name):
@@ -185,13 +185,14 @@ class HWCloudObs(object):
 
     def set_obs_policy(self, bucket_name, json_policy):
         try:
+            logger.info("+++++++++++++++++ data is {}".format(json_policy))
             resp = self.obs_client.setBucketPolicy(bucket_name, json_policy)
             if resp.status < 300:
                 return True
             else:
                 raise Exception('errorCode:{}, errorMessage:{}'.format(resp.errorCode, resp.errorMessage))
         except Exception as e:
-            print("e:{}, traceback:{}".format(e, traceback.format_exc()))
+            logger.error("[HWCloudObs] e:{}, traceback:{}".format(e, traceback.format_exc()))
             return False
 
     def remove_obs_policy(self, bucket_name):

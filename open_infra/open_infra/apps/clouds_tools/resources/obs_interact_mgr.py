@@ -65,7 +65,7 @@ class ObsInteractGitToolsLib(GitBaseToolsLib):
                 shutil.rmtree(local_path)
             logger.error("path is {}".format(local_path))
             if not os.path.exists(local_path):
-                cmd = "git clone {} {}".format(git_url, local_path)
+                cmd = "cd {} && git clone {} {}".format(work_dir, git_url, local_path)
                 if execute_cmd3_with_tmp(cmd)[0] != 0:
                     return False, "Failed to git clone {}".format(git_url), list()
             os.chdir(local_path)
@@ -360,8 +360,7 @@ class ObsInteractMgr(object):
                     is_anonymously_read = obj_data["anonymously_read"]
                     username = "obs-interact-{}-{}".format(community, real_name)
                     obs_prefix = "{}/{}".format(community, username)
-                    md5sum_dict = {file_name: md5sum for file_obj in obj_data["file_list"] for file_name, md5sum in
-                                   file_obj.items()}
+                    md5sum_dict = {file_obj["filename"]: file_obj["md5sum"] for file_obj in obj_data["file_list"]}
                     with HWCloudObs(settings.OBS_AK, settings.OBS_SK, settings.OBS_BASE_URL) as hw_clouds_obs:
                         bucket_name = settings.OBS_INTERACT_BUCEKT_NAME
                         md5sum_not_con, sen_file, sen_dict = ObsTools.check_bucket_info_and_mdsum(hw_clouds_obs.obs_client,
@@ -379,12 +378,13 @@ class ObsInteractMgr(object):
                         obs_interact_git_base.comment_pr(comment)
                     else:
                         comment = ObsInteractComment.check_upload_ok
-                        hw_clouds_obs_interact = HWColudObsInteract.objects.filter(community=community, username=username)
+                        hw_clouds_obs_interact = HWColudObsInteract.objects.filter(community=community, username=username, is_delete=False)
                         if len(hw_clouds_obs_interact):
                             user_id = hw_clouds_obs_interact[0].user_id
                             obs_policy_template = hw_clouds_obs.get_obs_policy(bucket_name)
                             new_obs_policy_template = hw_clouds_obs.get_need_remove_obs_policy(obs_policy_template, username, is_anonymously_read)
-                            hw_clouds_obs.set_obs_policy(bucket_name, new_obs_policy_template)
+                            json_policy = {"Statement": new_obs_policy_template}
+                            hw_clouds_obs.set_obs_policy(bucket_name, json_policy)
                             hw_cloud_iam = HWCloudIAM(settings.OBS_AK, settings.OBS_SK, settings.OBS_INTERACT_ZONE)
                             hw_cloud_iam.remove_iam_user(user_id)
                             HWColudObsInteract.objects.filter(community=community, username=username).update(is_delete=True)
