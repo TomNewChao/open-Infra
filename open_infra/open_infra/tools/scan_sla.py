@@ -207,6 +207,9 @@ def exec_shell_cmd2(api_key, cur_year, cur_month, cur_day):
         # 统计当月的SLA，当月天数为今天的日期-1
         count_month_days = int(time.strftime("%d", t))
         count_month_days -= 1
+        if count_month_days == 0:
+            cur_month -= 1
+            _, count_month_days = calendar.monthrange(cur_year, cur_month)
         count_year_days = int(which_today) - 1
 
     logger.info(f"统计{cur_month}月{count_month_days}天")
