@@ -186,11 +186,10 @@ class ScanToolsCronJobRefreshDataThread(object):
 
     @classmethod
     def immediately_cron_job(cls):
-        # cls.query_account_info()
-        # cls.scan_eip()
-        # cls.scan_sla()
-        # cls.update_service()
-        pass
+        cls.query_account_info()
+        cls.scan_eip()
+        cls.scan_sla()
+        cls.update_service()
 
 
 class ScanToolsCronJobScanThread(object):
