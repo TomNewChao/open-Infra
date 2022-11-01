@@ -67,6 +67,8 @@ class AlarmBaseHandler(object):
                     continue
                 elif metrics_dict["metric"]["cluster"] == "mindspore-cn-north-4-arm-new-cluster" and metrics_dict["metric"]["namespace"] == "jenkins" and metrics_dict["metric"]["pod"].startswith("arm-centos-slaves"):
                     continue
+                elif metrics_dict["metric"]["cluster"] == "openlookeng-tryme-cluster" and metrics_dict["metric"]["namespace"].startswith(r"lk-"):
+                    continue
                 name = "{}/{}/{}/{}/{}".format(metrics_dict["metric"]["account"],
                                                metrics_dict["metric"]["cluster"],
                                                metrics_dict["metric"]["namespace"],

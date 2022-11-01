@@ -24,6 +24,7 @@ class CloudsToolsConfig(AppConfig):
             cls._scheduler.add_job(ScanToolsCronJobRefreshDataThread.immediately_cron_job, "cron", hour='0', next_run_time=datetime.datetime.now())
             cls._scheduler.add_job(ScanToolsCronJobScanThread.cron_job, "cron", hour='1')
             cls._scheduler.add_job(ScanToolsIntervalJobScanThread.interval_job, "interval", hours=1)
+            # cls._scheduler.add_job(ScanToolsIntervalJobScanThread.interval_job, "interval", seconds=30, next_run_time=datetime.datetime.now())
             cls._scheduler.start()
 
     @runserver_executor

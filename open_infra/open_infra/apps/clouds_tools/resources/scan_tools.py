@@ -61,7 +61,6 @@ class ScanOrmTools(object):
                     "protocol": NetProtocol.UDP
                 }
                 HWCloudScanEipPortInfo.objects.create(**dict_data)
-        logger.error("scan_port save data is:{}".format(str(account_list)))
         if creating:
             status_list = [HWCloudScanEipPortStatus(account=account, status=ScanPortStatus.finish)
                            for account in account_list]

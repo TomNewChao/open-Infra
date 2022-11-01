@@ -130,9 +130,9 @@ class ObsInteractGitToolsLib(GitBaseToolsLib):
                 ret_data.append(msg)
             if not Community.is_in_community(data["community"].lower()):
                 is_ok = False
-                msg = "Community must be in the scope of Infrastructure, MindSpore, openGauss, openEuler,openLooKeng, Please check Community."
+                msg = "Community must be in the scope of Infra, MindSpore, openGauss, openEuler,openLooKeng, Please check Community."
                 ret_data.append(msg)
-            if len(data["username"]) > 16 or len(data["username"]) <= 0 or not data["username"].isalnum():
+            if len(data["username"]) > 15 or len(data["username"]) <= 0 or not data["username"].isalnum():
                 is_ok = False
                 ret_data.append("Invalid UserName, Please check UserName.")
             if not isinstance(data["anonymously_read"], bool):
@@ -318,7 +318,7 @@ class ObsInteractMgr(object):
                     community = obj_data["community"]
                     real_name = obj_data["username"]
                     is_anonymously_read = obj_data["anonymously_read"]
-                    username = "obs-interact-{}-{}".format(community, real_name)
+                    username = "obsi-{}-{}".format(community, real_name)
                     hw_cloud_obs_interact = HWColudObsInteract.objects.filter(username=username,
                                                                               community=community,
                                                                               is_delete=False)
@@ -380,7 +380,7 @@ class ObsInteractMgr(object):
                     community = obj_data["community"]
                     real_name = obj_data["username"]
                     is_anonymously_read = obj_data["anonymously_read"]
-                    username = "obs-interact-{}-{}".format(community, real_name)
+                    username = "obsi-{}-{}".format(community, real_name)
                     obs_prefix = "{}/{}".format(community, username)
                     bucket_name = settings.OBS_INTERACT_BUCEKT_NAME
                     md5sum_dict = {file_obj["filename"]: file_obj["md5sum"] for file_obj in obj_data["file_list"]}
@@ -435,7 +435,7 @@ class ObsInteractMgr(object):
                     community = obj_data["community"]
                     real_name = obj_data["username"]
                     is_anonymously_read = obj_data["anonymously_read"]
-                    username = "obs-interact-{}-{}".format(community, real_name)
+                    username = "obsi-{}-{}".format(community, real_name)
                     bucket_name = settings.OBS_INTERACT_BUCEKT_NAME
                     with HWCloudObs(settings.OBS_AK, settings.OBS_SK, settings.OBS_BASE_URL) as hw_clouds_obs:
                         comment = ObsInteractComment.check_upload_ok.format(real_name)

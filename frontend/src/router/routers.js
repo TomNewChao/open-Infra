@@ -177,7 +177,7 @@ export default [
       },
       {
         path: 'fortress_machine',
-        name: 'Fortress-Machine',
+        name: 'FortressMachine',
         meta: {
           icon: 'md-arrow-round-forward',
           title: 'Fortress-Machine'

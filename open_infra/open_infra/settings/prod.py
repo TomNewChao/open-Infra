@@ -328,7 +328,7 @@ EMAIL_PWD = os.getenv("alarm_email_pwd")
 EMAIL_IS_SSL = True
 
 # the alarm email config
-ALARM_EMAIL_SUBJECT = "Open-ops.osinfra.cn: alarm notify"
+ALARM_EMAIL_SUBJECT = "ops.osinfra.cn: Alarm Notify"
 ALARM_EMAIL_DEFAULT_LEVEL = 1  # le 1
 ALARM_PROMETHEUS_URL = "https://monitor.osinfra.cn"
 ALARM_DELAY = 10
