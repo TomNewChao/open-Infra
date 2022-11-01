@@ -32,6 +32,7 @@ class HWCloudProjectInfo(BaseModel):
         return str(self.id)
 
 
+# noinspection PyUnresolvedReferences
 class HWCloudEipInfo(BaseModel):
     id = models.CharField(max_length=64, primary_key=True, verbose_name="华为云eip的id")
     eip = models.GenericIPAddressField()
@@ -95,6 +96,7 @@ class HWCloudScanEipPortStatus(BaseModel):
         return str(self.account)
 
 
+# noinspection PyUnresolvedReferences
 class HWCloudScanEipPortInfo(BaseModel):
     eip = models.GenericIPAddressField(verbose_name="华为云EIP")
     port = models.IntegerField(verbose_name="华为云EIP的暴露端口")

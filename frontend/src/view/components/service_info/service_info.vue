@@ -45,20 +45,22 @@ export default {
       orderTypeServiceInfo: 1,
       filterColumnsServiceInfo: [
         { title: '服务名称', key: 'service_name' },
-        { title: '集群名称', key: 'cluster' },
-        { title: '命名空间', key: 'namespace' }
+        { title: '服务别名', key: 'service_alias' },
+        { title: '服务介绍', key: 'service_introduce' },
+        { title: '社区', key: 'community' }
       ],
       columnsServiceInfo: [
         { title: '服务名称', key: 'service_name', sortable: 'custom' },
-        { title: '服务别名', key: 'service_alias', sortable: 'custom' },
+        { title: '命名空间', key: 'namespace' },
+        { title: '集群名称', key: 'cluster' },
+        { title: '服务别名', key: 'service_alias' },
         { title: '服务介绍', key: 'service_introduce' },
         { title: '社区', key: 'community' },
-        { title: '集群名称', key: 'cluster' },
-        { title: '月度异常累计时间', key: 'month_abnormal_time' },
-        { title: '年度异常累计时间', key: 'year_abnormal_time' },
-        { title: '月度sla', key: 'month_sla' },
-        { title: '年度sla', key: 'year_sla' },
-        { title: '年度剩余sla配额', key: 'remain_time' }
+        { title: '月度异常累计时间', key: 'month_abnormal_time', sortable: 'custom' },
+        { title: '年度异常累计时间', key: 'year_abnormal_time', sortable: 'custom' },
+        { title: '月度sla', key: 'month_sla', sortable: 'custom' },
+        { title: '年度sla', key: 'year_sla', sortable: 'custom' },
+        { title: '年度剩余sla配额', key: 'remain_time', sortable: 'custom' }
 
       ],
       tableDataServiceInfo: []
@@ -117,6 +119,7 @@ export default {
 .search-col {
   margin-left: 3px;
 }
+
 .sla-export {
   margin-left: 5px;
 }

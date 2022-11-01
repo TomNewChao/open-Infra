@@ -204,9 +204,33 @@ class EipView(AuthView):
 class ServiceView(AuthView):
     def get(self, request):
         """get the list of serive"""
-        params_dict = list_param_check_and_trans(request.GET.dict(), order_by="create_time")
+        dict_data = request.GET.dict()
+        params_dict = list_param_check_and_trans(dict_data, order_by="create_time")
+        filter_name, filter_value = dict_data.get("filter_name"), dict_data.get("filter_value")
+        namespace = dict_data.get("namespace")
+        if filter_name:
+            params_dict["filter_name"] = filter_name.strip()
+            params_dict["filter_value"] = filter_value.strip()
+        if namespace:
+            params_dict["namespace"] = namespace
         sla_mgr = SlaMgr()
         data = sla_mgr.list(params_dict)
+        return assemble_api_result(ErrCode.STATUS_SUCCESS, data=data)
+
+
+class NameSpaceView(AuthView):
+    def get(self, request):
+        """get all namespace"""
+        sla_mgr = SlaMgr()
+        data = sla_mgr.get_all_namespace()
+        return assemble_api_result(ErrCode.STATUS_SUCCESS, data=data)
+
+
+class ClusterView(AuthView):
+    def get(self, request):
+        """get all cluster"""
+        sla_mgr = SlaMgr()
+        data = sla_mgr.get_all_cluster()
         return assemble_api_result(ErrCode.STATUS_SUCCESS, data=data)
 
 

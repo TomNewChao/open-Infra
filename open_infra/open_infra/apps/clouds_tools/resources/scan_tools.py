@@ -508,22 +508,59 @@ class SlaMgr:
             ret_list.append(ret_dict)
         return ret_list
 
+    def get_all_namespace(self):
+        """query all namespace from mysql"""
+        namespace_list = ServiceInfo.objects.order_by("namespace").values("namespace").distinct()
+        ret_list = list()
+        for namespace in namespace_list:
+            dict_data = dict()
+            dict_data["label"] = namespace["namespace"]
+            dict_data["value"] = namespace["namespace"]
+            ret_list.append(dict_data)
+        return ret_list
+
+    def get_all_cluster(self):
+        """query all cluster from mysql"""
+        cluster_list = ServiceInfo.objects.order_by("cluster").values("cluster").distinct()
+        ret_list = list()
+        for cluster in cluster_list:
+            dict_data = dict()
+            dict_data["label"] = cluster["cluster"]
+            dict_data["value"] = cluster["cluster"]
+            ret_list.append(dict_data)
+        return ret_list
+
     def list(self, kwargs):
         """The list of service"""
         page, size = kwargs['page'], kwargs['size']
         order_type, order_by = kwargs.get("order_type"), kwargs.get("order_by")
         filter_name = kwargs.get("filter_name")
         filter_value = kwargs.get("filter_value")
+        namespace = kwargs.get("namespace")
         if filter_name and filter_name == "service_name":
-            service_info_list = ServiceInfo.objects.filter(service_name__contains=filter_value)
-        elif filter_name and filter_name == "namespace":
-            service_info_list = ServiceInfo.objects.filter(namespace__contains=filter_value)
-        elif filter_name and filter_name == "cluster":
-            service_info_list = ServiceInfo.objects.filter(cluster__contains=filter_value)
-        elif filter_name and filter_name == "url":
-            service_info_list = ServiceInfo.objects.filter(url__contains=filter_value)
+            if filter_value:
+                service_info_list = ServiceInfo.objects.filter(service_name__contains=filter_value)
+            else:
+                service_info_list = ServiceInfo.objects.filter(service_name=filter_value)
+        elif filter_name and filter_name == "service_alias":
+            if filter_value:
+                service_info_list = ServiceInfo.objects.filter(service_alias__contains=filter_value)
+            else:
+                service_info_list = ServiceInfo.objects.filter(service_alias=None)
+        elif filter_name and filter_name == "service_introduce":
+            if filter_value:
+                service_info_list = ServiceInfo.objects.filter(service_introduce__contains=filter_value)
+            else:
+                service_info_list = ServiceInfo.objects.filter(service_introduce=None)
+        elif filter_name and filter_name == "community":
+            if filter_value:
+                service_info_list = ServiceInfo.objects.filter(community__contains=filter_value)
+            else:
+                service_info_list = ServiceInfo.objects.filter(community=None)
         else:
             service_info_list = ServiceInfo.objects.all()
+        if namespace:
+            service_info_list = service_info_list.filter(namespace=namespace)
         total = len(service_info_list)
         page, slice_obj = get_suitable_range(total, page, size)
         order_by = order_by if order_by else "create_time"

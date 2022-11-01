@@ -38,12 +38,12 @@ class ScanToolsOnceJobThread(object):
         actual_port_obj_list = HWCloudHighRiskPort.objects.all()
         if len(actual_port_obj_list) != 0:
             logger.info("[scan_high_level_port] There has data, no initial data")
-            return
-        default_port_list = list(default_port_dict.keys())
-        save_list_data = [HWCloudHighRiskPort(port=create_port, desc=default_port_dict[create_port]) for create_port in
-                          default_port_list]
-        with transaction.atomic():
-            HWCloudHighRiskPort.objects.bulk_create(save_list_data)
+        else:
+            default_port_list = list(default_port_dict.keys())
+            save_list_data = [HWCloudHighRiskPort(port=create_port, desc=default_port_dict[create_port]) for create_port in
+                              default_port_list]
+            with transaction.atomic():
+                HWCloudHighRiskPort.objects.bulk_create(save_list_data)
         logger.info("----------------1.finish scan high level port-----------------")
 
     @classmethod

@@ -126,6 +126,13 @@ export const ServiceInfoListApi = (page, size, order_by, order_type, filter_name
   })
 }
 
+export const ServiceNameSpaceListApi = () => {
+  return axios.request({
+    url: '/api/clouds_tools/namespace',
+    method: 'get'
+  })
+}
+
 export const exportSlaData = () => {
   return axios.request({
     url: '/api/clouds_tools/sla_export',
