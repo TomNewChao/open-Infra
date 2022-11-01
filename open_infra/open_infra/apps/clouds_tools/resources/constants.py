@@ -54,17 +54,17 @@ class ScanToolsLock:
     scan_port = Lock()
     scan_obs = Lock()
     refresh_service_info_lock = Lock()
-    obs_interact_merge_lock = Lock()
+    obs_interact_lock = Lock()
 
 
 class ObsInteractComment(object):
     """The Obs Interact of comment"""
     error = "The internal service is abnormal, Please contact the warehouse administrator."
     welcome = """Hi ***{}***, welcome to the Open-Infra-Ops Community.\nI'm the Bot here serving you.Thank you for submitting the obs request.\nApplication check result: ***{}***.\nDetail: {}"""
-    lgtm = """Hi, Thank you for your application. The information about your application has been sent to you by email, please check it carefully."""
+    lgtm = """Hi ***{}***, Thank you for your application. The information about your application has been sent to you by email, please check it carefully."""
     valid_lgtm = "Hi, lgtm should be confirmed by the repository administrator: {}."
-    check_upload_ok = """Congratulations, the uploaded file passed the inspection successfully, this PR request will be closed automatically"""
-    check_upload_false = """Unfortunately, the file you uploaded did not pass the inspection, and the reason for the failure to pass the inspection:{}"""
+    check_upload_false = """Hi ***{}***,Unfortunately, the file you uploaded did not pass the inspection, And the reason for the failure to pass the inspection:{}"""
+    check_upload_ok = """Hi ***{}***,Congratulations, the uploaded file passed the inspection successfully, this PR request will be closed automatically"""
 
 
 class Community(BaseStatus):

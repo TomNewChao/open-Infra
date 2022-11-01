@@ -169,34 +169,38 @@ class ObsTools(object):
 
     @classmethod
     def check_bucket_info_and_mdsum(cls, obs_client, md5sum_dict, prefix, bucket_name):
-        md5sum_not_consistency_list, sensitive_file,  sensitive_dict = list(), list(), dict()
+        """check the md5sum from bucket"""
+        md5sum_not_consistency_list, sensitive_file,  sensitive_dict, obs_exist_file_list = list(), list(), dict(), list()
         bucket_info_list = cls.get_bucket_obj(obs_client, bucket_name, prefix=prefix)
         for bucket_info in bucket_info_list:
             file_name = bucket_info["key"]
             is_dir = file_name.endswith(r"/")
             if is_dir:
-                logger.info("ObsTools check_bucket_info_and_mdsum it is file:{}, dont compare".format(file_name))
+                logger.info("[ObsTools] check_bucket_info_and_mdsum it is dir:{}, dont compare".format(file_name))
                 continue
-            etag = bucket_info["etag"]
-            relative_path = file_name[len(prefix) + 1:]
+            # sensitive suffix
             file_name_list = file_name.rsplit(sep=".", maxsplit=1)
             if len(file_name_list) >= 2:
                 if file_name_list[-1] in settings.OBS_FILE_POSTFIX:
                     sensitive_file.append(file_name)
+            # sensitve data
             content = cls.download_obs_data(obs_client, bucket_name, file_name)
             if content:
                 sensitive_temp = cls.get_sensitive_data(content)
                 if sensitive_temp:
                     sensitive_dict[file_name] = sensitive_temp
+            # md5sum consistency
+            relative_path = file_name[len(prefix) + 1:]
+            obs_exist_file_list.append(relative_path)
             parse_md5 = md5sum_dict.get(relative_path, "").lower().strip()
-            parse_etag = etag.lower().replace("\"", "")
-            logger.error("data is {}".format(md5sum_dict))
-            logger.error("data is {}".format(relative_path))
-            logger.error("data is {}".format(parse_md5))
-            logger.error("data is {}".format(parse_etag))
-            if parse_md5 != parse_etag:
+            parse_etag = bucket_info["etag"].lower().replace("\"", "")
+            if parse_md5 and parse_md5 != parse_etag:
                 md5sum_not_consistency_list.append(file_name)
-        return md5sum_not_consistency_list, sensitive_file,  sensitive_dict
+            else:
+                logger.info("[ObsTools] check_bucket_info_and_mdsum obs md5sum:{},parse pr file md5sum:{}".format(parse_etag, parse_md5))
+        # lack file
+        lack_file_list = list(set(md5sum_dict.keys()) - set(obs_exist_file_list))
+        return md5sum_not_consistency_list, sensitive_file,  lack_file_list, sensitive_dict
 
     @classmethod
     def check_bucket_info(cls, obs_client, bucket_name, account, zone):

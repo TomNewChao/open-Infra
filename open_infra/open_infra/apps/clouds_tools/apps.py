@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+# @Time    : 2022/10/10 8:44
+# @Author  : Tom_zc
+# @FileName: apps.py
+# @Software: PyCharm
+
 import datetime
 from django.apps import AppConfig
 from open_infra.utils.common import runserver_executor

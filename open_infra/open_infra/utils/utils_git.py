@@ -20,6 +20,7 @@ class GitHubPrStatus(object):
 
     @classmethod
     def is_in_github_pr_status(cls, status):
+        """judge github post status in this class"""
         if status in [cls.create, cls.opened, cls.reopened, cls.closed]:
             return True
         else:
@@ -27,6 +28,7 @@ class GitHubPrStatus(object):
 
     @classmethod
     def is_in_new_pr_status(cls, status):
+        """judge github post action is new pr"""
         if status in [cls.opened, cls.reopened]:
             return True
         else:
@@ -34,6 +36,7 @@ class GitHubPrStatus(object):
 
 
 class GitBase(metaclass=abc.ABCMeta):
+    """the base class of git"""
     kubeconfig_interact_tools_lib = None
     comment_github_url = "{}/repos/{}/{}/issues/{}/comments"
     merge_github_url = "{}/repos/{}/{}/pulls/{}/merge"
@@ -55,6 +58,7 @@ class GitBaseToolsLib(object):
 
     @classmethod
     def request_comment(cls, url, token, body_data, timeout=60):
+        """request github api for comment"""
         header = {
             "Accept": "application/vnd.github+json",
             "Authorization": "Bearer {}".format(token)
@@ -68,6 +72,7 @@ class GitBaseToolsLib(object):
 
     @classmethod
     def request_url(cls, url, timeout=60):
+        """request github api for data"""
         result = requests.get(url, timeout=(timeout, timeout))
         if not str(result.status_code).startswith("2"):
             raise Exception(
@@ -76,6 +81,7 @@ class GitBaseToolsLib(object):
 
     @classmethod
     def request_merge(cls, url, token, timeout=60):
+        """request github api for merge"""
         header = {
             "Accept": "application/vnd.github+json",
             "Authorization": "Bearer {}".format(token)
@@ -88,6 +94,7 @@ class GitBaseToolsLib(object):
 
     @classmethod
     def parse_diff(cls, parse_content):
+        """Parse the data submitted by git and get it from the pr.diff file"""
         result_list = parse_content.split("+++ ")
         list_data = list()
         for result in result_list:
@@ -100,11 +107,12 @@ class GitBaseToolsLib(object):
                     dict_data[list_line[0].strip().lower()] = list_line[1].strip()
             if len(dict_data):
                 list_data.append(dict_data)
-        logger.info("[parse_diff] parse data:{}".format(list_data))
+        logger.info("[GitBaseToolsLib] parse_diff parse data:{}".format(list_data))
         return list_data
 
     @classmethod
     def parse_patch(cls, parse_content):
+        """Parse the data submitted by git and get it from the pr.pathch file"""
         result_list = parse_content.split("+++ ")
         email_str = str()
         for result in result_list:
@@ -114,9 +122,10 @@ class GitBaseToolsLib(object):
                     if len(email_temp):
                         email_str = email_temp[0][1:-1]
                         break
-        logger.info("[parse_patch] parse email:{}".format(email_str))
+        logger.info("[GitBaseToolsLib] parse_patch parse email:{}".format(email_str))
         return email_str
 
     @classmethod
     def check_params(cls, list_data):
+        """check parse params"""
         raise NotImplemented

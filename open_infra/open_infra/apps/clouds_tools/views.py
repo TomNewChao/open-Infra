@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+# @Time    : 2022/10/10 8:44
+# @Author  : Tom_zc
+# @FileName: views.py
+# @Software: PyCharm
 import json
 import traceback
 from datetime import datetime
@@ -5,7 +10,7 @@ from django.http import HttpResponse
 from django.views import View
 
 from clouds_tools.resources.constants import ObsInteractComment
-from clouds_tools.resources.obs_interact_mgr import ObsInteractMgr, ObsInteractGitToolsLib, ObsInteractGitBase
+from clouds_tools.resources.obs_interact_mgr import ObsInteractMgr, ObsInteractGitBase
 from clouds_tools.resources.scan_tools import ScanPortsMgr, ScanObsMgr, SingleScanPortsMgr, SingleScanObsMgr, EipMgr, \
     HighRiskPortMgr, SlaMgr
 from open_infra.utils.auth_permisson import AuthView
@@ -161,7 +166,7 @@ class PortsListView(AuthView):
         try:
             port = int(port)
         except ValueError as e:
-            logger.info("port is valid:{}".format(port))
+            logger.error("port is valid:{}, e:{}".format(port, e))
             return assemble_api_result(ErrCode.STATUS_PARAMETER_ERROR)
         port_mgr = HighRiskPortMgr()
         ret = port_mgr.create(port, desc)
@@ -223,6 +228,7 @@ class SlaExportView(AuthView):
 class ObsInteractView(View):
 
     def post(self, request):
+        """the api for github obs-interact"""
         dict_data = json.loads(request.body)
         if not GitHubPrStatus.is_in_github_pr_status(dict_data.get("action")):
             logger.error("[GitHubPrView] receive param fault:{}".format(dict_data.get("action")))
@@ -234,4 +240,3 @@ class ObsInteractView(View):
             logger.error("[GitHubPrView] e:{}, traceback:{}".format(e, traceback.format_exc()))
             obs_interact_git_base.comment_pr(comment=ObsInteractComment.error)
         return assemble_api_result(err_code=ErrCode.STATUS_SUCCESS)
-

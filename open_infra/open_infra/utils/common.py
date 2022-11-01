@@ -164,18 +164,18 @@ def execute_cmd3_with_tmp(cmd_str, timeout=30):
     try:
         with tempfile.NamedTemporaryFile() as out_tmp_file:
             cmd = cmd_str + ' > {}'.format(out_tmp_file.name)
-            logger.error("--------------------------execute_cmd3_with_tmpx:{}".format(cmd))
             ret, out, err = execute_cmd3(cmd, timeout=timeout)
-            logger.error("--------------------------execute_cmd3_with_tmp0:{}".format(out))
-            logger.error("--------------------------execute_cmd3_with_tmp1:{}".format(err))
+            # logger.error("--------------------------execute_cmd3_with_tmp0:{}".format(cmd))
+            # logger.error("--------------------------execute_cmd3_with_tmp1:{}".format(out))
+            # logger.error("--------------------------execute_cmd3_with_tmp2:{}".format(err))
             if ret != 0:
                 return ret, out, err
             out_tmp_file.seek(0)
             with open(out_tmp_file.name, 'r') as f:
                 out_data = f.read()
-            logger.error("--------------------------execute_cmd3_with_tmp2:{}".format(ret))
-            logger.error("--------------------------execute_cmd3_with_tmp2:{}".format(out_data))
-            logger.error("--------------------------execute_cmd3_with_tmp3:{}".format(err))
+            # logger.error("--------------------------execute_cmd3_with_tmp3:{}".format(ret))
+            # logger.error("--------------------------execute_cmd3_with_tmp4:{}".format(out_data))
+            # logger.error("--------------------------execute_cmd3_with_tmp5:{}".format(err))
             return ret, out_data, err
     except Exception as e:
         return -1, "", "execute_cmd3_with_tmp exceeded raise, e={0}, trace={1}".format(e.args[0],

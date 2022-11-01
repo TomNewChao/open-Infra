@@ -9,7 +9,6 @@ import traceback
 from obs import ObsClient
 from logging import getLogger
 from django.conf import settings
-from collections import defaultdict
 from open_infra.utils.common import convert_yaml
 from huaweicloudsdkcore.exceptions import exceptions
 from huaweicloudsdkcore.exceptions.exceptions import ClientRequestException
@@ -89,9 +88,9 @@ class HWCloudObs(object):
         return now_account_info_list
 
     def create_dir(self, bucket_name, path):
-        """创建文件夹, 可建立多层级
-        :param path: 以/结尾， eg: openeuler/zhuchao/1362256633/
-        :param bucket_name: 桶名
+        """create dir
+        :param path: endswith /， eg: openeuler/zhuchao/1362256633/
+        :param bucket_name: bucketname
         :return:
         """
         try:
@@ -106,6 +105,7 @@ class HWCloudObs(object):
 
     @staticmethod
     def get_obs_default_policy(domain_id, user_id, path, username, is_anonymous_read=False):
+        """get the obs default policy"""
         json_policy = {
             "Statement": [
                 {
@@ -163,6 +163,7 @@ class HWCloudObs(object):
 
     @staticmethod
     def get_need_remove_obs_policy(obs_policy_template, username, is_anonymously_read):
+        """Eliminate the obs policy that needs to be deleted"""
         new_obs_policy_template = list()
         for policy in obs_policy_template:
             if policy["Sid"] == "user-{}".format(username):
@@ -174,6 +175,7 @@ class HWCloudObs(object):
         return new_obs_policy_template
 
     def get_obs_policy(self, bucket_name):
+        """get obs policy"""
         resp = self.obs_client.getBucketPolicy(bucket_name)
         if resp.status < 300:
             policy_json = json.loads(resp.body.policyJSON)
@@ -184,28 +186,21 @@ class HWCloudObs(object):
             raise Exception('errorCode:{}, errorMessage:{}'.format(resp.errorCode, resp.errorMessage))
 
     def set_obs_policy(self, bucket_name, json_policy):
-        try:
-            logger.info("+++++++++++++++++ data is {}".format(json_policy))
-            resp = self.obs_client.setBucketPolicy(bucket_name, json_policy)
-            if resp.status < 300:
-                return True
-            else:
-                raise Exception('errorCode:{}, errorMessage:{}'.format(resp.errorCode, resp.errorMessage))
-        except Exception as e:
-            logger.error("[HWCloudObs] e:{}, traceback:{}".format(e, traceback.format_exc()))
-            return False
+        """set obs policy"""
+        resp = self.obs_client.setBucketPolicy(bucket_name, json_policy)
+        if resp.status < 300:
+            return True
+        else:
+            logger.error("[HWCloudObs] set_obs_policy data:{}".format(json_policy))
+            raise Exception('errorCode:{}, errorMessage:{}'.format(resp.errorCode, resp.errorMessage))
 
     def remove_obs_policy(self, bucket_name):
-        try:
-            resp = self.obs_client.deleteBucketPolicy(bucket_name)
-            if resp.status < 300:
-                print('requestId:', resp.requestId)
-                return True
-            else:
-                raise Exception('errorCode:{}, errorMessage:{}'.format(resp.errorCode, resp.errorMessage))
-        except Exception as e:
-            print("e:{}, traceback:{}".format(e, traceback.format_exc()))
-            return False
+        """remove obs policy"""
+        resp = self.obs_client.deleteBucketPolicy(bucket_name)
+        if resp.status < 300:
+            return True
+        else:
+            raise Exception('errorCode:{}, errorMessage:{}'.format(resp.errorCode, resp.errorMessage))
 
 
 class HWCloudIAM(object):
@@ -221,6 +216,7 @@ class HWCloudIAM(object):
 
     @classmethod
     def get_iam_config(cls):
+        """get iam config"""
         config = HttpConfig.get_default_config()
         config.ignore_ssl_verification = True
         config.retry_times = 1
@@ -228,6 +224,7 @@ class HWCloudIAM(object):
         return config
 
     def get_project_zone(self):
+        """get the zone and project from iam"""
         list_data = list()
         try:
             request = KeystoneListProjectsRequest()
@@ -247,7 +244,7 @@ class HWCloudIAM(object):
 
     # noinspection PyTypeChecker
     def create_iam_user(self, username, password, domain_id):
-        ret = None
+        """create iam user"""
         try:
             data = {
                 "user": {
@@ -257,15 +254,21 @@ class HWCloudIAM(object):
                 }
             }
             req = CreateUserRequest(body=data)
-            ret = self.client.create_user(req)
+            return self.client.create_user(req)
         except ClientRequestException as e:
             msg = json.loads(e.error_msg)
             if str(msg["errorcode"][0]) == "1109":
-                logger.error("[HWCloudIAM] create iam user: user is exist:{}".format(e))
+                logger.info("[HWCloudIAM] create iam user: user is exist:{}".format(e))
             else:
                 raise e
-        return ret
 
     def remove_iam_user(self, user_id):
-        req = KeystoneDeleteUserRequest(user_id=user_id)
-        return self.client.keystone_delete_user(req)
+        """remove iam user"""
+        try:
+            req = KeystoneDeleteUserRequest(user_id=user_id)
+            return self.client.keystone_delete_user(req)
+        except ClientRequestException as e:
+            if int(e.error_code) == 404:
+                logger.info("[HWCloudIAM] remove_iam_user: user is not exist:{}".format(e))
+            else:
+                raise e

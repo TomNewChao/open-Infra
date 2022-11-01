@@ -1,4 +1,3 @@
-import datetime
 from itertools import chain
 
 from clouds_tools.resources.constants import HWCloudEipStatus, HWCloudEipType

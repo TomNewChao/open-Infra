@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+# @Time    : 2022/10/10 8:44
+# @Author  : Tom_zc
+# @FileName: urls.py
+# @Software: PyCharm
+
 from django.conf.urls import url
 from clouds_tools.views import ScanPortView, ScanObsView, SingleScanPortView, SingleScanObsView, PortsListView, EipView, \
     PortsListDeleteView, ServiceView, SlaExportView, ObsInteractView
