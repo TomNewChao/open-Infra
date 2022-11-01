@@ -57,13 +57,16 @@ class AlarmLevel:
 class AlarmModule:
     """The definition of modules which may generate alarm info."""
     MODULE_MONITOR = 0
+    MODULE_PERMISSION = 1
 
     CN_ALARM_MODULE = {
-        MODULE_MONITOR: "性能监控",
+        MODULE_MONITOR: "系统监控",
+        MODULE_PERMISSION: "权限管控"
     }
 
     EN_ALARM_MODULE = {
-        MODULE_MONITOR: "monitor",
+        MODULE_MONITOR: "SystemMonitor",
+        MODULE_PERMISSION: "PermissionControl"
     }
 
     @classmethod
@@ -91,6 +94,7 @@ class AlarmName:
     NAME_CONTAINER_MEM = 4
     NAME_CONTAINER_DISK = 5
     NAME_CONTAINER_SERVICE_COUNT = 6
+    NAME_APPLY_KUBECONFIG = 7
 
     CN_ALARM_NAME = {
         NAME_NODE_CPU: '服务器CPU告警',
@@ -99,7 +103,8 @@ class AlarmName:
         NAME_CONTAINER_CPU: '容器CPU告警',
         NAME_CONTAINER_MEM: '容器内存告警',
         NAME_CONTAINER_DISK: '容器挂载盘使用率过高',
-        NAME_CONTAINER_SERVICE_COUNT: 'PlayGround Code Server容器报警',
+        NAME_CONTAINER_SERVICE_COUNT: 'PlayGround Code Server容器超限',
+        NAME_APPLY_KUBECONFIG: 'Kubeconfig申请失败'
     }
 
     EN_ALARM_NAME = {
@@ -109,7 +114,8 @@ class AlarmName:
         NAME_CONTAINER_CPU: "container cpu alarm",
         NAME_CONTAINER_MEM: "container memory alarm",
         NAME_CONTAINER_DISK: "container disk alarm",
-        NAME_CONTAINER_SERVICE_COUNT: "PlayGround Code Server container alarm",
+        NAME_CONTAINER_SERVICE_COUNT: "PlayGround Code Server container overrun",
+        NAME_APPLY_KUBECONFIG: 'Failed to apply for kubeconfig'
     }
 
     @classmethod
@@ -149,6 +155,10 @@ class AlarmCode:
 
     # Play Ground code server over limit 100
     MONITOR_DESC_CODE_CONTAINER_REST_COUNT_OVERFLOW = MONITOR_DESC_CODE_BASE + 20
+
+    # Permission
+    PERMISSION_DESC_CODE_BASE = 100
+    PERMISSION_APPLY_KUBECONFIG_FAILED = PERMISSION_DESC_CODE_BASE + 1
 
     # AFTER ALARM CODE BEGIN 20
     CN_DESC_ALARM = {
@@ -194,6 +204,12 @@ class AlarmCode:
             'ALARM_LEVEL': AlarmLevel.MAJOR,
             'ALARM_MODULE': AlarmModule.MODULE_MONITOR,
             'ALARM_CONTENT': "集群%s的PlayGround Code Server容器数量超过%s。"
+        },
+        PERMISSION_APPLY_KUBECONFIG_FAILED: {
+            'ALARM_NAME': AlarmName.NAME_APPLY_KUBECONFIG,
+            'ALARM_LEVEL': AlarmLevel.MAJOR,
+            'ALARM_MODULE': AlarmModule.MODULE_PERMISSION,
+            'ALARM_CONTENT': "%s申请kubeconfig失败。"
         }
     }
 
@@ -240,6 +256,12 @@ class AlarmCode:
             'ALARM_LEVEL': AlarmLevel.MAJOR,
             'ALARM_MODULE': AlarmModule.MODULE_MONITOR,
             'ALARM_CONTENT': "The playGround Code Server of %s container over %s."
+        },
+        PERMISSION_APPLY_KUBECONFIG_FAILED: {
+            'ALARM_NAME': AlarmName.NAME_APPLY_KUBECONFIG,
+            'ALARM_LEVEL': AlarmLevel.MAJOR,
+            'ALARM_MODULE': AlarmModule.MODULE_PERMISSION,
+            'ALARM_CONTENT': "Failed to apply for kubeconfig for user %s."
         }
     }
 

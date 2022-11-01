@@ -1,4 +1,3 @@
-import datetime
 from itertools import chain
 
 from clouds_tools.resources.constants import HWCloudEipStatus, HWCloudEipType
@@ -33,6 +32,7 @@ class HWCloudProjectInfo(BaseModel):
         return str(self.id)
 
 
+# noinspection PyUnresolvedReferences
 class HWCloudEipInfo(BaseModel):
     id = models.CharField(max_length=64, primary_key=True, verbose_name="华为云eip的id")
     eip = models.GenericIPAddressField()
@@ -96,6 +96,7 @@ class HWCloudScanEipPortStatus(BaseModel):
         return str(self.account)
 
 
+# noinspection PyUnresolvedReferences
 class HWCloudScanEipPortInfo(BaseModel):
     eip = models.GenericIPAddressField(verbose_name="华为云EIP")
     port = models.IntegerField(verbose_name="华为云EIP的暴露端口")
@@ -190,3 +191,40 @@ class HWCloudHighRiskPort(BaseModel):
     def __str__(self):
         return str(self.port)
 
+
+class HWColudObsInteract(BaseModel):
+    username = models.CharField(max_length=64, verbose_name="华为云IAM用户")
+    community = models.CharField(max_length=16, verbose_name="社区")
+    user_id = models.CharField(max_length=32, verbose_name="用户id")
+    password = models.CharField(max_length=64, verbose_name="用户密码")
+    is_delete = models.BooleanField(default=False, verbose_name="软删除")
+
+    class Meta:
+        db_table = "hw_cloud_obs_interact"
+        verbose_name = "华为云对象上传系统"
+
+    def __str__(self):
+        return str(self.id)
+
+
+class ServiceInfo(BaseModel):
+    service_name = models.CharField(max_length=64, null=True, verbose_name="服务名称:argocd")
+    service_alias = models.CharField(max_length=64, null=True, verbose_name="服务别名")
+    url = models.URLField(null=True, verbose_name="域名： argocd")
+    url_alias = models.URLField(null=True, verbose_name="域名别名")
+    namespace = models.CharField(max_length=64, null=True, verbose_name="命名空间")
+    cluster = models.CharField(max_length=64, null=True, verbose_name="集群名")
+    service_introduce = models.CharField(max_length=64, null=True, verbose_name="服务介绍")
+    community = models.CharField(max_length=16, null=True, verbose_name="社区")
+    month_abnormal_time = models.FloatField(null=True, verbose_name="月度异常累计时间")
+    year_abnormal_time = models.FloatField(null=True, verbose_name="年度异常累计时间")
+    month_sla = models.FloatField(null=True, verbose_name="月度sla")
+    year_sla = models.FloatField(null=True, verbose_name="年度sla")
+    remain_time = models.FloatField(null=True, verbose_name="年度剩余sla配额")
+
+    class Meta:
+        db_table = "service_info"
+        verbose_name = "service_info信息表"
+
+    def __str__(self):
+        return self.id

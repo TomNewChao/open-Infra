@@ -58,6 +58,7 @@ export default {
   // resources
   Resources: 'DeviceResources',
   Eip: 'Eip',
+  ServiceInfo: 'ServiceInfo',
   Sla: 'Sla',
 
   // alarm
@@ -66,15 +67,14 @@ export default {
   alarm_email: 'AlarmNotification',
 
   // monitor
-  Monitor: "SystemMonitor",
-  prometheus: "Prometheus",
-  grafana: "Grafana",
-  uptime_status: "Uptime-Status",
+  Monitor: 'SystemMonitor',
+  prometheus: 'Prometheus',
+  grafana: 'Grafana',
+  uptime_status: 'Uptime-Status',
 
   // permission
-  PermissionControl: "PermissionControl",
-  KubeConfig: "KubeConfig",
-  ServiceInfo: "ServiceInfo",
-
+  PermissionControl: 'PermissionControl',
+  KubeConfig: 'KubeConfig',
+  FortressMachine: 'FortressMachine'
 
 }

@@ -4,26 +4,26 @@
 # @FileName: scan_tools.py
 # @Software: PyCharm
 import datetime
+import os
 import traceback
 
 from django.db import transaction
-
-from clouds_tools.models import HWCloudProjectInfo, HWCloudAccount, HWCloudEipInfo, HWCloudScanEipPortInfo, \
-    HWCloudScanEipPortStatus, HWCloudScanObsAnonymousBucket, HWCloudScanObsAnonymousFile, HWCloudScanObsAnonymousStatus, \
-    HWCloudHighRiskPort
-from clouds_tools.resources.constants import NetProtocol, ScanToolsLock, ScanPortStatus, ScanObsStatus, HWCloudEipStatus
-from open_infra.libs.obs_utils import ObsLib, HWCloudIAM
-from open_infra.utils.common import output_scan_port_excel, output_scan_obs_excel, get_suitable_range, convert_yaml, \
-    output_cla_excel
-from open_infra.utils.crypto import AESCrypt
-from open_infra.utils.default_port_list import HighRiskPort
-from open_infra.utils.scan_port import scan_port
-from open_infra.utils.scan_obs import EipTools as ScanObsEipTools, scan_obs
 from django.conf import settings
 from threading import Thread, Lock
 from logging import getLogger
 
-from open_infra.utils.scan_sla import scan_cla
+from clouds_tools.models import HWCloudProjectInfo, HWCloudAccount, HWCloudEipInfo, HWCloudScanEipPortInfo, \
+    HWCloudScanEipPortStatus, HWCloudScanObsAnonymousBucket, HWCloudScanObsAnonymousFile, HWCloudScanObsAnonymousStatus, \
+    HWCloudHighRiskPort, ServiceInfo
+from clouds_tools.resources.constants import NetProtocol, ScanToolsLock, ScanPortStatus, ScanObsStatus, HWCloudEipStatus
+from open_infra.libs.lib_cloud import HWCloudObs, HWCloudIAM
+from open_infra.utils.common import output_scan_port_excel, output_scan_obs_excel, get_suitable_range, convert_yaml, \
+    output_cla_excel, load_yaml
+from open_infra.libs.lib_crypto import AESCrypt
+from open_infra.utils.default_port_list import HighRiskPort
+from open_infra.tools.scan_port import scan_port
+from open_infra.tools.scan_obs import ObsTools, scan_obs
+from open_infra.tools.scan_sla import scan_cla
 
 logger = getLogger("django")
 
@@ -61,7 +61,6 @@ class ScanOrmTools(object):
                     "protocol": NetProtocol.UDP
                 }
                 HWCloudScanEipPortInfo.objects.create(**dict_data)
-        logger.error("scan_port save data is:{}".format(str(account_list)))
         if creating:
             status_list = [HWCloudScanEipPortStatus(account=account, status=ScanPortStatus.finish)
                            for account in account_list]
@@ -73,7 +72,7 @@ class ScanOrmTools(object):
     def query_scan_eip_port_status(account):
         try:
             return HWCloudScanEipPortStatus.objects.get(account=account)
-        except HWCloudScanEipPortStatus.DoesNotExist as e:
+        except HWCloudScanEipPortStatus.DoesNotExist:
             logger.error("[query_scan_eip_status] dont find account:{}".format(account))
             return None
 
@@ -111,7 +110,7 @@ class ScanOrmTools(object):
     def query_scan_obs_status(account):
         try:
             return HWCloudScanObsAnonymousStatus.objects.get(account=account)
-        except HWCloudScanObsAnonymousStatus.DoesNotExist as e:
+        except HWCloudScanObsAnonymousStatus.DoesNotExist:
             logger.error("[query_scan_obs_status] dont find account:{}".format(account))
             return None
 
@@ -123,7 +122,7 @@ class ScanOrmTools(object):
     def query_high_risk_port(port):
         try:
             return HWCloudHighRiskPort.objects.get(port=port)
-        except HWCloudHighRiskPort.DoesNotExist as e:
+        except HWCloudHighRiskPort.DoesNotExist:
             logger.error("[query_high_risk_port] dont find port:{}".format(port))
             return None
 
@@ -145,16 +144,18 @@ class ScanBaseTools(object):
 
     @classmethod
     def get_sla_yaml_config(cls):
-        if not cls.sla_yaml_list:
-            ak, sk, url, bucket_name, obs_key = settings.AK, settings.SK, settings.URL, settings.DOWNLOAD_BUCKET_NAME, settings.DOWNLOAD_SLA_KEY_NAME
-            content = ScanObsEipTools.get_obs_data(ak, sk, url, bucket_name, obs_key)
+        if not cls.sla_yaml_list and not settings.DEBUG:
+            ak, sk, url, bucket_name, obs_key = settings.OBS_AK, settings.OBS_SK, settings.OBS_URL, settings.DOWNLOAD_BUCKET_NAME, settings.DOWNLOAD_SLA_KEY_NAME
+            content = ObsTools.get_obs_data(ak, sk, url, bucket_name, obs_key)
             cls.sla_yaml_list = convert_yaml(content)
+        else:
+            cls.sla_yaml_list = load_yaml(os.path.join(settings.BASE_DIR, "config", "sla.yaml"))
         return cls.sla_yaml_list
 
     @staticmethod
     def get_hw_account_from_obs():
-        obs_lib = ObsLib(settings.AK, settings.SK, settings.URL)
-        content = obs_lib.get_obs_data(settings.DOWNLOAD_BUCKET_NAME, settings.DOWNLOAD_KEY_NAME)
+        obs_lib = HWCloudObs(settings.OBS_AK, settings.OBS_SK, settings.OBS_URL)
+        content = obs_lib.get_obs_data(settings.DOWNLOAD_BUCKET_NAME, settings.DOWNLOAD_EIP_KEY_NAME)
         return content
 
     @classmethod
@@ -162,7 +163,7 @@ class ScanBaseTools(object):
         if not isinstance(now_account_info_list, list):
             raise Exception("now_account_info_list must be list")
         for account_info in now_account_info_list:
-            account_info["project_info"] = HWCloudIAM.get_project_zone(account_info["ak"], account_info["sk"])
+            account_info["project_info"] = HWCloudIAM(account_info["ak"], account_info["sk"]).get_project_zone()
 
     @classmethod
     def handle_sensitive_data(cls, account_list):
@@ -176,12 +177,6 @@ class ScanBaseTools(object):
         cls.get_hw_project_info_from_obs(content)
         cls.handle_sensitive_data(content)
         return content
-        #  it is for test
-        # list_data = list()
-        # for data in content:
-        #     if data["account"] == "hwstaff_h00223369":
-        #         list_data.append(data)
-        # return list_data
 
     @classmethod
     def get_hw_account_project_info_from_database(cls):
@@ -211,7 +206,7 @@ class ScanBaseTools(object):
 
     @staticmethod
     def get_random_cloud_config(ak, sk):
-        return HWCloudIAM.get_project_zone(ak, sk)
+        return HWCloudIAM(ak, sk).get_project_zone()
 
     @staticmethod
     def get_project_info(ak, sk):
@@ -359,7 +354,7 @@ class SingleScanObsMgr(ScanToolsMgr):
     def start_collect_thread(self, ak, sk, account):
         """start a collect thread"""
         try:
-            eip_tools = ScanObsEipTools()
+            eip_tools = ObsTools()
             eip_tools.get_all_bucket(ak, sk, settings.OBS_BASE_URL, inhibition_fault=False)
             account_dict = ScanBaseTools.get_account_dict(ak, sk, account)
         except Exception as e:
@@ -392,9 +387,54 @@ class SingleScanObsMgr(ScanToolsMgr):
         return 1, content
 
 
+# noinspection PyMethodMayBeStatic
+class HighRiskPortMgr(ScanToolsMgr):
+    _create_lock = Lock()
+
+    def list(self, kwargs):
+        page, size = kwargs['page'], kwargs['size']
+        order_type, order_by = kwargs.get("order_type"), kwargs.get("order_by")
+        filter_name = kwargs.get("filter_name")
+        filter_value = kwargs.get("filter_value")
+        if filter_name and filter_name == "port":
+            eip_list = HWCloudHighRiskPort.objects.filter(port__contains=filter_value)
+        else:
+            eip_list = HWCloudHighRiskPort.objects.all()
+        total = len(eip_list)
+        page, slice_obj = get_suitable_range(total, page, size)
+        order_by = order_by if order_by else "create_time"
+        order_type = order_type if order_type else 0
+        if order_type != 0:
+            order_by = "-" + order_by
+        eip_list = eip_list.order_by(order_by)
+        task_list = [task.to_dict() for task in eip_list[slice_obj]]
+        res = {
+            "size": size,
+            "page": page,
+            "total": total,
+            "data": task_list
+        }
+        return res
+
+    def create(self, port, desc):
+        with HighRiskPortMgr._create_lock:
+            if ScanOrmTools.query_high_risk_port(port):
+                return 1
+            HWCloudHighRiskPort.objects.create(port=port, desc=desc)
+            HighRiskPort.cur_port_dict.update({port: desc})
+            return 0
+
+    def delete(self, port_list):
+        HWCloudHighRiskPort.objects.filter(port__in=port_list).delete()
+        for port in port_list:
+            if port in HighRiskPort.cur_port_dict.keys():
+                del HighRiskPort.cur_port_dict[port]
+        return True
+
+
+# noinspection PyMethodMayBeStatic
 class EipMgr(ScanToolsMgr):
 
-    # noinspection PyMethodMayBeStatic
     def list_eip(self, kwargs):
         page, size = kwargs['page'], kwargs['size']
         order_type, order_by = kwargs.get("order_type"), kwargs.get("order_by")
@@ -438,122 +478,117 @@ class EipMgr(ScanToolsMgr):
 
 
 # noinspection PyMethodMayBeStatic
-class HighRiskPortMgr(ScanToolsMgr):
-    _create_lock = Lock()
+class SlaMgr:
+    _ignore_service_name_alias = ["Ascend-repo", "openEuler Jenkins ISO", "Ptadapter Jenkins"]
+
+    def query_all_sla_info(self):
+        """query all sla info from uptime-robot"""
+        cur_date = datetime.datetime.now()
+        logger.info("[SlaMgr] query_all_sla_info query year:{} month:{} day:{}".format(cur_date.year, cur_date.month, cur_date.day))
+        sla_detail_list = scan_cla(year=int(cur_date.year), month=int(cur_date.month), day=int(cur_date.day))
+        sla_info_list = ScanBaseTools.get_sla_yaml_config()
+        sla_info_dict = {sla_info["name-alias"]: {"introduce": sla_info["introduce"], "name": sla_info.get("name", "")} for sla_info in sla_info_list}
+        ret_list = list()
+        for sla_temp in sla_detail_list:
+            ret_dict = dict()
+            del sla_temp[0]
+            if sla_temp[0] in self._ignore_service_name_alias:
+                continue
+            sla_data = sla_info_dict.get(sla_temp[0], dict())
+            ret_dict["name-alias"] = sla_temp[0]
+            ret_dict["name"] = sla_data.get("name")
+            ret_dict["introduce"] = sla_data.get("introduce")
+            ret_dict["sla_url"] = sla_temp[-1]
+            ret_dict["sla_zone"] = settings.CLA_EXPLAIN.get(sla_temp[3].lower())
+            ret_dict["month_exp_min"] = sla_temp[4]
+            ret_dict["year_exp_min"] = sla_temp[5]
+            ret_dict["month_sla"] = sla_temp[6].replace("%", "")
+            ret_dict["year_sla"] = sla_temp[7].replace("%", "")
+            ret_dict["sla_year_remain"] = round(sla_temp[8], 4)
+            ret_list.append(ret_dict)
+        return ret_list
+
+    def get_all_namespace(self):
+        """query all namespace from mysql"""
+        namespace_list = ServiceInfo.objects.order_by("namespace").values("namespace").distinct()
+        ret_list = list()
+        for namespace in namespace_list:
+            dict_data = dict()
+            dict_data["label"] = namespace["namespace"]
+            dict_data["value"] = namespace["namespace"]
+            ret_list.append(dict_data)
+        return ret_list
+
+    def get_all_cluster(self):
+        """query all cluster from mysql"""
+        cluster_list = ServiceInfo.objects.order_by("cluster").values("cluster").distinct()
+        ret_list = list()
+        for cluster in cluster_list:
+            dict_data = dict()
+            dict_data["label"] = cluster["cluster"]
+            dict_data["value"] = cluster["cluster"]
+            ret_list.append(dict_data)
+        return ret_list
 
     def list(self, kwargs):
+        """The list of service"""
         page, size = kwargs['page'], kwargs['size']
         order_type, order_by = kwargs.get("order_type"), kwargs.get("order_by")
         filter_name = kwargs.get("filter_name")
         filter_value = kwargs.get("filter_value")
-        if filter_name and filter_name == "port":
-            eip_list = HWCloudHighRiskPort.objects.filter(port__contains=filter_value)
+        namespace = kwargs.get("namespace")
+        if filter_name and filter_name == "service_name":
+            if filter_value:
+                service_info_list = ServiceInfo.objects.filter(service_name__contains=filter_value)
+            else:
+                service_info_list = ServiceInfo.objects.filter(service_name=filter_value)
+        elif filter_name and filter_name == "service_alias":
+            if filter_value:
+                service_info_list = ServiceInfo.objects.filter(service_alias__contains=filter_value)
+            else:
+                service_info_list = ServiceInfo.objects.filter(service_alias=None)
+        elif filter_name and filter_name == "service_introduce":
+            if filter_value:
+                service_info_list = ServiceInfo.objects.filter(service_introduce__contains=filter_value)
+            else:
+                service_info_list = ServiceInfo.objects.filter(service_introduce=None)
+        elif filter_name and filter_name == "community":
+            if filter_value:
+                service_info_list = ServiceInfo.objects.filter(community__contains=filter_value)
+            else:
+                service_info_list = ServiceInfo.objects.filter(community=None)
         else:
-            eip_list = HWCloudHighRiskPort.objects.all()
-        total = len(eip_list)
+            service_info_list = ServiceInfo.objects.all()
+        if namespace:
+            service_info_list = service_info_list.filter(namespace=namespace)
+        total = len(service_info_list)
         page, slice_obj = get_suitable_range(total, page, size)
         order_by = order_by if order_by else "create_time"
         order_type = order_type if order_type else 0
         if order_type != 0:
             order_by = "-" + order_by
-        eip_list = eip_list.order_by(order_by)
-        task_list = [task.to_dict() for task in eip_list[slice_obj]]
-        res = {
-            "size": size,
-            "page": page,
-            "total": total,
-            "data": task_list
-        }
-        return res
-
-    def create(self, port, desc):
-        with HighRiskPortMgr._create_lock:
-            if ScanOrmTools.query_high_risk_port(port):
-                return 1
-            HWCloudHighRiskPort.objects.create(port=port, desc=desc)
-            HighRiskPort.cur_port_dict.update({port:desc})
-            return 0
-
-    def delete(self, port_list):
-        HWCloudHighRiskPort.objects.filter(port__in=port_list).delete()
-        for port in port_list:
-            if port in HighRiskPort.cur_port_dict.keys():
-                del HighRiskPort.cur_port_dict[port]
-        return True
-
-
-# noinspection PyMethodMayBeStatic
-class SlaMgr:
-    def list(self, kwargs):
-        page, size = kwargs['page'], kwargs['size']
-        order_type, order_by = kwargs.get("order_type"), kwargs.get("order_by")
-        sla_detail_list = scan_cla(kwargs["year"], kwargs["month"], kwargs["day"])
-        sla_info_list = ScanBaseTools.get_sla_yaml_config()
-        sla_info_dict = {sla_info["name"]: sla_info["introduce"] for sla_info in sla_info_list}
+        service_result_list = service_info_list.order_by(order_by).values(
+            "service_name", "service_alias", "namespace", "cluster",
+            "service_introduce", "url_alias", "community", "month_abnormal_time",
+            "year_abnormal_time", "month_sla", "year_sla", "remain_time")
         ret_list = list()
-        for sla_temp in sla_detail_list:
-            ret_dict = dict()
-            del sla_temp[0]
-            sla_data = sla_info_dict.get(sla_temp[0], "unknown introduce")
-            if sla_temp[0] in ["Ascend-repo", "openEuler Jenkins ISO", "Ptadapter Jenkins"]:
-                continue
-            ret_dict["service_name"] = sla_temp[0]
-            ret_dict["introduce"] = sla_data
-            ret_dict["sla_url"] = sla_temp[-1]
-            ret_dict["sla_zone"] = settings.CLA_EXPLAIN.get(sla_temp[3].lower())
-            ret_dict["month_exp_min"] = sla_temp[4]
-            ret_dict["year_exp_min"] = sla_temp[5]
-            ret_dict["month_sla"] = sla_temp[6]
-            ret_dict["year_sla"] = sla_temp[7]
-            ret_dict["sla_year_remain"] = round(sla_temp[8], 4)
-            ret_list.append(ret_dict)
-        # filter
-        filter_name = kwargs.get("filter_name")
-        filter_value = kwargs.get("filter_value")
-        if filter_name and filter_name == "service_name":
-            ret_list = [i for i in ret_list if i["service_name"] == filter_value]
-        # 排序, 0-升序
-        if order_type == 0:
-            ret_list = sorted(ret_list, key=lambda keys: keys[order_by])
-        else:
-            ret_list = sorted(ret_list, key=lambda keys: keys[order_by], reverse=True)
-        total = len(ret_list)
-        page, slice_obj = get_suitable_range(total, page, size)
-        task_list = [task for task in ret_list[slice_obj]]
+        for task in service_result_list[slice_obj]:
+            if task["month_sla"]:
+                task["month_sla"] = "{}%".format(task["month_sla"])
+            if task["year_sla"]:
+                task["year_sla"] = "{}%".format(task["year_sla"])
+            ret_list.append(task)
         res = {
             "size": size,
             "page": page,
             "total": total,
-            "data": task_list
+            "data": ret_list
         }
         return res
 
     def export(self):
-        cur_date = datetime.datetime.now()
-        year = cur_date.year
-        month = cur_date.month
-        day = cur_date.day
-        sla_detail_list = scan_cla(year, month, day)
-        sla_info_list = ScanBaseTools.get_sla_yaml_config()
-        sla_info_dict = {sla_info["name"]: sla_info["introduce"] for sla_info in sla_info_list}
-        ret_list = list()
-        for sla_temp in sla_detail_list:
-            ret_dict = dict()
-            del sla_temp[0]
-            sla_data = sla_info_dict.get(sla_temp[0], "unknown introduce")
-            if sla_temp[0] in ["Ascend-repo", "openEuler Jenkins ISO", "Ptadapter Jenkins"]:
-                continue
-            ret_dict["service_name"] = sla_temp[0]
-            ret_dict["introduce"] = sla_data
-            ret_dict["sla_url"] = sla_temp[-1]
-            ret_dict["sla_zone"] = settings.CLA_EXPLAIN.get(sla_temp[3].lower())
-            ret_dict["month_exp_min"] = sla_temp[4]
-            ret_dict["year_exp_min"] = sla_temp[5]
-            ret_dict["month_sla"] = sla_temp[6]
-            ret_dict["year_sla"] = sla_temp[7]
-            ret_dict["sla_year_remain"] = round(sla_temp[8], 4)
-            ret_list.append(ret_dict)
-        ret_list = sorted(ret_list, key=lambda keys: keys["sla_year_remain"])
-        return output_cla_excel(ret_list)
-
-
+        service_info_list = ServiceInfo.objects.filter().exclude(service_alias=None).order_by("remain_time").values(
+            "service_alias", "service_introduce", "url_alias",
+            "community", "month_abnormal_time", "year_abnormal_time",
+            "month_sla", "year_sla", "remain_time")
+        return output_cla_excel(service_info_list)

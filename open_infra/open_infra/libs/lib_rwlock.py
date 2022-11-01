@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Time    : 2022/8/1 11:18
 # @Author  : Tom_zc
-# @FileName: lock_util.py
+# @FileName: lib_rwlock.py
 # @Software: PyCharm
 import threading
 from queue import Queue

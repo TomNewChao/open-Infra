@@ -16,7 +16,8 @@ from alarm.resources.alarm_module.alarm_code import AlarmCode, AlarmLevel, Alarm
 from alarm.resources.alarm_module.constants import AlarmType
 from django.conf import settings
 
-from open_infra.libs.sms_lib import hw_send_sms
+from open_infra.libs.lib_email import EmailBaseLib
+from open_infra.libs.lib_sms import hw_send_sms
 
 logger = logging.getLogger("django")
 
@@ -84,14 +85,16 @@ class AlarmSMSTool(object):
             alarm_detail = alarm["alarm_details"].split(r"/")[-1]
             alarm_detail = alarm_detail.replace(r"。", "")
             param_f = alarm_detail[:9] + "*" + alarm_detail[-10:]
-            param_t = alarm['alarm_happen_time'].astimezone(convert_time_zone('Asia/Shanghai')).strftime('%Y-%m-%d %H:%M:%S')
+            param_t = alarm['alarm_happen_time'].astimezone(convert_time_zone('Asia/Shanghai')).strftime(
+                '%Y-%m-%d %H:%M:%S')
             list_param_t = param_t.split()
             return '["{}", "{}", "{}"]'.format(param_f, list_param_t[0], list_param_t[-1])
         else:
             alarm_detail = alarm["alarm_details"].split(r"/")[-1]
             alarm_detail = alarm_detail.replace(r"。", "")
             param_f = alarm_detail[:9] + "*" + alarm_detail[-10:]
-            param_t = alarm['alarm_recover_time'].astimezone(convert_time_zone('Asia/Shanghai')).strftime('%Y-%m-%d %H:%M:%S')
+            param_t = alarm['alarm_recover_time'].astimezone(convert_time_zone('Asia/Shanghai')).strftime(
+                '%Y-%m-%d %H:%M:%S')
             list_param_t = param_t.split()
             return '["{}", "{}", "{}"]'.format(param_f, list_param_t[0], list_param_t[-1])
 
@@ -114,10 +117,10 @@ class AlarmSMSTool(object):
         logger.info("[send_sms] send sms success!send data is:{},{},{}".format(template_param, receiver, content))
 
 
-class AlarmEmailTool(object):
+class AlarmEmailTool(EmailBaseLib):
 
     @classmethod
-    def _get_alarm_email_content(cls, alarm, alarm_type):
+    def get_content(cls, alarm, alarm_type):
         """
         根据类型返回对应模板
         :param alarm:
@@ -140,7 +143,8 @@ class AlarmEmailTool(object):
                         <div>告警时间：%s</div>
                     </div>
                 '''
-                email_send_time = alarm['alarm_happen_time'].astimezone(convert_time_zone('Asia/Shanghai')).strftime('%Y-%m-%d %H:%M:%S')
+                email_send_time = alarm['alarm_happen_time'].astimezone(convert_time_zone('Asia/Shanghai')).strftime(
+                    '%Y-%m-%d %H:%M:%S')
             elif alarm_type == AlarmType.RECOVER:
                 email_content_temp = '''
                     <div style="margin:10px 20px;font-size:12px;font-family:SimSun;">
@@ -157,7 +161,8 @@ class AlarmEmailTool(object):
                         <div>解除时间：%s</div>
                     </div>
                 '''.format(alarm['alarm_happen_time'].strftime('%Y-%m-%d %H:%M:%S'))
-                email_send_time = alarm['alarm_recover_time'].astimezone(convert_time_zone('Asia/Shanghai')).strftime('%Y-%m-%d %H:%M:%S')
+                email_send_time = alarm['alarm_recover_time'].astimezone(convert_time_zone('Asia/Shanghai')).strftime(
+                    '%Y-%m-%d %H:%M:%S')
             else:
                 raise TypeError('alarm type {} is unknown.'.format(alarm_type))
             email_content = email_content_temp % (alarm.get('alarm_name'),
@@ -171,40 +176,25 @@ class AlarmEmailTool(object):
             logger.error('format email content failed,e=%s,t=%s', e.args[0], traceback.format_exc())
 
     @classmethod
-    def _send_email(cls, email_conf):
+    def _send_email(cls, email_subject, email_receivers, email_content):
         """send email"""
         try:
-            email_subject = email_conf.get('email_subject')
-            email_content = email_conf.get('email_content')
-            email_receivers = email_conf.get('email_receivers')
-            sender_email = settings.ALARM_EMAIL_SENDER_EMAIL
-            sender_name = settings.ALARM_EMAIL_SENDER_NAME
-            server_address = settings.ALARM_EMAIL_SENDER_SERVER
-            server_port = int(settings.ALARM_EMAIL_SENDER_PORT)
+            sender_email = settings.EMAIL_SENDER_EMAIL
+            sender_name = settings.EMAIL_SENDER_NAME
             message = MIMEText(email_content, 'html', 'utf-8')
             message['From'] = r'{0} <{1}>'.format(sender_name, sender_email)
             message['To'] = ','.join(email_receivers)
             message['Subject'] = Header(email_subject, 'utf-8')
-            if not settings.IS_SSL:
-                smt_obj = smtplib.SMTP(server_address, port=int(server_port))
-                smt_obj.login(settings.ALARM_EMAIL_USERNAME, settings.ALARM_EMAIL_PWD)
-                smt_obj.starttls()
-                smt_obj.sendmail(sender_email, email_receivers, message.as_string())
-            else:
-                smt_obj = smtplib.SMTP_SSL(server_address, port=int(server_port))
-                smt_obj.login(settings.ALARM_EMAIL_USERNAME, settings.ALARM_EMAIL_PWD)
-                smt_obj.sendmail(sender_email, email_receivers, message.as_string())
+            cls.send_email(email_receivers, message)
             logger.info("[_send_email] send email success! send data is:{}".format(email_receivers))
         except Exception as e:
             logger.error('send email failed,e=%s,t=%s', e.args[0], traceback.format_exc())
 
     @classmethod
     def send_alarm_email(cls, alarm, email_list, alarm_type):
-        email_conf = dict()
-        email_conf['email_receivers'] = email_list
-        email_conf['email_subject'] = settings.ALARM_EMAIL_SUBJECT
-        email_conf['email_content'] = cls._get_alarm_email_content(alarm, alarm_type)
-        cls._send_email(email_conf)
+        email_subject = settings.ALARM_EMAIL_SUBJECT
+        email_content = cls.get_content(alarm, alarm_type)
+        cls._send_email(email_subject, email_list, email_content)
 
 
 # noinspection PyMethodMayBeStatic
@@ -268,7 +258,8 @@ class AlarmServer(object):
                 return True
             alarm_info_dict = self.alarm_server_tools.get_alarm_info(alarm_obj[0])
             Alarm.objects.filter(alarm_md5=md5_str).filter(is_recover=False).update(is_recover=True,
-                                                                                    alarm_recover_time=alarm_info_dict["alarm_recover_time"])
+                                                                                    alarm_recover_time=alarm_info_dict[
+                                                                                        "alarm_recover_time"])
             if not self.alarm_server_tools.is_alarm_level_gt_major(alarm_info_dict["alarm_level"]):
                 self.recover_notify(alarm_info_dict)
         except Exception as e:

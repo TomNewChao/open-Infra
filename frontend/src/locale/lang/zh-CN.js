@@ -58,6 +58,7 @@ export default {
   // resources
   Resources: '设备资源',
   Eip: 'Eip查询',
+  ServiceInfo: '服务查询',
   Sla: 'Sla查询',
 
   // alarm
@@ -66,15 +67,14 @@ export default {
   alarm_email: '告警通知',
 
   // monitor
-  Monitor: "系统监控",
-  prometheus: "Prometheus",
-  grafana: "Grafana",
-  uptime_status: "Uptime-Status",
+  Monitor: '系统监控',
+  prometheus: 'Prometheus',
+  grafana: 'Grafana',
+  uptime_status: 'Uptime-Status',
 
   // permission
-  PermissionControl: "权限管控",
-  KubeConfig: "KubeConfig",
-  ServiceInfo: "服务信息",
-
+  PermissionControl: '权限管控',
+  KubeConfig: 'KubeConfig',
+  FortressMachine: '堡垒机'
 
 }

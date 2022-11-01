@@ -25,7 +25,6 @@ from huaweicloudsdkecs.v2 import EcsClient, NovaListServersDetailsRequest
 from huaweicloudsdkrds.v3 import RdsClient, ListInstancesRequest
 from huaweicloudsdkcore.exceptions.exceptions import ClientRequestException, ConnectionException
 
-
 from clouds_tools.resources.constants import HWCloudEipStatus, HWCloudEipType
 from open_infra.utils.common import func_retry
 from django.conf import settings
@@ -290,7 +289,7 @@ class EipTools(object):
         return result_list
 
 
-def get_eip_info(config_list):
+def scan_eip(config_list):
     ret_dict = dict()
     eip_tools = EipTools()
     for config_item in config_list:
@@ -305,3 +304,16 @@ def get_eip_info(config_list):
             result_list.extend(ret_temp or [])
         ret_dict[username] = result_list
     return ret_dict
+
+
+if __name__ == '__main__':
+    input_params = [{
+        "account": "******",
+        "ak": "******",
+        "sk": "******",
+        "project_info": [
+            {"project_id": "*********",
+             "zone": "******"}
+        ],
+    }]
+    scan_eip(input_params)

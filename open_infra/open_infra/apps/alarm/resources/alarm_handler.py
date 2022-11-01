@@ -23,7 +23,6 @@ class AlarmHandlerConfig(object):
     node_cpu_query = "{}/api/v1/query?query=node_cpu_seconds_total&time={}"
     node_mem_query = "{}/api/v1/query?query=node_memory_MemUsed&time={}"
     node_fs_query = "{}/api/v1/query?query=node_filesystem_usage_rate&time={}"
-    pass
 
 
 class AlarmBaseHandler(object):
@@ -67,6 +66,8 @@ class AlarmBaseHandler(object):
                 elif metrics_dict["metric"]["cluster"] in ["openeuler-arm-jenkins-cluster", "openeuler-cn-north4-arm-cluster"] and metrics_dict["metric"]["namespace"] == "jenkins":
                     continue
                 elif metrics_dict["metric"]["cluster"] == "mindspore-cn-north-4-arm-new-cluster" and metrics_dict["metric"]["namespace"] == "jenkins" and metrics_dict["metric"]["pod"].startswith("arm-centos-slaves"):
+                    continue
+                elif metrics_dict["metric"]["cluster"] == "openlookeng-tryme-cluster" and metrics_dict["metric"]["namespace"].startswith(r"lk-"):
                     continue
                 name = "{}/{}/{}/{}/{}".format(metrics_dict["metric"]["account"],
                                                metrics_dict["metric"]["cluster"],

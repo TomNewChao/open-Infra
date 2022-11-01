@@ -7,87 +7,34 @@ import json
 import argparse
 import yaml
 import traceback
-import re
-from itertools import groupby
 from collections import defaultdict
 from obs.client import ObsClient
 from django.conf import settings
 from logging import getLogger
 
+from open_infra.utils.utils_extractor import Extractor
+
 logger = getLogger("django")
 
 
-class Extractor(object):
-    def __init__(self):
-        pass
+class ObsClientConn(object):
+    def __init__(self, ak, sk, url, timeout=180):
+        self.obs_client = ObsClient(access_key_id=ak, secret_access_key=sk, server=url, timeout=timeout)
 
-    def replace_chinese(self, text):
-        """
-        remove all the chinese characters in text
-        eg: replace_chinese('我的email是ifee@baidu.com和dsdsd@dsdsd.com,李林的邮箱是eewewe@gmail.com哈哈哈')
+    def __enter__(self):
+        return self.obs_client
 
-
-        :param: raw_text
-        :return: text_without_chinese<str>
-        """
-        filtrate = re.compile(u'[\u4E00-\u9FA5]')
-        text_without_chinese = filtrate.sub(r' ', text)
-        return text_without_chinese
-
-    def extract_email(self, text):
-        """
-        extract all email addresses from texts<string>
-        eg: extract_email('我的email是ifee@baidu.com和dsdsd@dsdsd.com,李林的邮箱是eewewe@gmail.com哈哈哈')
-
-
-        :param: raw_text
-        :return: email_addresses_list<list>
-        """
-        eng_texts = self.replace_chinese(text)
-        eng_texts = eng_texts.replace(' at ', '@').replace(' dot ', '.')
-        sep = ',!?:; ，。！？《》、|\\/'
-        eng_split_texts = [''.join(g) for k, g in groupby(eng_texts, sep.__contains__) if not k]
-
-        email_pattern = r'^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$'
-
-        emails = []
-        for eng_text in eng_split_texts:
-            result = re.match(email_pattern, eng_text, flags=0)
-            if result:
-                emails.append(result.string)
-        return emails
-
-    def extract_cellphone(self, text, nation):
-        """
-        extract all cell phone numbers from texts<string>
-        eg: extract_email('my email address is sldisd@baidu.com and dsdsd@dsdsd.com,李林的邮箱是eewewe@gmail.com哈哈哈')
-
-
-        :param: raw_text
-        :return: email_addresses_list<list>
-        """
-        eng_texts = self.replace_chinese(text)
-        sep = ',!?:; ：，。！？《》、|\\/abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
-        eng_split_texts = [''.join(g) for k, g in groupby(eng_texts, sep.__contains__) if not k]
-        eng_split_texts_clean = [ele for ele in eng_split_texts if len(ele) >= 7 and len(ele) < 17]
-        if nation == 'CHN':
-            phone_pattern = '((\+86)?([- ])?)?(|(13[0-9])|(14[0-9])|(15[0-9])|(17[0-9])|(18[0-9])|(19[0-9]))([- ])?\d{3}([- ])?\d{4}([- ])?\d{4}'
-        else:
-            phone_pattern = '((\+86)?([- ])?)?(|(13[0-9])|(14[0-9])|(15[0-9])|(17[0-9])|(18[0-9])|(19[0-9]))([- ])?\d{3}([- ])?\d{4}([- ])?\d{4}'
-        phones = []
-        for eng_text in eng_split_texts_clean:
-            result = re.match(phone_pattern, eng_text, flags=0)
-            if result:
-                phones.append(result.string.replace('+86', '').replace('-', ''))
-        return phones
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.obs_client:
+            self.obs_client.close()
 
 
 # noinspection DuplicatedCode
-class EipTools(object):
+class ObsTools(object):
     _ex = Extractor()
 
     def __init__(self, *args, **kwargs):
-        super(EipTools, self).__init__(*args, **kwargs)
+        super(ObsTools, self).__init__(*args, **kwargs)
 
     @classmethod
     def output_txt(cls, path, eip_info_list):
@@ -158,12 +105,12 @@ class EipTools(object):
         return None
 
     @classmethod
-    def get_bucket_obj(cls, obs_client, bucket_name):
+    def get_bucket_obj(cls, obs_client, bucket_name, prefix=None):
         if not isinstance(obs_client, ObsClient):
             raise Exception("obs_client must be instantiated")
         list_result = list()
         try:
-            resp = obs_client.listObjects(bucket_name, max_keys=100000)
+            resp = obs_client.listObjects(bucket_name, prefix=prefix, max_keys=100000)
             if resp.status < 300:
                 for content in resp.body.contents:
                     list_result.append(content)
@@ -219,6 +166,41 @@ class EipTools(object):
         if sensitive_phone:
             sensitive_dict_data["phone_number"] = sensitive_phone
         return sensitive_dict_data
+
+    @classmethod
+    def check_bucket_info_and_mdsum(cls, obs_client, md5sum_dict, prefix, bucket_name):
+        """check the md5sum from bucket"""
+        md5sum_not_consistency_list, sensitive_file,  sensitive_dict, obs_exist_file_list = list(), list(), dict(), list()
+        bucket_info_list = cls.get_bucket_obj(obs_client, bucket_name, prefix=prefix)
+        for bucket_info in bucket_info_list:
+            file_name = bucket_info["key"]
+            is_dir = file_name.endswith(r"/")
+            if is_dir:
+                logger.info("[ObsTools] check_bucket_info_and_mdsum it is dir:{}, dont compare".format(file_name))
+                continue
+            # sensitive suffix
+            file_name_list = file_name.rsplit(sep=".", maxsplit=1)
+            if len(file_name_list) >= 2:
+                if file_name_list[-1] in settings.OBS_FILE_POSTFIX:
+                    sensitive_file.append(file_name)
+            # sensitve data
+            content = cls.download_obs_data(obs_client, bucket_name, file_name)
+            if content:
+                sensitive_temp = cls.get_sensitive_data(content)
+                if sensitive_temp:
+                    sensitive_dict[file_name] = sensitive_temp
+            # md5sum consistency
+            relative_path = file_name[len(prefix) + 1:]
+            obs_exist_file_list.append(relative_path)
+            parse_md5 = md5sum_dict.get(relative_path, "").lower().strip()
+            parse_etag = bucket_info["etag"].lower().replace("\"", "")
+            if parse_md5 and parse_md5 != parse_etag:
+                md5sum_not_consistency_list.append(file_name)
+            else:
+                logger.info("[ObsTools] check_bucket_info_and_mdsum obs md5sum:{},parse pr file md5sum:{}".format(parse_etag, parse_md5))
+        # lack file
+        lack_file_list = list(set(md5sum_dict.keys()) - set(obs_exist_file_list))
+        return md5sum_not_consistency_list, sensitive_file,  lack_file_list, sensitive_dict
 
     @classmethod
     def check_bucket_info(cls, obs_client, bucket_name, account, zone):
@@ -291,18 +273,6 @@ class EipTools(object):
             return location_bucket
 
 
-class ObsClientConn(object):
-    def __init__(self, ak, sk, url, timeout=180):
-        self.obs_client = ObsClient(access_key_id=ak, secret_access_key=sk, server=url, timeout=timeout)
-
-    def __enter__(self):
-        return self.obs_client
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        if self.obs_client:
-            self.obs_client.close()
-
-
 # noinspection DuplicatedCode
 def scan_obs(query_account_list):
     """
@@ -310,7 +280,7 @@ def scan_obs(query_account_list):
     2.如果这个桶是匿名用户，则遍历所有的文件和文件夹，如果是后缀名是.结尾的，则添加到列表中
     3.输出到txt中
     """
-    eip_tools = EipTools()
+    obs_tools = ObsTools()
     logger.info("############1.start to collect obs anonymous bucket######")
     list_anonymous_file, list_anonymous_bucket, account_list = list(), list(), list()
     for config_item in query_account_list:
@@ -318,13 +288,13 @@ def scan_obs(query_account_list):
         sk = config_item["sk"]
         account = config_item["account"]
         account_list.append(account)
-        location_bucket = eip_tools.get_all_bucket(ak, sk, settings.OBS_BASE_URL)
+        location_bucket = obs_tools.get_all_bucket(ak, sk, settings.OBS_BASE_URL)
         logger.info("[scan_obs] scan obs bucket: {}".format(location_bucket))
         for location, bucket_name_list in location_bucket.items():
-            url = settings.OBS_URL.format(location)
+            url = settings.OBS_URL_FORMAT.format(location)
             with ObsClientConn(ak, sk, url) as obs_client:
                 for bucket_name in bucket_name_list:
-                    list_anonymous_bucket_temp, ret_anonymous_file_temp = eip_tools.check_bucket_info(obs_client,
+                    list_anonymous_bucket_temp, ret_anonymous_file_temp = obs_tools.check_bucket_info(obs_client,
                                                                                                       bucket_name,
                                                                                                       account, location)
                     list_anonymous_bucket.extend(list_anonymous_bucket_temp or [])

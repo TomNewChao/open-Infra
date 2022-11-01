@@ -3,12 +3,8 @@
 # @Author  : Tom_zc
 # @FileName: permission_mgr.py
 # @Software: PyCharm
-import abc
-import re
-import smtplib
 import traceback
 import datetime
-import requests
 import logging
 from email.header import Header
 from email.mime.text import MIMEText
@@ -17,116 +13,22 @@ from django.db import transaction
 from django.db.models import Q
 from pytz import timezone as convert_time_zone
 from django.conf import settings
-from open_infra.utils.kubeconfig_lib import KubeconfigLib
-from permission.models import KubeConfigInfo, ServiceInfo
+from alarm.resources.alarm_module.alarm_code import AlarmCode
+from alarm.resources.alarm_module.constants import AlarmType
+from clouds_tools.models import ServiceInfo
+from open_infra.libs.lib_email import EmailBaseLib
+from open_infra.utils.utils_alarm import ActiveAlarmBase
+from open_infra.utils.utils_git import GitBaseToolsLib, GitBase
+from open_infra.utils.utils_kubeconfig import KubeconfigLib
+from permission.models import KubeConfigInfo
 from open_infra.utils.common import get_suitable_range
-from permission.resources.constants import PermissionGlobalConfig, KubeConfigRole
+from permission.resources.constants import KubeConfigRole
+
 
 logger = logging.getLogger("django")
 
 
-class PrBase(metaclass=abc.ABCMeta):
-    Pr_Base_lib = None
-
-    def __init__(self, pr_dict):
-        self.pr_dict = pr_dict
-
-    def create_pr(self):
-        raise NotImplemented
-
-    def comment_pr(self, comment):
-        raise NotImplemented
-
-    def merge_pr(self):
-        raise NotImplemented
-
-
-class PrBaseLib(object):
-    @classmethod
-    def request_comment(cls, url, token, body_data, timeout=60):
-        raise NotImplemented
-
-    @classmethod
-    def request_diff(cls, url, timeout=60):
-        raise NotImplemented
-
-    @classmethod
-    def request_merge(cls, url, token, timeout=60):
-        raise NotImplemented
-
-    @classmethod
-    def parse_diff(cls, parse_content):
-        raise NotImplemented
-
-    @classmethod
-    def check_params(cls, list_data):
-        raise NotImplemented
-
-
-class GitHubPrLib(PrBaseLib):
-    @classmethod
-    def request_comment(cls, url, token, body_data, timeout=60):
-        header = {
-            "Accept": "application/vnd.github+json",
-            "Authorization": "Bearer {}".format(token)
-        }
-        result = requests.post(url, headers=header, json={"body": body_data}, timeout=(timeout, timeout))
-        if not str(result.status_code).startswith("2"):
-            raise Exception(
-                "[request_comment] request url:{} failed,code:{}, content:{}".format(url, result.content,
-                                                                                     result.content))
-        return result
-
-    @classmethod
-    def request_url(cls, url, timeout=60):
-        result = requests.get(url, timeout=(timeout, timeout))
-        if not str(result.status_code).startswith("2"):
-            raise Exception(
-                "[request_diff] request url:{} failed,code:{}, content:{}".format(url, result.content, result.content))
-        return result.content.decode("utf-8")
-
-    @classmethod
-    def request_merge(cls, url, token, timeout=60):
-        header = {
-            "Accept": "application/vnd.github+json",
-            "Authorization": "Bearer {}".format(token)
-        }
-        result = requests.put(url, headers=header, timeout=(timeout, timeout))
-        if not str(result.status_code).startswith("2"):
-            raise Exception(
-                "[request_merge] request url:{} failed,code:{}, content:{}".format(url, result.content, result.content))
-        return result
-
-    @classmethod
-    def parse_diff(cls, parse_content):
-        result_list = parse_content.split("+++ ")
-        list_data = list()
-        for result in result_list:
-            dict_data = dict()
-            for line in result.split("\n"):
-                if line.startswith("+") and not line.startswith("++"):
-                    list_line = line[1:].split(":")
-                    if len(list_line) != 2:
-                        continue
-                    dict_data[list_line[0].strip().lower()] = list_line[1].strip()
-            if len(dict_data):
-                list_data.append(dict_data)
-        logger.info("[parse_diff] parse data:{}".format(list_data))
-        return list_data
-
-    @classmethod
-    def parse_patch(cls, parse_content):
-        result_list = parse_content.split("+++ ")
-        email_str = str()
-        for result in result_list:
-            for line in result.split("\n"):
-                if line.startswith("From:"):
-                    email_temp = re.findall(r"<.*?>", line)
-                    if len(email_temp):
-                        email_str = email_temp[0][1:-1]
-                        break
-        logger.info("[parse_patch] parse email:{}".format(email_str))
-        return email_str
+class KubeconfigInteractGitToolsLib(GitBaseToolsLib):
 
     @classmethod
     def check_params(cls, list_data):
@@ -135,53 +37,53 @@ class GitHubPrLib(PrBaseLib):
             if not isinstance(data, dict):
                 is_ok = False
                 ret_data.append("Parse file fault.")
-            elif not data.get("username") or not data.get("role") or not data.get("timelimit") or not data.get("servicename"):
+            if not all([data.get("username"), data.get("role"), data.get("timelimit"), data.get("servicename"), data.get("email")]):
                 is_ok = False
-                ret_data.append(
-                    "Whether the input parameters are complete, Please check whether the parameters include UserName, Role, TimeLimit, ServiceName.")
-            elif not KubeConfigRole.is_in_kubeconfig_role(data["role"]):
+                msg = "Whether the input parameters are complete, Please check whether the parameters include " \
+                      "UserName, Role, TimeLimit, ServiceName, Email."
+                ret_data.append(msg)
+            if not KubeConfigRole.is_in_kubeconfig_role(data["role"]):
                 is_ok = False
                 ret_data.append("Role must be in the scope of admin, developer, viewer, Please check Role.")
-            elif len(data["username"]) > 20 or len(data["username"]) <= 0 or not data["username"].isalnum() or data["username"].lower() != data["username"]:
+            if len(data["username"]) > 20 or len(data["username"]) <= 0 or not data["username"].isalnum() or data["username"].lower() != data["username"]:
                 is_ok = False
                 ret_data.append("Invalid UserName, Please check UserName.")
-            elif not data["timelimit"].isdigit() or (int(data["timelimit"]) <= 0):
+            if not data["timelimit"].isdigit() or (int(data["timelimit"]) <= 0):
                 is_ok = False
                 ret_data.append("Invalid TimeLimit, Please check TimeLimit")
-            else:
-                service_info_list = ServiceInfo.objects.filter(service_name=data["servicename"])
-                if len(service_info_list) == 0:
-                    is_ok = False
-                    ret_data.append("Invalid ServiceName, Please check ServiceName.")
-                elif not service_info_list[0].cluster or not service_info_list[0].namespace:
-                    is_ok = False
-                    ret_data.append("Invalid ServiceName, Please check the namespace or cluster of ServiceName.")
+            service_info_list = ServiceInfo.objects.filter(service_name=data["servicename"])
+            if len(service_info_list) == 0:
+                is_ok = False
+                ret_data.append("Invalid ServiceName, Please check ServiceName.")
+            elif not service_info_list[0].cluster or not service_info_list[0].namespace:
+                is_ok = False
+                ret_data.append("Invalid ServiceName, Please check the namespace or cluster of ServiceName.")
         if not len(list_data):
             is_ok = False
             ret_data.append("The pr content of parse is empty, Please check the data of submit.")
         if ret_data:
             desc_str = "***{}***".format(",".join(ret_data))
         else:
-            desc_str = "***Pending Review by @{}***".format(",".join(settings.GITHUB_REVIEWER))
+            desc_str = "***Pending Review by @{}***".format(",@".join(settings.GITHUB_REVIEWER))
         return is_ok, desc_str
 
 
-class GitHubPr(PrBase):
-    Pr_Base_lib = GitHubPrLib
+class KubeConfigGitBase(GitBase):
+    kubeconfig_interact_tools_lib = KubeconfigInteractGitToolsLib
 
     def parse_create_pr(self):
         if self.pr_dict.get("pull_request"):
             diff_url = self.pr_dict["pull_request"]["diff_url"]
-            patch_url = self.pr_dict["pull_request"]["patch_url"]
+            # patch_url = self.pr_dict["pull_request"]["patch_url"]
         else:
             diff_url = self.pr_dict["issue"]["pull_request"]["diff_url"]
-            patch_url = self.pr_dict["issue"]["pull_request"]["patch_url"]
-        content = self.Pr_Base_lib.request_url(diff_url)
-        parse_data = self.Pr_Base_lib.parse_diff(content)
-        content = self.Pr_Base_lib.request_url(patch_url)
-        email_str = self.Pr_Base_lib.parse_patch(content)
-        is_ok, msg = self.Pr_Base_lib.check_params(parse_data)
-        return is_ok, msg, parse_data, email_str
+            # patch_url = self.pr_dict["issue"]["pull_request"]["patch_url"]
+        content = self.kubeconfig_interact_tools_lib.request_url(diff_url)
+        parse_data = self.kubeconfig_interact_tools_lib.parse_diff(content)
+        # content = self.kubeconfig_interact_tools_lib.request_url(patch_url)
+        # email_str = self.kubeconfig_interact_tools_lib.parse_patch(content)
+        is_ok, msg = self.kubeconfig_interact_tools_lib.check_params(parse_data)
+        return is_ok, msg, parse_data
 
     def comment_pr(self, comment):
         """comment pr"""
@@ -193,27 +95,30 @@ class GitHubPr(PrBase):
         repo = list_data[4]
         issue_number = list_data[6]
         domain = settings.GITHUB_DOMAIN
-        url = PermissionGlobalConfig.comment_github_url.format(domain, owner, repo, issue_number)
+        url = self.comment_github_url.format(domain, owner, repo, issue_number)
         token = settings.GITHUB_SECRET
-        result = self.Pr_Base_lib.request_comment(url, token, comment)
+        result = self.kubeconfig_interact_tools_lib.request_comment(url, token, comment)
         return result
 
     def merge_pr(self):
-        list_data = self.pr_dict["pull_request"]["html_url"].split("/")
+        if self.pr_dict.get("pull_request"):
+            list_data = self.pr_dict["pull_request"]["html_url"].split("/")
+        else:
+            list_data = self.pr_dict["issue"]["pull_request"]["patch_url"].split("/")
         owner = list_data[3]
         repo = list_data[4]
         issue_number = list_data[6]
         domain = settings.GITHUB_DOMAIN
-        url = PermissionGlobalConfig.merge_github_url.format(domain, owner, repo, issue_number)
+        url = self.merge_github_url.format(domain, owner, repo, issue_number)
         token = settings.GITHUB_SECRET
-        result = self.Pr_Base_lib.request_merge(url, token)
+        result = self.kubeconfig_interact_tools_lib.request_merge(url, token)
         return result
 
 
-class KubeconfigEmailTool(object):
+class KubeconfigEmailTool(EmailBaseLib):
 
     @classmethod
-    def _get_kubeconfig_email_content(cls, kubeconfig_info):
+    def get_content(cls, kubeconfig_info):
         """根据类型返回对应模板
         :param kubeconfig_info:
         :return:
@@ -258,6 +163,7 @@ class KubeconfigEmailTool(object):
         except Exception as e:
             logger.error('[_get_kubeconfig_email_content] format email content failed,e=%s,t=%s', e.args[0],
                          traceback.format_exc())
+            raise Exception("[KubeconfigEmailTool] ")
 
     @classmethod
     def _send_email(cls, email_conf):
@@ -266,9 +172,7 @@ class KubeconfigEmailTool(object):
             email_subject = email_conf.get('email_subject')
             email_content = email_conf.get('email_content')
             email_receivers = email_conf.get('email_receivers')
-            sender_email = settings.ALARM_EMAIL_SENDER_EMAIL
-            server_address = settings.ALARM_EMAIL_SENDER_SERVER
-            server_port = int(settings.ALARM_EMAIL_SENDER_PORT)
+            sender_email = settings.EMAIL_SENDER_EMAIL
             # text
             message = MIMEMultipart()
             message['From'] = Header(sender_email)
@@ -282,18 +186,8 @@ class KubeconfigEmailTool(object):
             attachment["Content-Type"] = 'application/octet-stream'
             attachment["Content-Disposition"] = 'attachment;filename="{}"'.format(file_name)
             message.attach(attachment)
-
-            if not settings.IS_SSL:
-                smt_obj = smtplib.SMTP(server_address, port=int(server_port))
-                smt_obj.login(settings.ALARM_EMAIL_USERNAME, settings.ALARM_EMAIL_PWD)
-                smt_obj.starttls()
-                smt_obj.sendmail(sender_email, email_receivers, message.as_string())
-            else:
-                smt_obj = smtplib.SMTP_SSL(server_address, port=int(server_port))
-                smt_obj.login(settings.ALARM_EMAIL_USERNAME, settings.ALARM_EMAIL_PWD)
-                smt_obj.sendmail(sender_email, email_receivers, message.as_string())
-            logger.info(
-                "[KubeconfigEmailTool][_send_email] send email success! send data is:{}".format(email_receivers))
+            cls.send_email(email_receivers, message)
+            logger.info("[KubeconfigEmailTool][_send_email] send email success! send data is:{}".format(email_receivers))
             return True
         except Exception as e:
             logger.error('[KubeconfigEmailTool] send email failed,e=%s,t=%s', e.args[0], traceback.format_exc())
@@ -310,18 +204,35 @@ class KubeconfigEmailTool(object):
             raise Exception("[send_kubeconfig_email] receive param failed")
         kubeconfig_info['email_receivers'] = email_list
         kubeconfig_info['email_subject'] = settings.KUBECONFIG_EMAIL_SUBJECT
-        kubeconfig_info['email_content'] = cls._get_kubeconfig_email_content(kubeconfig_info)
+        kubeconfig_info['email_content'] = cls.get_content(kubeconfig_info)
         return cls._send_email(kubeconfig_info)
+
+
+class KubeconfigAlarm(ActiveAlarmBase):
+    @classmethod
+    def get_alarm_info(cls, username):
+        """get alarm info, Overload the method of ActiveAlarmBase"""
+        alarm_info_dict = {
+            "alarm_type": AlarmType.ALARM,
+            "alarm_info_dict": {
+                "alarm_id": AlarmCode.PERMISSION_APPLY_KUBECONFIG_FAILED,
+                "des_var": [username, ],
+            }
+        }
+        return alarm_info_dict
+
+    @classmethod
+    def active_alarm_thread(cls, username):
+        cls.active_alarm(username)
 
 
 # noinspection PyMethodMayBeStatic
 class KubeconfigMgr:
     @classmethod
-    def create_kubeconfig(cls, kubeconfig_info, dict_data, email_str, create_time, merge_at):
+    def create_kubeconfig(cls, kubeconfig_info, dict_data, create_time, merge_at):
         """create new kubeconfig
         @param kubeconfig_info: dict, the parse of dict data
         @param dict_data: dict, the initial of receive params
-        @param email_str:  email
         @param create_time: create time
         @param merge_at:  merge time
         @return: None or raise Exception()
@@ -331,6 +242,7 @@ class KubeconfigMgr:
         service_name = kubeconfig_info["servicename"]
         role = kubeconfig_info["role"]
         timelimit = kubeconfig_info["timelimit"]
+        email_str = kubeconfig_info["email"]
         kubeconfig_list = KubeConfigInfo.objects.filter(username=username).filter(service_name=service_name)
         service_info_list = ServiceInfo.objects.filter(service_name=service_name)
         # 1.add new record, if exist before, and delete record and kubeconfig
@@ -375,8 +287,14 @@ class KubeconfigMgr:
             is_send_ok = KubeconfigEmailTool.send_kubeconfig_email(need_create, email_list)
             KubeConfigInfo.objects.filter(username=username).filter(service_name=service_name).update(
                 send_ok=is_send_ok)
+            if not is_send_ok:
+                KubeconfigAlarm.active_alarm_thread(username)
 
     def list(self, kwargs):
+        """list kubeconfig info
+        @param kwargs: dict, the parse of dict data
+        @return: dict
+        """
         page, size = kwargs['page'], kwargs['size']
         order_type, order_by = kwargs.get("order_type"), kwargs.get("order_by")
         filter_name = kwargs.get("filter_name")
@@ -405,41 +323,6 @@ class KubeconfigMgr:
         if order_type != 0:
             order_by = "-" + order_by
         eip_list = kubeconfig_info_list.order_by(order_by)
-        task_list = [task.to_dict() for task in eip_list[slice_obj]]
-        res = {
-            "size": size,
-            "page": page,
-            "total": total,
-            "data": task_list
-        }
-        return res
-
-
-# noinspection PyMethodMayBeStatic
-class ServiceInfoMgr:
-
-    def list(self, kwargs):
-        page, size = kwargs['page'], kwargs['size']
-        order_type, order_by = kwargs.get("order_type"), kwargs.get("order_by")
-        filter_name = kwargs.get("filter_name")
-        filter_value = kwargs.get("filter_value")
-        if filter_name and filter_name == "service_name":
-            service_info_list = ServiceInfo.objects.filter(service_name__contains=filter_value)
-        elif filter_name and filter_name == "namespace":
-            service_info_list = ServiceInfo.objects.filter(namespace__contains=filter_value)
-        elif filter_name and filter_name == "cluster":
-            service_info_list = ServiceInfo.objects.filter(cluster__contains=filter_value)
-        elif filter_name and filter_name == "url":
-            service_info_list = ServiceInfo.objects.filter(url__contains=filter_value)
-        else:
-            service_info_list = ServiceInfo.objects.all()
-        total = len(service_info_list)
-        page, slice_obj = get_suitable_range(total, page, size)
-        order_by = order_by if order_by else "create_time"
-        order_type = order_type if order_type else 0
-        if order_type != 0:
-            order_by = "-" + order_by
-        eip_list = service_info_list.order_by(order_by)
         task_list = [task.to_dict() for task in eip_list[slice_obj]]
         res = {
             "size": size,

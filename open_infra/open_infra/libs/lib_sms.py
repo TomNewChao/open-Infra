@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Time    : 2022/9/24 15:48
 # @Author  : Tom_zc
-# @FileName: sms_lib.py
+# @FileName: lib_sms.py
 # @Software: PyCharm
 
 import time
