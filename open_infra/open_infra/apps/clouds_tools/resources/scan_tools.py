@@ -484,10 +484,12 @@ class SlaMgr:
     def query_all_sla_info(self):
         """query all sla info from uptime-robot"""
         cur_date = datetime.datetime.now()
-        logger.info("[SlaMgr] query_all_sla_info query year:{} month:{} day:{}".format(cur_date.year, cur_date.month, cur_date.day))
+        logger.info("[SlaMgr] query_all_sla_info query year:{} month:{} day:{}".format(cur_date.year, cur_date.month,
+                                                                                       cur_date.day))
         sla_detail_list = scan_cla(year=int(cur_date.year), month=int(cur_date.month), day=int(cur_date.day))
         sla_info_list = ScanBaseTools.get_sla_yaml_config()
-        sla_info_dict = {sla_info["name-alias"]: {"introduce": sla_info["introduce"], "name": sla_info.get("name", "")} for sla_info in sla_info_list}
+        sla_info_dict = {sla_info["name-alias"]: {"introduce": sla_info["introduce"], "name": sla_info.get("name", "")}
+                         for sla_info in sla_info_list}
         ret_list = list()
         for sla_temp in sla_detail_list:
             ret_dict = dict()
@@ -514,8 +516,12 @@ class SlaMgr:
         ret_list = list()
         for namespace in namespace_list:
             dict_data = dict()
-            dict_data["label"] = namespace["namespace"]
-            dict_data["value"] = namespace["namespace"]
+            if namespace["namespace"]:
+                dict_data["label"] = namespace["namespace"]
+                dict_data["value"] = namespace["namespace"]
+            else:
+                dict_data["label"] = '空'
+                dict_data["value"] = '0'
             ret_list.append(dict_data)
         return ret_list
 
@@ -525,8 +531,12 @@ class SlaMgr:
         ret_list = list()
         for cluster in cluster_list:
             dict_data = dict()
-            dict_data["label"] = cluster["cluster"]
-            dict_data["value"] = cluster["cluster"]
+            if cluster["cluster"]:
+                dict_data["label"] = cluster["cluster"]
+                dict_data["value"] = cluster["cluster"]
+            else:
+                dict_data["label"] = '空'
+                dict_data["value"] = '0'
             ret_list.append(dict_data)
         return ret_list
 
@@ -537,6 +547,7 @@ class SlaMgr:
         filter_name = kwargs.get("filter_name")
         filter_value = kwargs.get("filter_value")
         namespace = kwargs.get("namespace")
+        cluster = kwargs.get("cluster")
         if filter_name and filter_name == "service_name":
             if filter_value:
                 service_info_list = ServiceInfo.objects.filter(service_name__contains=filter_value)
@@ -560,7 +571,15 @@ class SlaMgr:
         else:
             service_info_list = ServiceInfo.objects.all()
         if namespace:
-            service_info_list = service_info_list.filter(namespace=namespace)
+            if not namespace.isdigit():
+                service_info_list = service_info_list.filter(namespace=namespace)
+            else:
+                service_info_list = service_info_list.filter(namespace=None)
+        if cluster:
+            if not cluster.isdigit():
+                service_info_list = service_info_list.filter(cluster=cluster)
+            else:
+                service_info_list = service_info_list.filter(cluster=None)
         total = len(service_info_list)
         page, slice_obj = get_suitable_range(total, page, size)
         order_by = order_by if order_by else "create_time"

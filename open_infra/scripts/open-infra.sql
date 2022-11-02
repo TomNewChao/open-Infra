@@ -335,13 +335,38 @@ CREATE TABLE IF NOT EXISTS `kubeconfig_info` (
 --
 -- Table structure for table `service_info`
 --
-CREATE TABLE IF NOT EXISTS `service_info` (
+CREATE TABLE IF NOT EXISTS  `service_info` (
   `id` bigint NOT NULL AUTO_INCREMENT,
-  `service_name` varchar(64) NOT NULL,
+  `service_name` varchar(64) DEFAULT NULL,
+  `service_alias` varchar(64) DEFAULT NULL,
+  `url` varchar(200) DEFAULT NULL,
+  `url_alias` varchar(200) DEFAULT NULL,
   `namespace` varchar(64) DEFAULT NULL,
   `cluster` varchar(64) DEFAULT NULL,
-  `url` varchar(64) DEFAULT NULL,
+  `service_introduce` varchar(64) DEFAULT NULL,
+  `community` varchar(16) DEFAULT NULL,
+  `month_abnormal_time` double DEFAULT NULL,
+  `year_abnormal_time` double DEFAULT NULL,
+  `month_sla` double DEFAULT NULL,
+  `year_sla` double DEFAULT NULL,
+  `remain_time` double DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
+
+
+--
+-- Table structure for table `hw_cloud_obs_interact`
+--
+CREATE TABLE IF NOT EXISTS `hw_cloud_obs_interact` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `username` varchar(64) NOT NULL,
+  `community` varchar(16) NOT NULL,
+  `user_id` varchar(32) NOT NULL,
+  `password` varchar(64) NOT NULL,
+  `is_delete` tinyint(1) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
+
+
 
 SET FOREIGN_KEY_CHECKS = 1;
