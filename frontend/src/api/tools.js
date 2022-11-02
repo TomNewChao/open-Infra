@@ -116,19 +116,26 @@ export const eipListApi = (page, size, order_by, order_type, filter_name, filter
 }
 
 // service info
-export const ServiceInfoListApi = (page, size, order_by, order_type, filter_name, filter_value) => {
+export const ServiceInfoListApi = (page, size, order_by, order_type, filter_name, filter_value, cluster, namespace) => {
   return axios.request({
     url: '/api/clouds_tools/service',
     method: 'get',
     params: {
-      page, size, order_by, order_type, filter_name, filter_value
+      page, size, order_by, order_type, filter_name, filter_value, cluster, namespace
     }
   })
 }
 
-export const ServiceNameSpaceListApi = () => {
+export const ServiceNamespaceListApi = () => {
   return axios.request({
     url: '/api/clouds_tools/namespace',
+    method: 'get'
+  })
+}
+
+export const ServiceClusterListApi = () => {
+  return axios.request({
+    url: '/api/clouds_tools/cluster',
     method: 'get'
   })
 }
