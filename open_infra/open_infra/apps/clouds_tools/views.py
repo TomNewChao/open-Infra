@@ -205,14 +205,17 @@ class ServiceView(AuthView):
     def get(self, request):
         """get the list of serive"""
         dict_data = request.GET.dict()
-        params_dict = list_param_check_and_trans(dict_data, order_by="create_time")
+        params_dict = list_param_check_and_trans(dict_data, order_by="service_name")
         filter_name, filter_value = dict_data.get("filter_name"), dict_data.get("filter_value")
+        cluster = dict_data.get("cluster")
         namespace = dict_data.get("namespace")
         if filter_name:
             params_dict["filter_name"] = filter_name.strip()
             params_dict["filter_value"] = filter_value.strip()
+        if cluster:
+            params_dict["cluster"] = cluster.strip()
         if namespace:
-            params_dict["namespace"] = namespace
+            params_dict["namespace"] = namespace.strip()
         sla_mgr = SlaMgr()
         data = sla_mgr.list(params_dict)
         return assemble_api_result(ErrCode.STATUS_SUCCESS, data=data)

@@ -241,7 +241,7 @@ class ScanToolsIntervalJobScanThread(object):
     def refresh_sla(cls):
         sla_mgr = SlaMgr()
         sla_info_list = sla_mgr.query_all_sla_info()
-        with transaction.atomic(), ScanToolsLock.refresh_service_info_lock:
+        with ScanToolsLock.refresh_service_info_lock:
             for sla_info in sla_info_list:
                 service_name = sla_info.get("name")
                 if service_name:

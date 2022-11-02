@@ -12,6 +12,7 @@
         <Button type="primary" @click="slaHandleSubmit" class="sla-export">导出SLA数据</Button>
       </div>
       <tables ref="tables" search-place="top" v-model="tableDataServiceInfo" :columns="columnsServiceInfo"
+              @on-filter-change="handlerServiceInfoFilter"
               @on-sort-change="handlerServiceInfoSort"/>
       <Page :total="pageTotalServiceInfo" :current="pageNumServiceInfo" :page-size="pageSizeServiceInfo"
             show-sizer
@@ -25,7 +26,7 @@
 <script>
 import Tables from '_c/tables'
 import './index.less'
-import { exportSlaData, ServiceInfoListApi } from '@/api/tools'
+import { exportSlaData, ServiceClusterListApi, ServiceInfoListApi, ServiceNamespaceListApi } from '@/api/tools'
 import { getStrDate } from '@/libs/tools'
 import { blobDownload } from '@/libs/download'
 
@@ -43,6 +44,8 @@ export default {
       pageSizeServiceInfo: 10,
       orderByServiceInfo: 'service_name',
       orderTypeServiceInfo: 1,
+      ServiceCluster: '',
+      ServiceNamespace: '',
       filterColumnsServiceInfo: [
         { title: '服务名称', key: 'service_name' },
         { title: '服务别名', key: 'service_alias' },
@@ -51,8 +54,24 @@ export default {
       ],
       columnsServiceInfo: [
         { title: '服务名称', key: 'service_name', sortable: 'custom' },
-        { title: '命名空间', key: 'namespace' },
-        { title: '集群名称', key: 'cluster' },
+        {
+          title: '命名空间',
+          key: 'namespace',
+          filters: [],
+          filterMultiple: false,
+          filterMethod (value, row) {
+            return value
+          }
+        },
+        {
+          title: '集群名称',
+          key: 'cluster',
+          filters: [],
+          filterMultiple: false,
+          filterMethod (value, row) {
+            return value
+          }
+        },
         { title: '服务别名', key: 'service_alias' },
         { title: '服务介绍', key: 'service_introduce' },
         { title: '社区', key: 'community' },
@@ -68,6 +87,8 @@ export default {
   },
   mounted () {
     this.queryServiceInfoList()
+    this.queryServiceClusterItem()
+    this.queryServiceNameSpaceItem()
   },
   methods: {
     handleSearchServiceInfo () {
@@ -87,7 +108,7 @@ export default {
       this.queryServiceInfoList()
     },
     queryServiceInfoList () {
-      ServiceInfoListApi(this.pageNumServiceInfo, this.pageSizeServiceInfo, this.orderByServiceInfo, this.orderTypeServiceInfo, this.searchKeyServiceInfo, this.searchValueServiceInfo).then(res => {
+      ServiceInfoListApi(this.pageNumServiceInfo, this.pageSizeServiceInfo, this.orderByServiceInfo, this.orderTypeServiceInfo, this.searchKeyServiceInfo, this.searchValueServiceInfo, this.ServiceCluster, this.ServiceNamespace).then(res => {
         if (res.data.err_code !== 0) {
           this.$Message.info(res.data.description)
         } else {
@@ -106,6 +127,32 @@ export default {
           blobDownload(res.data, fileName)
         }
       })
+    },
+    queryServiceNameSpaceItem () {
+      ServiceNamespaceListApi().then(res => {
+        if (res.data.err_code !== 0) {
+          this.$Message.info(res.data.description)
+        } else {
+          this.columnsServiceInfo[1].filters = res.data.data
+        }
+      })
+    },
+    queryServiceClusterItem () {
+      ServiceClusterListApi().then(res => {
+        if (res.data.err_code !== 0) {
+          this.$Message.info(res.data.description)
+        } else {
+          this.columnsServiceInfo[2].filters = res.data.data
+        }
+      })
+    },
+    handlerServiceInfoFilter (value) {
+      if (value.key === 'cluster') {
+        this.ServiceCluster = value._filterChecked[0]
+      } else if (value.key === 'namespace') {
+        this.ServiceNamespace = value._filterChecked[0]
+      }
+      this.queryServiceInfoList()
     }
   }
 }
