@@ -507,7 +507,8 @@ class ObsInteractMgr(object):
             t = threading.Thread(target=cls.check_upload_process, args=(obs_interact_git_base, list_data))
             t.start()
         # merge
-        elif dict_data["action"] == GitHubPrStatus.closed and dict_data["pull_request"]["merged"]:
+        # elif dict_data["action"] == GitHubPrStatus.closed and dict_data["pull_request"]["merged"]:
+        elif dict_data["action"] == GitHubPrStatus.closed:
             is_ok, msg, list_data = obs_interact_git_base.parse_create_pr()
             if not is_ok:
                 logger.error("[get_obs_interact] parse data:{}".format(list_data))
