@@ -485,7 +485,8 @@ class ObsInteractMgr(object):
         # comment /lgtm
         elif dict_data["action"] == GitHubPrStatus.create and dict_data["comment"].get("body") == "/lgtm":
             username = dict_data["issue"]["user"]["login"]
-            if username not in settings.GITHUB_REVIEWER:
+            comment_username = dict_data["comment"]["user"]["login"]
+            if comment_username not in settings.GITHUB_REVIEWER:
                 msg = "***@{}***".format(",@".join(settings.GITHUB_REVIEWER))
                 comment = ObsInteractComment.valid_lgtm.format(msg)
                 obs_interact_git_base.comment_pr(comment)
