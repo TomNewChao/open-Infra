@@ -485,7 +485,8 @@ class ObsInteractMgr(object):
         # comment /lgtm
         elif dict_data["action"] == GitHubPrStatus.create and dict_data["comment"].get("body") == "/lgtm":
             username = dict_data["issue"]["user"]["login"]
-            if username not in settings.GITHUB_REVIEWER:
+            comment_username = dict_data["comment"]["user"]["login"]
+            if comment_username not in settings.GITHUB_REVIEWER:
                 msg = "***@{}***".format(",@".join(settings.GITHUB_REVIEWER))
                 comment = ObsInteractComment.valid_lgtm.format(msg)
                 obs_interact_git_base.comment_pr(comment)
@@ -506,7 +507,8 @@ class ObsInteractMgr(object):
             t = threading.Thread(target=cls.check_upload_process, args=(obs_interact_git_base, list_data))
             t.start()
         # merge
-        elif dict_data["action"] == GitHubPrStatus.closed and dict_data["pull_request"]["merged"]:
+        # elif dict_data["action"] == GitHubPrStatus.closed and dict_data["pull_request"]["merged"]:
+        elif dict_data["action"] == GitHubPrStatus.closed:
             is_ok, msg, list_data = obs_interact_git_base.parse_create_pr()
             if not is_ok:
                 logger.error("[get_obs_interact] parse data:{}".format(list_data))
