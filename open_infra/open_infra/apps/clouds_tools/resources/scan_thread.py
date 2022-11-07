@@ -7,7 +7,7 @@ import base64
 import datetime
 import time
 import traceback
-
+import django.db
 import requests
 from django.conf import settings
 
@@ -240,6 +240,7 @@ class ScanToolsIntervalJobScanThread(object):
     @func_catch_exception
     def refresh_sla(cls):
         sla_mgr = SlaMgr()
+        django.db.close_old_connections()
         sla_info_list = sla_mgr.query_all_sla_info()
         with ScanToolsLock.refresh_service_info_lock:
             for sla_info in sla_info_list:
