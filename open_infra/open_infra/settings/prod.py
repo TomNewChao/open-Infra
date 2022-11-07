@@ -94,7 +94,8 @@ DATABASES = {
         'USER': os.getenv("mysql_user"),  # 数据库用户名
         'PASSWORD': os.getenv("mysql_password"),  # 数据库用户密码
         'NAME': 'open_infra',  # 数据库名字
-        'TIME_ZONE': 'Asia/Shanghai'
+        'TIME_ZONE': 'Asia/Shanghai',
+        'CONN_MAX_AGE': None
     }
 }
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
