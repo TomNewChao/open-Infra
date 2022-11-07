@@ -145,6 +145,16 @@ class ObsTools(object):
         return content
 
     @classmethod
+    def get_obj_meta_data(cls, obs_client, bucket_name, path):
+        """Get the meta data from OBS"""
+        resp = obs_client.getObjectMetadata(bucket_name, path)
+        if resp.status < 300:
+            dict_data = dict(resp.header)
+            return dict_data.get("md5chksum", "")
+        else:
+            raise Exception('errorCode:{}, errorMessage:{}'.format(resp.errorCode, resp.errorMessage))
+
+    @classmethod
     def get_obs_data(cls, ak, sk, url, bucket_name, obs_key):
         with ObsClientConn(ak, sk, url) as obs_client:
             return cls.download_obs_data(obs_client, bucket_name, obs_key)
@@ -193,11 +203,11 @@ class ObsTools(object):
             relative_path = file_name[len(prefix) + 1:]
             obs_exist_file_list.append(relative_path)
             parse_md5 = md5sum_dict.get(relative_path, "").lower().strip()
-            parse_etag = bucket_info["etag"].lower().replace("\"", "")
-            if parse_md5 and parse_md5 != parse_etag:
+            md5chksum = cls.get_obj_meta_data(obs_client, bucket_name, file_name)
+            logger.info("[ObsTools] check_bucket_info_and_mdsum obs md5chksum:{},parse pr file md5sum:{}".format(md5chksum,
+                                                                                                                 parse_md5))
+            if parse_md5 and parse_md5 != md5chksum:
                 md5sum_not_consistency_list.append(file_name)
-            else:
-                logger.info("[ObsTools] check_bucket_info_and_mdsum obs md5sum:{},parse pr file md5sum:{}".format(parse_etag, parse_md5))
         # lack file
         lack_file_list = list(set(md5sum_dict.keys()) - set(obs_exist_file_list))
         return md5sum_not_consistency_list, sensitive_file,  lack_file_list, sensitive_dict
