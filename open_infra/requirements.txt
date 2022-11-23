@@ -54,6 +54,8 @@ huaweicloudsdknat==3.0.92
 huaweicloudsdkrds==3.0.92
 huaweicloudsdkvpc==3.0.91
 huaweicloudsdkiam==3.0.100
+huaweicloudsdkbss==3.1.9
+huaweicloudsdkbssintl==3.1.11
 icalendar==4.0.9
 idna==2.8
 idna-ssl==1.1.0

@@ -5,18 +5,20 @@
 # @Software: PyCharm
 import datetime
 import os
+import time
 import traceback
 
 from django.db import transaction
 from django.conf import settings
 from threading import Thread, Lock
 from logging import getLogger
-
+from collections import defaultdict
+from django.db.models import Sum, Count
 from clouds_tools.models import HWCloudProjectInfo, HWCloudAccount, HWCloudEipInfo, HWCloudScanEipPortInfo, \
     HWCloudScanEipPortStatus, HWCloudScanObsAnonymousBucket, HWCloudScanObsAnonymousFile, HWCloudScanObsAnonymousStatus, \
-    HWCloudHighRiskPort, ServiceInfo
+    HWCloudHighRiskPort, ServiceInfo, HWCloudBillInfo
 from clouds_tools.resources.constants import NetProtocol, ScanToolsLock, ScanPortStatus, ScanObsStatus, HWCloudEipStatus
-from open_infra.libs.lib_cloud import HWCloudObs, HWCloudIAM
+from open_infra.libs.lib_cloud import HWCloudObs, HWCloudIAM, HWCloudBSS, HWCloudBSSIntl
 from open_infra.utils.common import output_scan_port_excel, output_scan_obs_excel, get_suitable_range, convert_yaml, \
     output_cla_excel, load_yaml
 from open_infra.libs.lib_crypto import AESCrypt
@@ -125,6 +127,10 @@ class ScanOrmTools(object):
         except HWCloudHighRiskPort.DoesNotExist:
             logger.error("[query_high_risk_port] dont find port:{}".format(port))
             return None
+
+    @staticmethod
+    def query_bill_by_account(account):
+        return HWCloudBillInfo.objects.filter(account=account).distinct().order_by("bill_cycle").values("bill_cycle")
 
 
 # noinspection PyArgumentList
@@ -611,3 +617,206 @@ class SlaMgr:
             "community", "month_abnormal_time", "year_abnormal_time",
             "month_sla", "year_sla", "remain_time")
         return output_cla_excel(service_info_list)
+
+
+class BillMgr:
+    def parse_bill_list(self, bill_list, is_intl):
+        dict_data = defaultdict(float)
+        for i in bill_list:
+            if int(i.consume_amount) == 0:
+                continue
+            if is_intl:
+                bill_cycle = i.bill_cycle
+                resource_type_name = settings.BILL_INTL_ALIAS.get(i.resource_type_name)
+                if resource_type_name is None:
+                    logger.error("[BillMgr] parse resource_type_name:{} failed, must be adapter.".format(i.resource_type_name))
+                    resource_type_name = "unknown"
+            else:
+                bill_cycle = i.bill_cycle
+                resource_type_name = i.resource_type_name
+            key = (bill_cycle, resource_type_name)
+            dict_data[key] += i.consume_amount
+        return dict_data
+
+    def get_bill_cycle(self):
+        cur_date = time.localtime()
+        cur_year = cur_date.tm_year
+        cur_month = cur_date.tm_mon
+        cur_bill_cycle_list = list()
+        for i in range(1, cur_month):
+            if len(str(i)) == 2:
+                value = "{}-{}".format(cur_year, i)
+            else:
+                value = "{}-0{}".format(cur_year, i)
+            cur_bill_cycle_list.append(value)
+        return cur_bill_cycle_list
+
+    def scan_bill(self):
+        account_info = ScanBaseTools.get_decrypt_hw_account_project_info_from_database()
+        for config_item in account_info:
+            try:
+                ak = config_item["ak"]
+                sk = config_item["sk"]
+                account = config_item['account']
+                bill_cycle_list = ScanOrmTools.query_bill_by_account(account)
+                bill_set = set([bill["bill_cycle"] for bill in bill_cycle_list])
+                cur_bill_cycle_list = set(self.get_bill_cycle())
+                need_create_list = list(cur_bill_cycle_list - bill_set)
+                is_intl = account in settings.BILL_INTL_ACCOUNT
+                if is_intl:
+                    hw_cloud_bss = HWCloudBSSIntl(ak, sk)
+                else:
+                    hw_cloud_bss = HWCloudBSS(ak, sk)
+                bill_info_list = list()
+                for bill_cycle in need_create_list:
+                    bill_cycle_temp = hw_cloud_bss.get_bill_list(bill_cycle)
+                    bill_info_list.extend(bill_cycle_temp)
+                bill_dict_list = self.parse_bill_list(bill_info_list, is_intl)
+                with transaction.atomic():
+                    for key, value in bill_dict_list.items():
+                        if is_intl:
+                            rate = settings.BILL_RATE["interational"]
+                            consume_amount = round(value * settings.USD_EXCHANGE_RATE, 2)
+                        elif key[1] in settings.BILL_BRANDWIDTH_LIST:
+                            rate = settings.BILL_RATE["brandwidth"]
+                            consume_amount = round(value, 2)
+                        else:
+                            rate = settings.BILL_RATE["common"]
+                            consume_amount = round(value, 2)
+                        actual_cost = round(rate * consume_amount, 2)
+                        HWCloudBillInfo.objects.create(
+                            bill_cycle=key[0],
+                            account=account,
+                            resource_type_name=key[1],
+                            consume_amount=consume_amount,
+                            discount_rate=rate,
+                            actual_cost=actual_cost,
+                        )
+            except Exception as e:
+                logger.error("[BillMgr] error:{}, traceback:{}".format(e, traceback.format_exc()))
+
+    def list(self, kwargs):
+        page, size = kwargs['page'], kwargs['size']
+        order_type, order_by = kwargs.get("order_type"), kwargs.get("order_by")
+        filter_name = kwargs.get("filter_name")
+        filter_value = kwargs.get("filter_value")
+        resource_type = kwargs.get("resource_type")
+        account = kwargs.get("account")
+        if filter_name and filter_name == "account":
+            bill_info_list = HWCloudBillInfo.objects.filter(account__contains=filter_value)
+        elif filter_name and filter_name == "bill_cycle":
+            bill_info_list = HWCloudBillInfo.objects.filter(bill_cycle__contains=filter_value)
+        elif filter_name and filter_name == "resource_type_name":
+            bill_info_list = HWCloudBillInfo.objects.filter(resource_type_name__contains=filter_value)
+        else:
+            bill_info_list = HWCloudBillInfo.objects.all()
+        if resource_type:
+            if not resource_type.isdigit():
+                bill_info_list = bill_info_list.filter(resource_type_name=resource_type)
+            else:
+                bill_info_list = bill_info_list.filter(resource_type_name=None)
+        if account:
+            if not account.isdigit():
+                bill_info_list = bill_info_list.filter(account=account)
+            else:
+                bill_info_list = bill_info_list.filter(account=None)
+        total = len(bill_info_list)
+        page, slice_obj = get_suitable_range(total, page, size)
+        order_by = order_by if order_by else "account"
+        order_type = order_type if order_type else 0
+        if order_type != 0:
+            order_by = "-" + order_by
+        bill_list = bill_info_list.order_by(order_by)
+        task_list = [task.to_dict() for task in bill_list[slice_obj]]
+        total_consume_amount = round(sum([task.consume_amount for task in bill_list]), 2)
+        total_actual_cost = round(sum([task.actual_cost for task in bill_list]), 2)
+        res = {
+            "size": size,
+            "page": page,
+            "total": total,
+            "total_consume_amount": total_consume_amount,
+            "total_actual_cost": total_actual_cost,
+            "data": task_list
+        }
+        return res
+
+    def get_all_account(self):
+        """query all account from mysql"""
+        account_list = HWCloudBillInfo.objects.order_by("account").values("account").distinct()
+        ret_list = list()
+        for account in account_list:
+            dict_data = dict()
+            if account["account"]:
+                dict_data["label"] = account["account"]
+                dict_data["value"] = account["account"]
+            else:
+                dict_data["label"] = '空'
+                dict_data["value"] = '0'
+            ret_list.append(dict_data)
+        return ret_list
+
+    def get_all_resource_type_name(self):
+        """query all resource_type_name from mysql"""
+        resource_type_name_list = HWCloudBillInfo.objects.order_by("resource_type_name").values(
+            "resource_type_name").distinct()
+        ret_list = list()
+        for resource_type_name in resource_type_name_list:
+            dict_data = dict()
+            if resource_type_name["resource_type_name"]:
+                dict_data["label"] = resource_type_name["resource_type_name"]
+                dict_data["value"] = resource_type_name["resource_type_name"]
+            else:
+                dict_data["label"] = '空'
+                dict_data["value"] = '0'
+            ret_list.append(dict_data)
+        return ret_list
+
+    def get_month_amount(self):
+        account_list = HWCloudBillInfo.objects.order_by("account").values("account").distinct()
+        dict_data = dict()
+        for account in account_list:
+            account_name = account["account"]
+            bill_list = HWCloudBillInfo.objects.filter(account=account_name).values("bill_cycle").annotate(
+                consume=Sum("actual_cost")).values("consume", "bill_cycle").order_by("bill_cycle")
+            dict_data[account_name] = [round(i["consume"], 2) for i in bill_list]
+        return dict_data
+
+    def get_type_amount(self, account, bill_cycle):
+        bill_list = HWCloudBillInfo.objects.filter(account=account, bill_cycle=bill_cycle).values("resource_type_name"). \
+                        annotate(consume=Sum("actual_cost")).values("consume", "resource_type_name").order_by(
+            "-consume")[:10]
+        sum_amount_obj = HWCloudBillInfo.objects.filter(account=account, bill_cycle=bill_cycle).aggregate(
+            Sum("actual_cost"))
+        if sum_amount_obj["actual_cost__sum"] is None:
+            return list()
+        sum_amount = round(float(sum_amount_obj["actual_cost__sum"]), 2)
+        ret_list = [{"name": i["resource_type_name"], "value": round(float(i["consume"]), 2)} for i in bill_list]
+        top_amount_sum = sum([i["value"] for i in ret_list])
+        other_value = round(sum_amount - top_amount_sum, 2)
+        if other_value != 0:
+            other_dict = {"name": "other", "value": other_value}
+            ret_list.append(other_dict)
+        return ret_list
+
+    def get_all_bill_cycle(self):
+        all_bill_list = HWCloudBillInfo.objects.order_by("-bill_cycle").values("bill_cycle").distinct()
+        ret_list = list()
+        for bill_cycle_obj in all_bill_list:
+            dict_data = dict()
+            dict_data["title"] = bill_cycle_obj["bill_cycle"]
+            dict_data["key"] = bill_cycle_obj["bill_cycle"]
+            ret_list.append(dict_data)
+        return ret_list
+
+
+class IndexMgr:
+    def get_index_data(self):
+        account_count_dict = HWCloudAccount.objects.aggregate(count=Count('account'))
+        service_count_dict = ServiceInfo.objects.aggregate(count=Count('id'))
+        eip_count_dict = HWCloudEipInfo.objects.aggregate(count=Count('id'))
+        data = {
+            "account": account_count_dict["count"],
+            "service": service_count_dict["count"],
+            "eip": eip_count_dict["count"],
+        }
+        return data

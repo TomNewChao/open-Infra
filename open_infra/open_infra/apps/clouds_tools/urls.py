@@ -6,7 +6,8 @@
 
 from django.conf.urls import url
 from clouds_tools.views import ScanPortView, ScanObsView, SingleScanPortView, SingleScanObsView, PortsListView, EipView, \
-    PortsListDeleteView, ServiceView, SlaExportView, ObsInteractView, NameSpaceView, ClusterView
+    PortsListDeleteView, ServiceView, SlaExportView, ObsInteractView, NameSpaceView, ClusterView, AccountView, BillView, \
+    ResourceTypeNameView, AccountNameView, MonthAmountView, TypeAmountView, AllBillCycleView, IndexView
 
 urlpatterns = [
     # query/create/delete high level port
@@ -32,6 +33,21 @@ urlpatterns = [
 
     # obs_interact is solve for using github to get config to upload file to obs
     # Detail: https://github.com/Open-Infra-Ops/obs-interact
-    url(r'obs_interact', ObsInteractView.as_view())
+    url(r'obs_interact', ObsInteractView.as_view()),
+
+    # account
+    url(r'account$', AccountView.as_view()),
+
+    # bill
+    url(r'bill$', BillView.as_view()),
+    url(r'resource_type_name', ResourceTypeNameView.as_view()),
+    url(r'account_name', AccountNameView.as_view()),
+    url(r'month_amount', MonthAmountView.as_view()),
+    url(r'type_amount', TypeAmountView.as_view()),
+    url(r'all_bill_cycle', AllBillCycleView.as_view()),
+
+    # index
+    url(r'index$', IndexView.as_view()),
+
 
 ]

@@ -135,7 +135,6 @@ class AlarmTools(object):
                         }
         @return:
         """
-
         alarm_type = alarm_dict.get('alarm_type')
         alarm_info_dict = alarm_dict.get('alarm_info_dict')
         report_retry_count = alarm_dict.get('report_retry_count')
@@ -224,13 +223,16 @@ class AlarmTools(object):
 
 def active_alarm(alarm_dict):
     """主动上报告警函数
-    :param  alarm_dict:{
-                'alarm_type': True,   True为恢复告警，False为上报告警
-                'val_dict':{
-                            'alarm_id':123123,
-                            'dev_var':[1, 2, 3],
-                            }
-                }
+    :param  alarm_dict:
+    {
+    "alarm_type": 报警类型, 0: 恢复， 1:报警
+    "report_retry_count": 重试次数
+    "alarm_info_dict": 报警内容
+          {
+            "alarm_id":
+            "des_var":
+          }
+    }
     :return:
     """
     try:
@@ -238,7 +240,7 @@ def active_alarm(alarm_dict):
         logger.debug("[active_alarm]:{}".format(alarm_dict))
         base_obj.exec_alarm_obj(alarm_dict)
     except Exception as e:
-        logger.error("[active_alarm] fail:{}".format(e))
+        logger.error("[active_alarm] fail:{}, traceback:{}".format(e, traceback.format_exc()))
         return False
     return True
 

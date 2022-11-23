@@ -13,8 +13,9 @@ from django.conf import settings
 from clouds_tools.models import HWCloudAccount, HWCloudProjectInfo, HWCloudEipInfo, HWCloudScanEipPortInfo, \
     HWCloudScanEipPortStatus, HWCloudScanObsAnonymousStatus, HWCloudScanObsAnonymousBucket, HWCloudScanObsAnonymousFile, \
     HWCloudHighRiskPort, ServiceInfo
+from clouds_tools.resources.clouds_tools_alarm import CloudsToolsAlarm
 from clouds_tools.resources.constants import ScanToolsLock, ClousToolsGlobalConfig
-from clouds_tools.resources.scan_tools import ScanBaseTools, ScanOrmTools, SlaMgr
+from clouds_tools.resources.scan_tools import ScanBaseTools, ScanOrmTools, SlaMgr, BillMgr
 from open_infra.tools.scan_server_info import scan_server_info
 from open_infra.utils.common import func_retry, func_catch_exception
 from open_infra.utils.default_port_list import HighRiskPort
@@ -178,10 +179,19 @@ class ScanToolsCronJobRefreshDataThread(object):
                                                year_sla=float(sla_info["year_sla"]),
                                                remain_time=float(sla_info["sla_year_remain"]))
         service_obj_list = ServiceInfo.objects.all().values("service_name")
-        service_name_list = [service_obj["service_name"] for service_obj in service_obj_list if service_obj["service_name"]]
+        service_name_list = [service_obj["service_name"] for service_obj in service_obj_list if
+                             service_obj["service_name"]]
         content = "\n".join(service_name_list)
         cls.push_service_txt(content, settings.GITHUB_SECRET)
         logger.info("------------------4.end to update service----------------------")
+
+    @classmethod
+    @func_catch_exception
+    def scan_bill(cls):
+        logger.info("------------------5.start to scan bill----------------------")
+        bill_mgr = BillMgr()
+        bill_mgr.scan_bill()
+        logger.info("------------------5.finish to scan bill---------------------")
 
     @classmethod
     def immediately_cron_job(cls):
@@ -189,6 +199,7 @@ class ScanToolsCronJobRefreshDataThread(object):
         cls.scan_eip()
         cls.scan_sla()
         cls.update_service()
+        cls.scan_bill()
 
 
 class ScanToolsCronJobScanThread(object):
@@ -202,6 +213,8 @@ class ScanToolsCronJobScanThread(object):
             HWCloudScanEipPortStatus.objects.all().delete()
             ScanOrmTools.save_scan_eip_port_info_status(tcp_info, udp_info, account_list)
             HighRiskPort.cur_port_list = None
+        if len(tcp_info.keys()) or len(udp_info.keys()):
+            CloudsToolsAlarm.active_alarm()
         logger.info("----------------1.finish scan_port-----------------------")
 
     @classmethod

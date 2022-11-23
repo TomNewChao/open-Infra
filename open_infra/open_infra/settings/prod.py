@@ -370,3 +370,32 @@ OBS_INTERACT_EMAIL_SUBJECT = "ops.osinfra.cn: Obs-Interact Notify"
 OBS_INTERACT_ZONE = "cn-north-4"
 OBS_INTERACT_BUCEKT_NAME = "obs-transfer"
 OBS_INTERACT_REPO = "https://github.com/{}.git"
+
+# bill rate
+BILL_RATE = {
+    "interational": 0.5887,
+    "common": 0.483,
+    "brandwidth": 0.6833,
+}
+BILL_BRANDWIDTH_LIST = ["固定带宽", "带宽加油包"]
+BILL_INTL_ACCOUNT = ["hwstaff_intl_openEuler", ]
+BILL_INTL_ALIAS = {
+    'CSE Professional Edition': "微服务引擎CSE专享版",
+    'Cloud Search Service Node': "云搜索服务节点",
+    'Nat Gateway': "NAT网关",
+    'Cloud Host': "云主机",
+    'Elastic Volume Service': "弹性文件服务",
+    'Cloud Search Search Disk': "云搜索服务硬盘",
+    'Log Index Traffic': "日志索引流量",
+    'Cloud Storage': "云硬盘",
+    'RDS DB Instance VM': "RDS数据库实例虚拟机",
+    'CCE': "云容器引擎",
+    'Cloud Search Search Bandwidth': "云搜索服务带宽",
+    'RDS Elastic Volume Service': "RDS云硬盘",
+    'Log Read Write Traffic': "日志读写流量",
+    'Log Storage Size': "日志存储大小",
+    'Anti-DDoS': "Anti-DDoS流量清洗",
+    'Fixed Bandwidth': "固定带宽",
+    'Elastic IP Address': "弹性公网IP"
+}
+USD_EXCHANGE_RATE = 7

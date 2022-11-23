@@ -84,6 +84,19 @@ class HWCloudEipInfo(BaseModel):
         return str(self.id)
 
 
+class HWCloudBillInfo(BaseModel):
+    bill_cycle = models.CharField(max_length=16, verbose_name="账期(单位月)")
+    account = models.CharField(max_length=32, verbose_name="华为云账户名称")
+    resource_type_name = models.CharField(max_length=64, verbose_name="云服务类型名称")
+    consume_amount = models.FloatField(verbose_name="应付金额")
+    discount_rate = models.FloatField(null=True, verbose_name="折扣率")
+    actual_cost = models.FloatField(null=True, verbose_name="实际费用")
+
+    class Meta:
+        db_table = "hw_cloud_bill_info"
+        verbose_name = "华为云账单信息"
+
+
 class HWCloudScanEipPortStatus(BaseModel):
     account = models.CharField(max_length=32, verbose_name="华为云账户名称")
     status = models.IntegerField(verbose_name="操作状态")
