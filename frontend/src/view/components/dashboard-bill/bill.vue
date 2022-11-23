@@ -18,46 +18,46 @@
     <Row :gutter="20" style="margin-top: 20px;">
       <i-col :md="24" :lg="8" style="margin-bottom: 20px;">
         <Card shadow>
-          <chart-pie style="height: 300px;" :value="pieData0" :text="titleAccount[0]"></chart-pie>
+          <chart-pie style="height: 300px;" :value="pieData0" :text="titleCommunity[0]" :subtext="titleAccount[0]"></chart-pie>
         </Card>
       </i-col>
       <i-col :md="24" :lg="8" style="margin-bottom: 20px;">
         <Card shadow>
-          <chart-pie style="height: 300px;" :value="pieData1" :text="titleAccount[1]"></chart-pie>
+          <chart-pie style="height: 300px;" :value="pieData1" :text="titleCommunity[1]" :subtext="titleAccount[1]"></chart-pie>
         </Card>
       </i-col>
       <i-col :md="24" :lg="8" style="margin-bottom: 20px;">
         <Card shadow>
-          <chart-pie style="height: 300px;" :value="pieData2" :text="titleAccount[2]"></chart-pie>
-        </Card>
-      </i-col>
-    </Row>
-    <Row :gutter="20" style="margin-top: 10px;">
-      <i-col :md="24" :lg="8" style="margin-bottom: 20px;">
-        <Card shadow>
-          <chart-pie style="height: 300px;" :value="pieData3" :text="titleAccount[3]"></chart-pie>
-        </Card>
-      </i-col>
-      <i-col :md="24" :lg="8" style="margin-bottom: 20px;">
-        <Card shadow>
-          <chart-pie style="height: 300px;" :value="pieData4" :text="titleAccount[4]"></chart-pie>
-        </Card>
-      </i-col>
-      <i-col :md="24" :lg="8" style="margin-bottom: 20px;">
-        <Card shadow>
-          <chart-pie style="height: 300px;" :value="pieData5" :text="titleAccount[5]"></chart-pie>
+          <chart-pie style="height: 300px;" :value="pieData2" :text="titleCommunity[2]" :subtext="titleAccount[2]"></chart-pie>
         </Card>
       </i-col>
     </Row>
     <Row :gutter="20" style="margin-top: 10px;">
       <i-col :md="24" :lg="8" style="margin-bottom: 20px;">
         <Card shadow>
-          <chart-pie style="height: 300px;" :value="pieData6" :text="titleAccount[6]"></chart-pie>
+          <chart-pie style="height: 300px;" :value="pieData3" :text="titleCommunity[3]" :subtext="titleAccount[3]"></chart-pie>
         </Card>
       </i-col>
       <i-col :md="24" :lg="8" style="margin-bottom: 20px;">
         <Card shadow>
-          <chart-pie style="height: 300px;" :value="pieData7" :text="titleAccount[7]"></chart-pie>
+          <chart-pie style="height: 300px;" :value="pieData4" :text="titleCommunity[4]" :subtext="titleAccount[4]"></chart-pie>
+        </Card>
+      </i-col>
+      <i-col :md="24" :lg="8" style="margin-bottom: 20px;">
+        <Card shadow>
+          <chart-pie style="height: 300px;" :value="pieData5" :text="titleCommunity[5]" :subtext="titleAccount[5]"></chart-pie>
+        </Card>
+      </i-col>
+    </Row>
+    <Row :gutter="20" style="margin-top: 10px;">
+      <i-col :md="24" :lg="8" style="margin-bottom: 20px;">
+        <Card shadow>
+          <chart-pie style="height: 300px;" :value="pieData6" :text="titleCommunity[6]" :subtext="titleAccount[6]"></chart-pie>
+        </Card>
+      </i-col>
+      <i-col :md="24" :lg="8" style="margin-bottom: 20px;">
+        <Card shadow>
+          <chart-pie style="height: 300px;" :value="pieData7" :text="titleCommunity[7]" :subtext="titleAccount[7]"></chart-pie>
         </Card>
       </i-col>
     </Row>
@@ -78,7 +78,8 @@ export default {
   data () {
     return {
       MonthData: {},
-      titleAccount: ['账户:openeuler', '账户:hwstaff_h00223369', '账户:hwstaff_x00350071', '账户:hwstaff_zengchen1024', '账户:freesky-edward', '账户:hwstaff_intl_openEuler', '账户:hwstaff_z00223460', '账户:leon_wang'],
+      titleCommunity: ['openEuler', 'MindSpore', 'openGauss', 'openLooKeng', 'osInfra', 'openEuler国际站', 'OM看板', '昇思'],
+      titleAccount: ['openeuler', 'hwstaff_h00223369', 'hwstaff_x00350071', 'hwstaff_zengchen1024', 'freesky-edward', 'hwstaff_intl_openEuler', 'hwstaff_z00223460', 'leon_wang'],
       account: ['openeuler', 'hwstaff_h00223369', 'hwstaff_x00350071', 'hwstaff_zengchen1024', 'freesky-edward', 'hwstaff_intl_openEuler', 'hwstaff_z00223460', 'leon_wang'],
       billCycle: '',
       searchKey: '',
