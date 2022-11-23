@@ -784,7 +784,7 @@ class BillMgr:
     def get_type_amount(self, account, bill_cycle):
         bill_list = HWCloudBillInfo.objects.filter(account=account, bill_cycle=bill_cycle).values("resource_type_name"). \
                         annotate(consume=Sum("actual_cost")).values("consume", "resource_type_name").order_by(
-            "-consume")[:10]
+            "-consume")[:5]
         sum_amount_obj = HWCloudBillInfo.objects.filter(account=account, bill_cycle=bill_cycle).aggregate(
             Sum("actual_cost"))
         if sum_amount_obj["actual_cost__sum"] is None:
