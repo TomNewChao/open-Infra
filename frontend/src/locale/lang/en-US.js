@@ -48,7 +48,7 @@ export default {
   Home: 'Home',
 
   // tools
-  Tools: 'ApplicationsTools',
+  Tools: 'ApplicationTools',
   multi_scan_port: 'multi_scan_port',
   multi_scan_obs: 'multi_scan_obs',
   single_scan_port: 'single_scan_port',
@@ -56,25 +56,28 @@ export default {
   high_risk_port: 'high_risk_port',
 
   // resources
-  Resources: 'DeviceResources',
-  Eip: 'Eip',
-  ServiceInfo: 'ServiceInfo',
-  Sla: 'Sla',
+  Resources: 'ApplicationResources',
+  Account: 'account',
+  Eip: 'eip',
+  Service: 'service',
+  Sla: 'sla',
+  Bill: 'bill',
+  BillDashboard: 'bill_dashboard',
 
   // alarm
   Alarm: 'AlarmNotification',
-  alarm: 'Alarm',
-  alarm_email: 'AlarmNotification',
+  alarm: 'alarm_detail',
+  alarm_email: 'alarm_notification',
 
   // monitor
   Monitor: 'SystemMonitor',
-  prometheus: 'Prometheus',
-  grafana: 'Grafana',
-  uptime_status: 'Uptime-Status',
+  prometheus: 'prometheus',
+  grafana: 'grafana',
+  uptime_status: 'uptime_status',
 
   // permission
   PermissionControl: 'PermissionControl',
-  KubeConfig: 'KubeConfig',
-  FortressMachine: 'FortressMachine'
+  KubeConfig: 'kube_config',
+  FortressMachine: 'fortress_machine'
 
 }
