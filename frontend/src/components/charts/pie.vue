@@ -28,7 +28,7 @@ export default {
           title: {
             text: this.text,
             subtext: this.subtext,
-            x: 'center'
+            x: 'right'
           },
           tooltip: {
             trigger: 'item',
@@ -72,7 +72,7 @@ export default {
         title: {
           text: this.text,
           subtext: this.subtext,
-          x: 'center'
+          x: 'right'
         },
         tooltip: {
           trigger: 'item',

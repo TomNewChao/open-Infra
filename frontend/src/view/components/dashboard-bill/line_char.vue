@@ -87,7 +87,7 @@ export default {
         yAxis: [
           {
             type: 'value',
-            name: '账单'
+            name: '账单（单位：RMB）'
           }
         ],
         series: [
