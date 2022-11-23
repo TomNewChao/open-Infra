@@ -56,25 +56,28 @@ export default {
   high_risk_port: '高危端口',
 
   // resources
-  Resources: '设备资源',
-  Eip: 'Eip查询',
-  ServiceInfo: '服务查询',
-  Sla: 'Sla查询',
+  Resources: '应用资源',
+  Account: 'account查询',
+  Eip: 'eip查询',
+  Service: 'service查询',
+  Sla: 'sla查询',
+  Bill: 'bill查询',
+  BillDashboard: 'bill大屏',
 
   // alarm
   Alarm: '告警通知',
-  alarm: '告警',
+  alarm: '详细告警',
   alarm_email: '告警通知',
 
   // monitor
   Monitor: '系统监控',
-  prometheus: 'Prometheus',
-  grafana: 'Grafana',
-  uptime_status: 'Uptime-Status',
+  prometheus: 'prometheus',
+  grafana: 'grafana',
+  uptime_status: 'uptime_status',
 
   // permission
   PermissionControl: '权限管控',
-  KubeConfig: 'KubeConfig',
+  KubeConfig: 'kube_config',
   FortressMachine: '堡垒机'
 
 }

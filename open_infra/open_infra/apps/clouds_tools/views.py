@@ -4,6 +4,7 @@
 # @FileName: views.py
 # @Software: PyCharm
 import json
+import threading
 import traceback
 from datetime import datetime
 from django.http import HttpResponse
@@ -12,7 +13,7 @@ from django.views import View
 from clouds_tools.resources.constants import ObsInteractComment
 from clouds_tools.resources.obs_interact_mgr import ObsInteractMgr, ObsInteractGitBase
 from clouds_tools.resources.scan_tools import ScanPortsMgr, ScanObsMgr, SingleScanPortsMgr, SingleScanObsMgr, EipMgr, \
-    HighRiskPortMgr, SlaMgr
+    HighRiskPortMgr, SlaMgr, ScanToolsMgr, BillMgr, IndexMgr
 from open_infra.utils.auth_permisson import AuthView
 from open_infra.utils.common import assemble_api_result, list_param_check_and_trans
 from open_infra.utils.api_error_code import ErrCode
@@ -191,6 +192,14 @@ class PortsListDeleteView(AuthView):
 
 
 # noinspection DuplicatedCode,PyMethodMayBeStatic
+class AccountView(AuthView):
+    def get(self, request):
+        scan_tools_mgr = ScanToolsMgr()
+        clouds_account = scan_tools_mgr.get_cloud_account()
+        return clouds_account
+
+
+# noinspection DuplicatedCode,PyMethodMayBeStatic
 class EipView(AuthView):
     def get(self, request):
         """get the list of eip"""
@@ -267,3 +276,73 @@ class ObsInteractView(View):
             logger.error("[GitHubPrView] e:{}, traceback:{}".format(e, traceback.format_exc()))
             obs_interact_git_base.comment_pr(comment=ObsInteractComment.error)
         return assemble_api_result(err_code=ErrCode.STATUS_SUCCESS)
+
+
+class BillView(AuthView):
+    def get(self, request):
+        dict_data = request.GET.dict()
+        params_dict = list_param_check_and_trans(dict_data, order_by="bill_cycle")
+        account = dict_data.get("account")
+        resource_type = dict_data.get("type")
+        if account:
+            params_dict["account"] = account.strip()
+        if resource_type:
+            params_dict["resource_type"] = resource_type.strip()
+        bill_mgr = BillMgr()
+        data = bill_mgr.list(params_dict)
+        return assemble_api_result(ErrCode.STATUS_SUCCESS, data=data)
+
+
+class ResourceTypeNameView(AuthView):
+    def get(self, request):
+        bill_mgr = BillMgr()
+        data = bill_mgr.get_all_resource_type_name()
+        return assemble_api_result(ErrCode.STATUS_SUCCESS, data=data)
+
+
+class AccountNameView(AuthView):
+    def get(self, request):
+        bill_mgr = BillMgr()
+        data = bill_mgr.get_all_account()
+        return assemble_api_result(ErrCode.STATUS_SUCCESS, data=data)
+
+
+class MonthAmountView(AuthView):
+    def get(self, request):
+        bill_mgr = BillMgr()
+        data = bill_mgr.get_month_amount()
+        return assemble_api_result(ErrCode.STATUS_SUCCESS, data=data)
+
+
+class TypeAmountView(AuthView):
+    _lock = threading.Lock()
+
+    def get(self, request):
+        dict_data = request.GET.dict()
+        account = dict_data.get("account")
+        bill_cycle = dict_data.get("bill_cycle")
+        if account is None or bill_cycle is None:
+            return assemble_api_result(ErrCode.STATUS_PARAMETER_ERROR)
+        with TypeAmountView._lock:
+            bill_mgr = BillMgr()
+            bill_cycle_list = bill_cycle.split("-")
+            if len(bill_cycle_list) != 2:
+                return assemble_api_result(ErrCode.STATUS_PARAMETER_ERROR)
+            if int(bill_cycle_list[1]) > 31 or int(bill_cycle_list[1]) < 0:
+                return assemble_api_result(ErrCode.STATUS_PARAMETER_ERROR)
+            data = bill_mgr.get_type_amount(account, bill_cycle)
+            return assemble_api_result(ErrCode.STATUS_SUCCESS, data=data)
+
+
+class AllBillCycleView(AuthView):
+    def get(self, request):
+        bill_mgr = BillMgr()
+        data = bill_mgr.get_all_bill_cycle()
+        return assemble_api_result(ErrCode.STATUS_SUCCESS, data=data)
+
+
+class IndexView(AuthView):
+    def get(self, request):
+        index_mgr = IndexMgr()
+        data = index_mgr.get_index_data()
+        return assemble_api_result(ErrCode.STATUS_SUCCESS, data=data)

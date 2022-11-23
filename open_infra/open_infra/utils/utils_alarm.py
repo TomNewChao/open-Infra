@@ -12,11 +12,8 @@ class ActiveAlarmBase(object):
     @classmethod
     def get_alarm_info(cls, *args, **kwargs):
         """alarm_info_dict = {
- `            "alarm_type": AlarmType.ALARM,
-              "alarm_info_dict": {
-                  "alarm_id": AlarmCode.MONITOR_DESC_CODE_NODE_CPU_OVERFLOW,
-                  "des_var": ["hwstaff_hongkong_node10", "{}%".format(80)],
-              }
+            "alarm_id": AlarmCode.MONITOR_DESC_CODE_NODE_CPU_OVERFLOW,
+            "des_var": ["hwstaff_hongkong_node10", "{}%".format(80)],
          }
         """
         raise NotImplemented
@@ -25,4 +22,4 @@ class ActiveAlarmBase(object):
     def active_alarm(cls, *args, **kwargs):
         """Actively trigger an alarm"""
         alarm_info = cls.get_alarm_info(*args, **kwargs)
-        active_alarm({'alarm_type': True, 'val_dict': alarm_info})
+        active_alarm({'alarm_type': True, 'alarm_info_dict': alarm_info})

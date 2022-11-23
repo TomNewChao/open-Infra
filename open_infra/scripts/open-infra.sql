@@ -368,5 +368,18 @@ CREATE TABLE IF NOT EXISTS `hw_cloud_obs_interact` (
 ) ENGINE=InnoDB AUTO_INCREMENT=1 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
 
+--
+-- Table structure for table `hw_cloud_obs_interact`
+--
+CREATE TABLE IF NOT EXISTS `hw_cloud_bill_info` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `bill_cycle` varchar(16) NOT NULL,
+  `account` varchar(32) NOT NULL,
+  `resource_type_name` varchar(64) NOT NULL,
+  `consume_amount` double NOT NULL,
+  `discount_rate` double DEFAULT NULL,
+  `actual_cost` double DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
 SET FOREIGN_KEY_CHECKS = 1;

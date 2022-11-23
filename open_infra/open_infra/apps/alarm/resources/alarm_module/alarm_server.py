@@ -1,7 +1,6 @@
 # -*-coding:utf-8 -*-
 
 import threading
-import smtplib
 import time
 import traceback
 import logging

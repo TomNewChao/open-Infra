@@ -15,6 +15,9 @@ from huaweicloudsdkcore.exceptions.exceptions import ClientRequestException
 from huaweicloudsdkcore.http.http_config import HttpConfig
 from huaweicloudsdkcore.auth.credentials import GlobalCredentials
 from huaweicloudsdkiam.v3.region.iam_region import IamRegion
+from huaweicloudsdkbss.v2.region.bss_region import BssRegion
+from huaweicloudsdkbss.v2 import BssClient, ShowCustomerMonthlySumRequest
+from huaweicloudsdkbssintl.v2.region.bssintl_region import BssintlRegion
 from huaweicloudsdkiam.v3 import *
 
 logger = getLogger("django")
@@ -272,3 +275,52 @@ class HWCloudIAM(object):
                 logger.info("[HWCloudIAM] remove_iam_user: user is not exist:{}".format(e))
             else:
                 raise e
+
+
+class HWCloudBSSBase:
+
+    def __init__(self, ak, sk, zone="cn-north-1"):
+        self.ak = ak
+        self.sk = sk
+        self.zone = zone
+        self.client = None
+
+    def get_bill_list(self, bill_cycle="2022-10"):
+        """get all bill list"""
+        list_result = list()
+        for i in range(0, 10000):
+            request = ShowCustomerMonthlySumRequest(bill_cycle=bill_cycle, offset=1000 * i, limit=1000)
+            response = self.client.show_customer_monthly_sum(request)
+            all_list = response.bill_sums
+            len_all_list = len(all_list)
+            if len_all_list == 1000:
+                list_result.extend(all_list)
+            elif 0 < len_all_list < 1000:
+                list_result.extend(all_list)
+                break
+            else:
+                break
+        return list_result
+
+
+class HWCloudBSS(HWCloudBSSBase):
+    def __init__(self, ak, sk, zone="cn-north-1"):
+        super(HWCloudBSS, self).__init__(ak, sk, zone)
+        credentials = GlobalCredentials(ak, sk)
+        self.client = BssClient.new_builder()\
+            .with_credentials(credentials) \
+            .with_region(BssRegion.value_of(zone)) \
+            .build()
+
+
+class HWCloudBSSIntl(HWCloudBSSBase):
+    def __init__(self, ak, sk, zone="ap-southeast-1"):
+        super(HWCloudBSSIntl, self).__init__(ak, sk, zone)
+        credentials = GlobalCredentials(ak, sk)
+        self.client = BssClient.new_builder()\
+            .with_credentials(credentials) \
+            .with_region(BssintlRegion.value_of(zone)) \
+            .build()
+
+
+

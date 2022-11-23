@@ -13,17 +13,14 @@ from django.db import transaction
 from django.db.models import Q
 from pytz import timezone as convert_time_zone
 from django.conf import settings
-from alarm.resources.alarm_module.alarm_code import AlarmCode
-from alarm.resources.alarm_module.constants import AlarmType
 from clouds_tools.models import ServiceInfo
 from open_infra.libs.lib_email import EmailBaseLib
-from open_infra.utils.utils_alarm import ActiveAlarmBase
 from open_infra.utils.utils_git import GitBaseToolsLib, GitBase
 from open_infra.utils.utils_kubeconfig import KubeconfigLib
 from permission.models import KubeConfigInfo
 from open_infra.utils.common import get_suitable_range
 from permission.resources.constants import KubeConfigRole
-
+from permission.resources.permission_alarm import KubeconfigAlarm
 
 logger = logging.getLogger("django")
 
@@ -208,24 +205,6 @@ class KubeconfigEmailTool(EmailBaseLib):
         return cls._send_email(kubeconfig_info)
 
 
-class KubeconfigAlarm(ActiveAlarmBase):
-    @classmethod
-    def get_alarm_info(cls, username):
-        """get alarm info, Overload the method of ActiveAlarmBase"""
-        alarm_info_dict = {
-            "alarm_type": AlarmType.ALARM,
-            "alarm_info_dict": {
-                "alarm_id": AlarmCode.PERMISSION_APPLY_KUBECONFIG_FAILED,
-                "des_var": [username, ],
-            }
-        }
-        return alarm_info_dict
-
-    @classmethod
-    def active_alarm_thread(cls, username):
-        cls.active_alarm(username)
-
-
 # noinspection PyMethodMayBeStatic
 class KubeconfigMgr:
     @classmethod
@@ -288,7 +267,7 @@ class KubeconfigMgr:
             KubeConfigInfo.objects.filter(username=username).filter(service_name=service_name).update(
                 send_ok=is_send_ok)
             if not is_send_ok:
-                KubeconfigAlarm.active_alarm_thread(username)
+                KubeconfigAlarm.active_alarm(username)
 
     def list(self, kwargs):
         """list kubeconfig info

@@ -82,23 +82,50 @@ export default [
     component: Main,
     children: [
       {
+        path: 'account',
+        name: 'Account',
+        meta: {
+          icon: 'md-arrow-round-forward',
+          title: 'account查询'
+        },
+        component: () => import('@/view/components/rs-account/account.vue')
+      },
+      {
+        path: 'rs_service_info',
+        name: 'Service',
+        meta: {
+          icon: 'md-arrow-round-forward',
+          title: 'service查询'
+        },
+        component: () => import('@/view/components/rs-service-info/service_info.vue')
+      },
+      {
         path: 'eip',
         name: 'Eip',
         meta: {
           icon: 'md-arrow-round-forward',
-          title: 'eip信息查询'
+          title: 'eip查询'
         },
-        component: () => import('@/view/components/eip/eip.vue')
+        component: () => import('@/view/components/rs-eip/eip.vue')
       },
       {
-        path: 'service_info',
-        name: 'ServiceInfo',
+        path: 'rs_bill_info',
+        name: 'Bill',
         meta: {
           icon: 'md-arrow-round-forward',
-          title: '服务信息'
+          title: 'Bill查询'
         },
-        component: () => import('@/view/components/service_info/service_info.vue')
-      }
+        component: () => import('@/view/components/rs-bill/bill_info.vue')
+      },
+      {
+        path: 'dashboard_bill',
+        name: 'BillDashboard',
+        meta: {
+          icon: 'md-arrow-round-forward',
+          title: 'Bill_Dashboard查询'
+        },
+        component: () => import('@/view/components/dashboard-bill/bill.vue')
+      },
     ]
   },
   {
@@ -117,7 +144,7 @@ export default [
           icon: 'md-arrow-round-forward',
           title: '高危端口扫描'
         },
-        component: () => import('@/view/components/high_risk_port/high_risk_port.vue')
+        component: () => import('@/view/components/tools-high-risk-port/high_risk_port.vue')
       },
       {
         path: 'multi_scan_port',
@@ -126,7 +153,7 @@ export default [
           icon: 'md-arrow-round-forward',
           title: '多账户端口扫描'
         },
-        component: () => import('@/view/components/multi-scan-port/multi-scan-port.vue')
+        component: () => import('@/view/components/tools-multi-scan-port/multi-scan-port.vue')
       },
       {
         path: 'single_scan_port',
@@ -135,7 +162,7 @@ export default [
           icon: 'md-arrow-round-forward',
           title: '单账户端口扫描'
         },
-        component: () => import('@/view/components/single-scan-port/single-scan-port')
+        component: () => import('@/view/components/tools-single-scan-port/single-scan-port')
       },
       {
         path: 'multi_scan_obs',
@@ -144,7 +171,7 @@ export default [
           icon: 'md-arrow-round-forward',
           title: '多账户对象系统扫描'
         },
-        component: () => import('@/view/components/multi-scan-obs/multi-scan-obs.vue')
+        component: () => import('@/view/components/tools-multi-scan-obs/multi-scan-obs.vue')
       },
       {
         path: 'single_scan_obs',
@@ -153,7 +180,7 @@ export default [
           icon: 'md-arrow-round-forward',
           title: '单账户对象系统扫描'
         },
-        component: () => import('@/view/components/single-scan-obs/single-scan-obs')
+        component: () => import('@/view/components/tools-single-scan-obs/single-scan-obs')
       }
     ]
   },
@@ -173,7 +200,7 @@ export default [
           icon: 'md-arrow-round-forward',
           title: 'KubeConfig'
         },
-        component: () => import('@/view/components/kubeconfig/kubeconfig.vue')
+        component: () => import('@/view/components/permission-kubeconfig/kubeconfig.vue')
       },
       {
         path: 'fortress_machine',
@@ -182,7 +209,7 @@ export default [
           icon: 'md-arrow-round-forward',
           title: 'Fortress-Machine'
         },
-        component: () => import('@/view/components/fortress-machine/fortress-machine.vue')
+        component: () => import('@/view/components/permission-fortress-machine/fortress-machine.vue')
       }
     ]
   },
@@ -231,7 +258,7 @@ export default [
           icon: 'md-arrow-round-forward',
           title: 'prometheus'
         },
-        component: () => import('@/view/components/prometheus/prometheus.vue')
+        component: () => import('@/view/components/monitor-prometheus/prometheus.vue')
       },
       {
         path: 'grafana',
@@ -240,7 +267,7 @@ export default [
           icon: 'md-arrow-round-forward',
           title: 'grafana'
         },
-        component: () => import('@/view/components/grafana/grafana.vue')
+        component: () => import('@/view/components/monitor-grafana/grafana.vue')
       },
       {
         path: 'uptime_status',
@@ -249,7 +276,7 @@ export default [
           icon: 'md-arrow-round-forward',
           title: 'uptime_status'
         },
-        component: () => import('@/view/components/uptime-status/uptime-status.vue')
+        component: () => import('@/view/components/monitor-uptime-status/uptime-status.vue')
       }
     ]
   },

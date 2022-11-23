@@ -56,25 +56,28 @@ export default {
   high_risk_port: '高危端口',
 
   // Resources
-  Resources: '設備資源',
-  Eip: 'Eip查詢',
-  ServiceInfo: '服務查詢',
-  Sla: 'Sla查詢',
+  Resources: '應用資源',
+  Account: 'account查詢',
+  Eip: 'eip查詢',
+  Service: 'service查詢',
+  Sla: 'sla查詢',
+  Bill: 'bill查詢',
+  BillDashboard: 'bill大屏',
 
   // Alarm
   Alarm: '告警通知',
-  alarm: '告警',
+  alarm: '詳細告警',
   alarm_email: '告警通知',
 
   // monitor
   Monitor: '系統監控',
-  prometheus: 'Prometheus',
-  grafana: 'Grafana',
-  uptime_status: 'Uptime-Status',
+  prometheus: 'prometheus',
+  grafana: 'grafana',
+  uptime_status: 'uptime_status',
 
   // permission
   PermissionControl: '權限管控',
-  KubeConfig: 'KubeConfig',
+  KubeConfig: 'kube_config',
   FortressMachine: '堡壘機'
 
 }

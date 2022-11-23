@@ -349,8 +349,8 @@ def output_cla_excel(list_data):
     table.append(settings.CLA_EXCEL_TITLE)
     for bucket_dict in list_data:
         values = list(bucket_dict.values())
-        values[6] = "%{}".format(values[6])
-        values[7] = "%{}".format(values[7])
+        values[6] = "{}%".format(values[6])
+        values[7] = "{}%".format(values[7])
         table.append(values)
     buf = StringIO()
     work_book.save(buf)

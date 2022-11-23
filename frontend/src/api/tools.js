@@ -1,5 +1,13 @@
 import axios from '@/libs/api.request'
-// ToolBar
+// *************Index*****************
+export const indexApiList = () => {
+  return axios.request({
+    url: '/api/clouds_tools/index',
+    methods: 'get'
+  })
+}
+
+// *************ApplicationTools*****************
 export const highRiskPortApiList = (page, size, order_by, order_type, filter_name, filter_value) => {
   return axios.request({
     url: '/api/clouds_tools/high_risk_port',
@@ -104,7 +112,14 @@ export const queryProgressSingleScanObsApi = (account) => {
   })
 }
 
-// Resources
+// *************ApplicationResources*****************
+export const accountListApi = () => {
+  return axios.request({
+    url: '/api/clouds_tools/account',
+    method: 'get'
+  })
+}
+
 export const eipListApi = (page, size, order_by, order_type, filter_name, filter_value) => {
   return axios.request({
     url: '/api/clouds_tools/eip',
@@ -115,7 +130,6 @@ export const eipListApi = (page, size, order_by, order_type, filter_name, filter
   })
 }
 
-// service info
 export const ServiceInfoListApi = (page, size, order_by, order_type, filter_name, filter_value, cluster, namespace) => {
   return axios.request({
     url: '/api/clouds_tools/service',
@@ -123,6 +137,54 @@ export const ServiceInfoListApi = (page, size, order_by, order_type, filter_name
     params: {
       page, size, order_by, order_type, filter_name, filter_value, cluster, namespace
     }
+  })
+}
+
+export const BillInfoListApi = (page, size, order_by, order_type, filter_name, filter_value, account, type) => {
+  return axios.request({
+    url: '/api/clouds_tools/bill',
+    method: 'get',
+    params: {
+      page, size, order_by, order_type, filter_name, filter_value, account, type
+    }
+  })
+}
+
+export const BillTypeListApi = () => {
+  return axios.request({
+    url: '/api/clouds_tools/resource_type_name',
+    method: 'get'
+  })
+}
+
+export const BillAccountListApi = () => {
+  return axios.request({
+    url: '/api/clouds_tools/account_name',
+    method: 'get'
+  })
+}
+
+export const BillMonthAmountListApi = () => {
+  return axios.request({
+    url: '/api/clouds_tools/month_amount',
+    method: 'get'
+  })
+}
+
+export const BillTypeAccountListApi = (account, bill_cycle) => {
+  return axios.request({
+    url: '/api/clouds_tools/type_amount',
+    method: 'get',
+    params: {
+      account, bill_cycle
+    }
+  })
+}
+
+export const AllBillCycleListApi = () => {
+  return axios.request({
+    url: '/api/clouds_tools/all_bill_cycle',
+    method: 'get'
   })
 }
 
@@ -148,7 +210,7 @@ export const exportSlaData = () => {
   })
 }
 
-// Alarm
+// *************AlarmNotification*****************
 export const AlarmListApi = (page, size, order_by, order_type, filter_name, filter_value) => {
   return axios.request({
     url: '/api/alarm/alarm',
@@ -171,14 +233,10 @@ export const batchDeleteAlarmPostApi = (alarm_ids) => {
 
 // Alarm Notify
 export const alarmNameGetApi = () => {
-  return axios.request({
-      url: '/api/alarm/alarm_name',
-      method: 'get'
-    }
-  )
+  return axios.request({ url: '/api/alarm/alarm_name', method: 'get' })
 }
 
-// Alarm notify create
+// Alarm Notify create
 export const alarmNotifyPostApi = (phone, email, desc, name, keywords) => {
   return axios.request({
     url: '/api/alarm/alarm_notify',
@@ -189,7 +247,7 @@ export const alarmNotifyPostApi = (phone, email, desc, name, keywords) => {
   })
 }
 
-// Alarm notify put
+// Alarm Notify put
 export const alarmNotifyPutApi = (phone, email, desc, name, keywords, id) => {
   return axios.request({
     url: '/api/alarm/alarm_notify',
@@ -233,8 +291,7 @@ export const alarmNotifyDeletePostApi = (alarm_notify_ids) => {
   })
 }
 
-// Permission
-
+// *************PermissionControl*****************
 // Single KubeConfig Detail
 export const kubeConfigGetApi = (id) => {
   return axios.request({
@@ -278,8 +335,3 @@ export const kubeConfigDeletePostApi = (kubeconfig_ids) => {
     }
   })
 }
-
-
-
-
-

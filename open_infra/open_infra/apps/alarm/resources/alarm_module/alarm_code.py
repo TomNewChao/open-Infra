@@ -58,15 +58,18 @@ class AlarmModule:
     """The definition of modules which may generate alarm info."""
     MODULE_MONITOR = 0
     MODULE_PERMISSION = 1
+    MODULE_TOOLS = 2
 
     CN_ALARM_MODULE = {
         MODULE_MONITOR: "系统监控",
-        MODULE_PERMISSION: "权限管控"
+        MODULE_PERMISSION: "权限管控",
+        MODULE_TOOLS: "应用工具"
     }
 
     EN_ALARM_MODULE = {
         MODULE_MONITOR: "SystemMonitor",
-        MODULE_PERMISSION: "PermissionControl"
+        MODULE_PERMISSION: "PermissionControl",
+        MODULE_TOOLS: "ApplicationTools"
     }
 
     @classmethod
@@ -95,6 +98,7 @@ class AlarmName:
     NAME_CONTAINER_DISK = 5
     NAME_CONTAINER_SERVICE_COUNT = 6
     NAME_APPLY_KUBECONFIG = 7
+    NAME_NODE_HIGH_RISK_PORT = 8
 
     CN_ALARM_NAME = {
         NAME_NODE_CPU: '服务器CPU告警',
@@ -104,7 +108,8 @@ class AlarmName:
         NAME_CONTAINER_MEM: '容器内存告警',
         NAME_CONTAINER_DISK: '容器挂载盘使用率过高',
         NAME_CONTAINER_SERVICE_COUNT: 'PlayGround Code Server容器超限',
-        NAME_APPLY_KUBECONFIG: 'Kubeconfig申请失败'
+        NAME_APPLY_KUBECONFIG: 'Kubeconfig申请失败',
+        NAME_NODE_HIGH_RISK_PORT: '服务器存在高危端口告警'
     }
 
     EN_ALARM_NAME = {
@@ -115,7 +120,8 @@ class AlarmName:
         NAME_CONTAINER_MEM: "container memory alarm",
         NAME_CONTAINER_DISK: "container disk alarm",
         NAME_CONTAINER_SERVICE_COUNT: "PlayGround Code Server container overrun",
-        NAME_APPLY_KUBECONFIG: 'Failed to apply for kubeconfig'
+        NAME_APPLY_KUBECONFIG: 'Failed to apply for kubeconfig',
+        NAME_NODE_HIGH_RISK_PORT: 'The server has a high-risk port alarm'
     }
 
     @classmethod
@@ -159,6 +165,9 @@ class AlarmCode:
     # Permission
     PERMISSION_DESC_CODE_BASE = 100
     PERMISSION_APPLY_KUBECONFIG_FAILED = PERMISSION_DESC_CODE_BASE + 1
+
+    TOOLS_DESC_CODE_BASE = 200
+    TOOLS_NODE_HIGH_RISK_PORT = TOOLS_DESC_CODE_BASE + 1
 
     # AFTER ALARM CODE BEGIN 20
     CN_DESC_ALARM = {
@@ -210,6 +219,12 @@ class AlarmCode:
             'ALARM_LEVEL': AlarmLevel.MAJOR,
             'ALARM_MODULE': AlarmModule.MODULE_PERMISSION,
             'ALARM_CONTENT': "%s申请kubeconfig失败。"
+        },
+        TOOLS_NODE_HIGH_RISK_PORT: {
+            'ALARM_NAME': AlarmName.NAME_NODE_HIGH_RISK_PORT,
+            'ALARM_LEVEL': AlarmLevel.MAJOR,
+            'ALARM_MODULE': AlarmModule.MODULE_TOOLS,
+            'ALARM_CONTENT': "检测到服务器存在高危端口告警。"
         }
     }
 
@@ -262,6 +277,12 @@ class AlarmCode:
             'ALARM_LEVEL': AlarmLevel.MAJOR,
             'ALARM_MODULE': AlarmModule.MODULE_PERMISSION,
             'ALARM_CONTENT': "Failed to apply for kubeconfig for user %s."
+        },
+        TOOLS_NODE_HIGH_RISK_PORT: {
+            'ALARM_NAME': AlarmName.NAME_NODE_HIGH_RISK_PORT,
+            'ALARM_LEVEL': AlarmLevel.MAJOR,
+            'ALARM_MODULE': AlarmModule.MODULE_TOOLS,
+            'ALARM_CONTENT': "A high-risk port alarm is detected on the server."
         }
     }
 
