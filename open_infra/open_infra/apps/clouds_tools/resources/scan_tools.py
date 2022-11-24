@@ -20,7 +20,7 @@ from clouds_tools.models import HWCloudProjectInfo, HWCloudAccount, HWCloudEipIn
 from clouds_tools.resources.constants import NetProtocol, ScanToolsLock, ScanPortStatus, ScanObsStatus, HWCloudEipStatus
 from open_infra.libs.lib_cloud import HWCloudObs, HWCloudIAM, HWCloudBSS, HWCloudBSSIntl
 from open_infra.utils.common import output_scan_port_excel, output_scan_obs_excel, get_suitable_range, convert_yaml, \
-    output_cla_excel, load_yaml
+    output_cla_excel, load_yaml, get_month_range, format_float
 from open_infra.libs.lib_crypto import AESCrypt
 from open_infra.utils.default_port_list import HighRiskPort
 from open_infra.tools.scan_port import scan_port
@@ -625,11 +625,12 @@ class BillMgr:
         for i in bill_list:
             if int(i.consume_amount) == 0:
                 continue
-            if is_intl:
+            elif is_intl:
                 bill_cycle = i.bill_cycle
                 resource_type_name = settings.BILL_INTL_ALIAS.get(i.resource_type_name)
                 if resource_type_name is None:
-                    logger.error("[BillMgr] parse resource_type_name:{} failed, must be adapter.".format(i.resource_type_name))
+                    logger.error(
+                        "[BillMgr] parse resource_type_name:{} failed, must be adapter.".format(i.resource_type_name))
                     resource_type_name = "unknown"
             else:
                 bill_cycle = i.bill_cycle
@@ -642,13 +643,10 @@ class BillMgr:
         cur_date = time.localtime()
         cur_year = cur_date.tm_year
         cur_month = cur_date.tm_mon
-        cur_bill_cycle_list = list()
-        for i in range(1, cur_month):
-            if len(str(i)) == 2:
-                value = "{}-{}".format(cur_year, i)
-            else:
-                value = "{}-0{}".format(cur_year, i)
-            cur_bill_cycle_list.append(value)
+        cur_day = cur_date.tm_wday
+        start_day = datetime.date(2020, 1, 1)
+        end_day = datetime.date(cur_year, cur_month - 1, cur_day)
+        cur_bill_cycle_list = get_month_range(start_day, end_day)
         return cur_bill_cycle_list
 
     def scan_bill(self):
@@ -674,16 +672,24 @@ class BillMgr:
                 bill_dict_list = self.parse_bill_list(bill_info_list, is_intl)
                 with transaction.atomic():
                     for key, value in bill_dict_list.items():
-                        if is_intl:
+                        if int(value) == 0:
+                            continue
+                        elif value < 0:
+                            rate = 0
+                            consume_amount = round(value, 2)
+                            actual_cost = consume_amount
+                        elif is_intl:
                             rate = settings.BILL_RATE["interational"]
                             consume_amount = round(value * settings.USD_EXCHANGE_RATE, 2)
+                            actual_cost = round(rate * consume_amount, 2)
                         elif key[1] in settings.BILL_BRANDWIDTH_LIST:
                             rate = settings.BILL_RATE["brandwidth"]
                             consume_amount = round(value, 2)
+                            actual_cost = round(rate * consume_amount, 2)
                         else:
                             rate = settings.BILL_RATE["common"]
                             consume_amount = round(value, 2)
-                        actual_cost = round(rate * consume_amount, 2)
+                            actual_cost = round(rate * consume_amount, 2)
                         HWCloudBillInfo.objects.create(
                             bill_cycle=key[0],
                             account=account,
@@ -734,8 +740,8 @@ class BillMgr:
             "size": size,
             "page": page,
             "total": total,
-            "total_consume_amount": total_consume_amount,
-            "total_actual_cost": total_actual_cost,
+            "total_consume_amount": format_float(total_consume_amount),
+            "total_actual_cost": format_float(total_actual_cost),
             "data": task_list
         }
         return res
@@ -771,17 +777,32 @@ class BillMgr:
             ret_list.append(dict_data)
         return ret_list
 
-    def get_month_amount(self):
+    def get_year_amount(self, year):
+        cur_date = time.localtime()
+        cur_year = cur_date.tm_year
+        cur_month = cur_date.tm_mon
+        if cur_year == year:
+            end_day = datetime.date(year, cur_month-1, 1)
+        else:
+            end_day = datetime.date(year, 12, 1)
+        start_day = datetime.date(year, 1, 1)
+        month_list = get_month_range(start_day, end_day)
+        sorted_month_list = sorted(month_list)
         account_list = HWCloudBillInfo.objects.order_by("account").values("account").distinct()
         dict_data = dict()
         for account in account_list:
+            dict_bill, list_bill = dict(), list()
             account_name = account["account"]
-            bill_list = HWCloudBillInfo.objects.filter(account=account_name).values("bill_cycle").annotate(
-                consume=Sum("actual_cost")).values("consume", "bill_cycle").order_by("bill_cycle")
-            dict_data[account_name] = [round(i["consume"], 2) for i in bill_list]
+            bill_list = HWCloudBillInfo.objects.filter(account=account_name).filter(bill_cycle__in=sorted_month_list).values(
+                "bill_cycle").annotate(consume=Sum("actual_cost")).values("consume", "bill_cycle").order_by("bill_cycle")
+            for i in bill_list:
+                dict_bill[i["bill_cycle"]] = round(i["consume"], 2)
+            for month in sorted_month_list:
+                list_bill.append(dict_bill.get(month, 0))
+            dict_data[account_name] = list_bill
         return dict_data
 
-    def get_type_amount(self, account, bill_cycle):
+    def get_month_amount(self, account, bill_cycle):
         bill_list = HWCloudBillInfo.objects.filter(account=account, bill_cycle=bill_cycle).values("resource_type_name"). \
                         annotate(consume=Sum("actual_cost")).values("consume", "resource_type_name").order_by(
             "-consume")[:5]
@@ -805,6 +826,20 @@ class BillMgr:
             dict_data = dict()
             dict_data["title"] = bill_cycle_obj["bill_cycle"]
             dict_data["key"] = bill_cycle_obj["bill_cycle"]
+            ret_list.append(dict_data)
+        return ret_list
+
+    def get_all_year(self):
+        all_bill_list = HWCloudBillInfo.objects.order_by("-bill_cycle").values("bill_cycle").distinct()
+        year_set = set()
+        ret_list = list()
+        for bill_cycle_obj in all_bill_list:
+            year_set.add(bill_cycle_obj["bill_cycle"].split("-")[0])
+        year_list = sorted(list(year_set), reverse=True)
+        for year_temp in year_list:
+            dict_data = dict()
+            dict_data["title"] = int(year_temp)
+            dict_data["key"] = int(year_temp)
             ret_list.append(dict_data)
         return ret_list
 

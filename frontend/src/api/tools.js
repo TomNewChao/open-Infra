@@ -164,16 +164,19 @@ export const BillAccountListApi = () => {
   })
 }
 
-export const BillMonthAmountListApi = () => {
+export const BillYearAmountListApi = (year) => {
   return axios.request({
-    url: '/api/clouds_tools/month_amount',
-    method: 'get'
+    url: '/api/clouds_tools/year_amount',
+    method: 'get',
+    params: {
+      year
+    }
   })
 }
 
-export const BillTypeAccountListApi = (account, bill_cycle) => {
+export const BillMonthAccountListApi = (account, bill_cycle) => {
   return axios.request({
-    url: '/api/clouds_tools/type_amount',
+    url: '/api/clouds_tools/month_amount',
     method: 'get',
     params: {
       account, bill_cycle
@@ -184,6 +187,13 @@ export const BillTypeAccountListApi = (account, bill_cycle) => {
 export const AllBillCycleListApi = () => {
   return axios.request({
     url: '/api/clouds_tools/all_bill_cycle',
+    method: 'get'
+  })
+}
+
+export const AllYearListApi = () => {
+  return axios.request({
+    url: '/api/clouds_tools/all_year',
     method: 'get'
   })
 }

@@ -46,7 +46,7 @@ export default {
       pageTotalBillInfo: 10,
       pageNumBillInfo: 1,
       pageSizeBillInfo: 10,
-      orderByBillInfo: 'account',
+      orderByBillInfo: 'bill_cycle',
       orderTypeBillInfo: 1,
       billAccount: '',
       billType: '',
