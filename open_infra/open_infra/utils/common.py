@@ -3,7 +3,7 @@
 # @Author  : Tom_zc
 # @FileName: common.py
 # @Software: PyCharm
-
+import datetime
 import time
 import base64
 import string
@@ -433,6 +433,42 @@ def get_random_password(bit=12):
     """Automatically generate password"""
     words = string.ascii_lowercase + string.ascii_uppercase + string.digits
     return "".join(random.sample(words, bit))
+
+
+def get_month_range(start_day, end_day):
+    """Get the year, month, and day of a period of time"""
+    if not isinstance(start_day, datetime.date):
+        raise ValueError("start_day must be datetime.data")
+    if not isinstance(end_day, datetime.date):
+        raise ValueError("end_day must be datetime.data")
+    months = (end_day.year-start_day.year)*12 + end_day.month - start_day.month
+    month_range = list()
+    for mon in range(start_day.month - 1, start_day.month + months):
+        year_temp = start_day.year + mon // 12
+        month_temp = mon % 12 + 1
+        if len(str(month_temp)) == 2:
+            value = "{}-{}".format(year_temp, month_temp)
+        else:
+            value = "{}-0{}".format(year_temp, month_temp)
+        month_range.append(value)
+    return month_range
+
+
+def format_float(float_num):
+    """format float eg: 26469833.59 to 26,469,833.59"""
+    ret_list = list()
+    int_num = int(float_num)
+    str_num = str(int_num)
+    len_str_num = len(str_num)
+    for i in range(0, len_str_num):
+        if (len_str_num - i) % 3 == 0 and len_str_num != len_str_num - i:
+            ret_list.append(",")
+            ret_list.append(str_num[i])
+        else:
+            ret_list.append(str_num[i])
+    high_value = "".join(ret_list)
+    lower_value = str(round(float_num - int_num, 2)).split(".")[-1]
+    return high_value + "." + lower_value
 
 
 class MgrException(Exception):

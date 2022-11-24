@@ -307,14 +307,29 @@ class AccountNameView(AuthView):
         return assemble_api_result(ErrCode.STATUS_SUCCESS, data=data)
 
 
-class MonthAmountView(AuthView):
+class YearAmountView(AuthView):
     def get(self, request):
+        dict_data = request.GET.dict()
+        if dict_data.get("year") is None:
+            return assemble_api_result(ErrCode.STATUS_PARAMETER_ERROR)
+        try:
+            query_year = int(dict_data["year"])
+        except ValueError:
+            logger.error("[YearAmountView] invalid params:{}".format(dict_data["year"]))
+            return assemble_api_result(ErrCode.STATUS_PARAMETER_ERROR)
         bill_mgr = BillMgr()
-        data = bill_mgr.get_month_amount()
+        data = bill_mgr.get_year_amount(query_year)
         return assemble_api_result(ErrCode.STATUS_SUCCESS, data=data)
 
 
-class TypeAmountView(AuthView):
+class AllYearView(AuthView):
+    def get(self, request):
+        bill_mgr = BillMgr()
+        data = bill_mgr.get_all_year()
+        return assemble_api_result(ErrCode.STATUS_SUCCESS, data=data)
+
+
+class MonthAmountView(AuthView):
     _lock = threading.Lock()
 
     def get(self, request):
@@ -323,14 +338,14 @@ class TypeAmountView(AuthView):
         bill_cycle = dict_data.get("bill_cycle")
         if account is None or bill_cycle is None:
             return assemble_api_result(ErrCode.STATUS_PARAMETER_ERROR)
-        with TypeAmountView._lock:
+        with MonthAmountView._lock:
             bill_mgr = BillMgr()
             bill_cycle_list = bill_cycle.split("-")
             if len(bill_cycle_list) != 2:
                 return assemble_api_result(ErrCode.STATUS_PARAMETER_ERROR)
             if int(bill_cycle_list[1]) > 31 or int(bill_cycle_list[1]) < 0:
                 return assemble_api_result(ErrCode.STATUS_PARAMETER_ERROR)
-            data = bill_mgr.get_type_amount(account, bill_cycle)
+            data = bill_mgr.get_month_amount(account, bill_cycle)
             return assemble_api_result(ErrCode.STATUS_SUCCESS, data=data)
 
 

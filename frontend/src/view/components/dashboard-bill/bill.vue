@@ -1,63 +1,81 @@
 <template>
   <div>
-    <Row>
-      <Card shadow>
-        <LineChar :chartData="MonthData" style="height: 500px;"/>
-      </Card>
-    </Row>
-    <Row :gutter="20" style="margin-top: 20px; margin-bottom: 20px">
+    <Row :gutter="20" style="margin-left: 2px; margin-top: -10px">
       <div class="dashboard-bill-search-con search-con-top">
-        <Select v-model="searchKey" class="search-col">
-          <Option v-for="item in billCycleColumns" :value="item.key" :key="item.key">{{ item.title }}</Option>
+        <Select v-model="searchYear" class="search-col">
+          <Option v-for="item in yearColumns" :value="item.key" :key="item.key">{{ item.title }}</Option>
         </Select>
-        <Button @click="handleSearch" class="search-btn" type="primary">
+        <Button @click="handleYearSearch" class="search-btn" type="primary">
           <Icon type="search"/>&nbsp;&nbsp;搜索
         </Button>
       </div>
     </Row>
-    <Row :gutter="20" style="margin-top: 20px;">
+    <Row :gutter="20" style="margin-left: 2px; margin-top: 10px; margin-right: 2px">
+      <Card shadow>
+        <LineChar :chartData="MonthData" height="500px" width="100%"/>
+      </Card>
+    </Row>
+    <Row :gutter="20" style="margin-left: 2px; margin-top: 10px">
+      <div class="dashboard-bill-search-con search-con-top">
+        <Select v-model="searchBillCycle" class="search-col">
+          <Option v-for="item in billCycleColumns" :value="item.key" :key="item.key">{{ item.title }}</Option>
+        </Select>
+        <Button @click="handleMonthSearch" class="search-btn" type="primary">
+          <Icon type="search"/>&nbsp;&nbsp;搜索
+        </Button>
+      </div>
+    </Row>
+    <Row :gutter="20" style="margin-top: 10px;">
       <i-col :md="24" :lg="8" style="margin-bottom: 20px;">
         <Card shadow>
-          <chart-pie style="height: 300px;" :value="pieData0" :text="titleCommunity[0]" :subtext="titleAccount[0]"></chart-pie>
+          <chart-pie style="height: 300px;" :value="pieData0" :text="titleCommunity[0]"
+                     :subtext="titleAccount[0]"></chart-pie>
         </Card>
       </i-col>
       <i-col :md="24" :lg="8" style="margin-bottom: 20px;">
         <Card shadow>
-          <chart-pie style="height: 300px;" :value="pieData1" :text="titleCommunity[1]" :subtext="titleAccount[1]"></chart-pie>
+          <chart-pie style="height: 300px;" :value="pieData1" :text="titleCommunity[1]"
+                     :subtext="titleAccount[1]"></chart-pie>
         </Card>
       </i-col>
       <i-col :md="24" :lg="8" style="margin-bottom: 20px;">
         <Card shadow>
-          <chart-pie style="height: 300px;" :value="pieData2" :text="titleCommunity[2]" :subtext="titleAccount[2]"></chart-pie>
+          <chart-pie style="height: 300px;" :value="pieData2" :text="titleCommunity[2]"
+                     :subtext="titleAccount[2]"></chart-pie>
         </Card>
       </i-col>
     </Row>
     <Row :gutter="20" style="margin-top: 10px;">
       <i-col :md="24" :lg="8" style="margin-bottom: 20px;">
         <Card shadow>
-          <chart-pie style="height: 300px;" :value="pieData3" :text="titleCommunity[3]" :subtext="titleAccount[3]"></chart-pie>
+          <chart-pie style="height: 300px;" :value="pieData3" :text="titleCommunity[3]"
+                     :subtext="titleAccount[3]"></chart-pie>
         </Card>
       </i-col>
       <i-col :md="24" :lg="8" style="margin-bottom: 20px;">
         <Card shadow>
-          <chart-pie style="height: 300px;" :value="pieData4" :text="titleCommunity[4]" :subtext="titleAccount[4]"></chart-pie>
+          <chart-pie style="height: 300px;" :value="pieData4" :text="titleCommunity[4]"
+                     :subtext="titleAccount[4]"></chart-pie>
         </Card>
       </i-col>
       <i-col :md="24" :lg="8" style="margin-bottom: 20px;">
         <Card shadow>
-          <chart-pie style="height: 300px;" :value="pieData5" :text="titleCommunity[5]" :subtext="titleAccount[5]"></chart-pie>
+          <chart-pie style="height: 300px;" :value="pieData5" :text="titleCommunity[5]"
+                     :subtext="titleAccount[5]"></chart-pie>
         </Card>
       </i-col>
     </Row>
     <Row :gutter="20" style="margin-top: 10px;">
       <i-col :md="24" :lg="8" style="margin-bottom: 20px;">
         <Card shadow>
-          <chart-pie style="height: 300px;" :value="pieData6" :text="titleCommunity[6]" :subtext="titleAccount[6]"></chart-pie>
+          <chart-pie style="height: 300px;" :value="pieData6" :text="titleCommunity[6]"
+                     :subtext="titleAccount[6]"></chart-pie>
         </Card>
       </i-col>
       <i-col :md="24" :lg="8" style="margin-bottom: 20px;">
         <Card shadow>
-          <chart-pie style="height: 300px;" :value="pieData7" :text="titleCommunity[7]" :subtext="titleAccount[7]"></chart-pie>
+          <chart-pie style="height: 300px;" :value="pieData7" :text="titleCommunity[7]"
+                     :subtext="titleAccount[7]"></chart-pie>
         </Card>
       </i-col>
     </Row>
@@ -67,7 +85,12 @@
 <script>
 import { ChartPie } from '_c/charts'
 import LineChar from './line_char.vue'
-import { AllBillCycleListApi, BillMonthAmountListApi, BillTypeAccountListApi } from '@/api/tools'
+import {
+  AllBillCycleListApi,
+  AllYearListApi,
+  BillMonthAccountListApi,
+  BillYearAmountListApi
+} from '@/api/tools'
 
 export default {
   name: 'dashboard-bill',
@@ -82,8 +105,11 @@ export default {
       titleAccount: ['openeuler', 'hwstaff_h00223369', 'hwstaff_x00350071', 'hwstaff_zengchen1024', 'freesky-edward', 'hwstaff_intl_openEuler', 'hwstaff_z00223460', 'leon_wang'],
       account: ['openeuler', 'hwstaff_h00223369', 'hwstaff_x00350071', 'hwstaff_zengchen1024', 'freesky-edward', 'hwstaff_intl_openEuler', 'hwstaff_z00223460', 'leon_wang'],
       billCycle: '',
-      searchKey: '',
+      searchBillCycle: '',
       billCycleColumns: [],
+      year: '',
+      searchYear: '',
+      yearColumns: [],
       pieData0: [],
       pieData1: [],
       pieData2: [],
@@ -95,17 +121,18 @@ export default {
     }
   },
   mounted () {
-    this.getMonthAmountData()
     this.getAllBillCycle()
-    this.initPieData()
+    this.getAllYear()
+    this.initMonthData()
+    this.initYearData()
   },
   methods: {
-    getMonthAmountData () {
-      BillMonthAmountListApi().then(res => {
+    getAllYear () {
+      AllYearListApi().then(res => {
         if (res.data.err_code !== 0) {
           this.$Message.info(res.data.description)
         } else {
-          this.MonthData = res.data.data
+          this.yearColumns = res.data.data
         }
       })
     },
@@ -118,7 +145,14 @@ export default {
         }
       })
     },
-    initPieData () {
+    initYearData () {
+      const timeOne = new Date()
+      let year = timeOne.getUTCFullYear()
+      this.year = year
+      this.searchYear = year
+      this.getYearAmountData()
+    },
+    initMonthData () {
       const timeOne = new Date()
       let year = timeOne.getUTCFullYear()
       let month = timeOne.getUTCMonth()
@@ -127,12 +161,26 @@ export default {
       }
       const last_month = year + '-' + month
       this.billCycle = last_month
-      this.searchKey = last_month
+      this.searchBillCycle = last_month
       this.getPieData()
     },
-    handleSearch () {
-      this.billCycle = this.searchKey
+    handleYearSearch () {
+      this.year = this.searchYear
+      this.getYearAmountData()
+    },
+    handleMonthSearch () {
+      this.billCycle = this.searchBillCycle
       this.getPieData()
+    },
+    getYearAmountData () {
+      let year = this.year
+      BillYearAmountListApi(year).then(res => {
+        if (res.data.err_code !== 0) {
+          this.$Message.info(res.data.description)
+        } else {
+          this.MonthData = res.data.data
+        }
+      })
     },
     getPieData () {
       this.getPie0Data()
@@ -147,7 +195,7 @@ export default {
     getPie0Data () {
       let account = this.account[0]
       let bill_cycle = this.billCycle
-      BillTypeAccountListApi(account, bill_cycle).then(res => {
+      BillMonthAccountListApi(account, bill_cycle).then(res => {
         if (res.data.err_code !== 0) {
           this.$Message.info(res.data.description)
         } else {
@@ -158,7 +206,7 @@ export default {
     getPie1Data () {
       let account = this.account[1]
       let bill_cycle = this.billCycle
-      BillTypeAccountListApi(account, bill_cycle).then(res => {
+      BillMonthAccountListApi(account, bill_cycle).then(res => {
         if (res.data.err_code !== 0) {
           this.$Message.info(res.data.description)
         } else {
@@ -169,7 +217,7 @@ export default {
     getPie2Data () {
       let account = this.account[2]
       let bill_cycle = this.billCycle
-      BillTypeAccountListApi(account, bill_cycle).then(res => {
+      BillMonthAccountListApi(account, bill_cycle).then(res => {
         if (res.data.err_code !== 0) {
           this.$Message.info(res.data.description)
         } else {
@@ -180,7 +228,7 @@ export default {
     getPie3Data () {
       let account = this.account[3]
       let bill_cycle = this.billCycle
-      BillTypeAccountListApi(account, bill_cycle).then(res => {
+      BillMonthAccountListApi(account, bill_cycle).then(res => {
         if (res.data.err_code !== 0) {
           this.$Message.info(res.data.description)
         } else {
@@ -191,7 +239,7 @@ export default {
     getPie4Data () {
       let account = this.account[4]
       let bill_cycle = this.billCycle
-      BillTypeAccountListApi(account, bill_cycle).then(res => {
+      BillMonthAccountListApi(account, bill_cycle).then(res => {
         if (res.data.err_code !== 0) {
           this.$Message.info(res.data.description)
         } else {
@@ -202,7 +250,7 @@ export default {
     getPie5Data () {
       let account = this.account[5]
       let bill_cycle = this.billCycle
-      BillTypeAccountListApi(account, bill_cycle).then(res => {
+      BillMonthAccountListApi(account, bill_cycle).then(res => {
         if (res.data.err_code !== 0) {
           this.$Message.info(res.data.description)
         } else {
@@ -213,7 +261,7 @@ export default {
     getPie6Data () {
       let account = this.account[6]
       let bill_cycle = this.billCycle
-      BillTypeAccountListApi(account, bill_cycle).then(res => {
+      BillMonthAccountListApi(account, bill_cycle).then(res => {
         if (res.data.err_code !== 0) {
           this.$Message.info(res.data.description)
         } else {
@@ -224,7 +272,7 @@ export default {
     getPie7Data () {
       let account = this.account[7]
       let bill_cycle = this.billCycle
-      BillTypeAccountListApi(account, bill_cycle).then(res => {
+      BillMonthAccountListApi(account, bill_cycle).then(res => {
         if (res.data.err_code !== 0) {
           this.$Message.info(res.data.description)
         } else {

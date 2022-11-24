@@ -14,12 +14,12 @@ export default {
       default: 'chart'
     },
     width: {
-      type: String,
-      default: '100%'
+      type: String
+      // default: '100%'
     },
     height: {
-      type: String,
-      default: '100%'
+      type: String
+      // default: '100%'
     },
     autoResize: {
       type: Boolean,
