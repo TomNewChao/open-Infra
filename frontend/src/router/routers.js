@@ -107,7 +107,18 @@ export default [
           title: 'eip查询'
         },
         component: () => import('@/view/components/rs-eip/eip.vue')
-      },
+      }
+    ]
+  },
+  {
+    path: '/consumption_control',
+    name: 'ConsumptionControl',
+    meta: {
+      icon: 'logo-buffer',
+      title: '消耗管控'
+    },
+    component: Main,
+    children: [
       {
         path: 'rs_bill_info',
         name: 'Bill',
@@ -125,7 +136,7 @@ export default [
           title: 'Bill_Dashboard查询'
         },
         component: () => import('@/view/components/dashboard-bill/bill.vue')
-      },
+      }
     ]
   },
   {

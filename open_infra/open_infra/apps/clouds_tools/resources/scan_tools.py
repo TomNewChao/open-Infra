@@ -645,7 +645,10 @@ class BillMgr:
         cur_month = cur_date.tm_mon
         cur_day = cur_date.tm_wday
         start_day = datetime.date(2020, 1, 1)
-        end_day = datetime.date(cur_year, cur_month - 1, cur_day)
+        if int(cur_month) == 1:
+            end_day = datetime.date(cur_year - 1, 12, cur_day)
+        else:
+            end_day = datetime.date(cur_year, cur_month - 1, cur_day)
         cur_bill_cycle_list = get_month_range(start_day, end_day)
         return cur_bill_cycle_list
 
@@ -782,7 +785,7 @@ class BillMgr:
         cur_year = cur_date.tm_year
         cur_month = cur_date.tm_mon
         if cur_year == year:
-            end_day = datetime.date(year, cur_month-1, 1)
+            end_day = datetime.date(year, cur_month, 1)
         else:
             end_day = datetime.date(year, 12, 1)
         start_day = datetime.date(year, 1, 1)
@@ -793,8 +796,10 @@ class BillMgr:
         for account in account_list:
             dict_bill, list_bill = dict(), list()
             account_name = account["account"]
-            bill_list = HWCloudBillInfo.objects.filter(account=account_name).filter(bill_cycle__in=sorted_month_list).values(
-                "bill_cycle").annotate(consume=Sum("actual_cost")).values("consume", "bill_cycle").order_by("bill_cycle")
+            bill_list = HWCloudBillInfo.objects.filter(account=account_name).filter(
+                bill_cycle__in=sorted_month_list).values(
+                "bill_cycle").annotate(consume=Sum("actual_cost")).values("consume", "bill_cycle").order_by(
+                "bill_cycle")
             for i in bill_list:
                 dict_bill[i["bill_cycle"]] = round(i["consume"], 2)
             for month in sorted_month_list:
@@ -822,6 +827,14 @@ class BillMgr:
     def get_all_bill_cycle(self):
         all_bill_list = HWCloudBillInfo.objects.order_by("-bill_cycle").values("bill_cycle").distinct()
         ret_list = list()
+        cur = datetime.datetime.now()
+        cur_year = cur.year
+        cur_month = cur.month
+        if int(cur_month) == 1:
+            dict_data = dict()
+            dict_data["title"] = "{}-0{}".format(cur_year, cur_month)
+            dict_data["key"] = "{}-0{}".format(cur_year, cur_month)
+            ret_list.append(dict_data)
         for bill_cycle_obj in all_bill_list:
             dict_data = dict()
             dict_data["title"] = bill_cycle_obj["bill_cycle"]
@@ -833,6 +846,8 @@ class BillMgr:
         all_bill_list = HWCloudBillInfo.objects.order_by("-bill_cycle").values("bill_cycle").distinct()
         year_set = set()
         ret_list = list()
+        cur_year = datetime.datetime.now().year
+        year_set.add(str(cur_year))
         for bill_cycle_obj in all_bill_list:
             year_set.add(bill_cycle_obj["bill_cycle"].split("-")[0])
         year_list = sorted(list(year_set), reverse=True)
