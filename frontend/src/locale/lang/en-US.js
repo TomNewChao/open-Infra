@@ -47,6 +47,18 @@ export default {
   // home
   Home: 'Home',
 
+  // resources
+  Resources: 'ApplicationResources',
+  Account: 'account',
+  Eip: 'eip',
+  Service: 'service',
+  Sla: 'sla',
+
+  // ConsumptionControl
+  ConsumptionControl: 'ConsumptionControl',
+  Bill: 'bill',
+  BillDashboard: 'bill_dashboard',
+
   // tools
   Tools: 'ApplicationTools',
   multi_scan_port: 'multi_scan_port',
@@ -55,14 +67,10 @@ export default {
   single_scan_obs: 'single_scan_obs',
   high_risk_port: 'high_risk_port',
 
-  // resources
-  Resources: 'ApplicationResources',
-  Account: 'account',
-  Eip: 'eip',
-  Service: 'service',
-  Sla: 'sla',
-  Bill: 'bill',
-  BillDashboard: 'bill_dashboard',
+  // permission
+  PermissionControl: 'PermissionControl',
+  KubeConfig: 'kube_config',
+  FortressMachine: 'fortress_machine',
 
   // alarm
   Alarm: 'AlarmNotification',
@@ -73,11 +81,6 @@ export default {
   Monitor: 'SystemMonitor',
   prometheus: 'prometheus',
   grafana: 'grafana',
-  uptime_status: 'uptime_status',
-
-  // permission
-  PermissionControl: 'PermissionControl',
-  KubeConfig: 'kube_config',
-  FortressMachine: 'fortress_machine'
+  uptime_status: 'uptime_status'
 
 }

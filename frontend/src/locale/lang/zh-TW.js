@@ -47,6 +47,18 @@ export default {
   // home
   Home: '首頁',
 
+  // Resources
+  Resources: '應用資源',
+  Account: 'account查詢',
+  Eip: 'eip查詢',
+  Service: 'service查詢',
+  Sla: 'sla查詢',
+
+  // ConsumptionControl
+  ConsumptionControl: '能耗管控',
+  Bill: '賬單查詢',
+  BillDashboard: '賬單大屏',
+
   // Tools
   Tools: '應用工具',
   multi_scan_port: '多賬戶端口掃描',
@@ -55,14 +67,10 @@ export default {
   single_scan_obs: '單賬戶對象系統掃描',
   high_risk_port: '高危端口',
 
-  // Resources
-  Resources: '應用資源',
-  Account: 'account查詢',
-  Eip: 'eip查詢',
-  Service: 'service查詢',
-  Sla: 'sla查詢',
-  Bill: 'bill查詢',
-  BillDashboard: 'bill大屏',
+  // permission
+  PermissionControl: '權限管控',
+  KubeConfig: 'kube_config',
+  FortressMachine: '堡壘機',
 
   // Alarm
   Alarm: '告警通知',
@@ -73,11 +81,6 @@ export default {
   Monitor: '系統監控',
   prometheus: 'prometheus',
   grafana: 'grafana',
-  uptime_status: 'uptime_status',
-
-  // permission
-  PermissionControl: '權限管控',
-  KubeConfig: 'kube_config',
-  FortressMachine: '堡壘機'
+  uptime_status: 'uptime_status'
 
 }
