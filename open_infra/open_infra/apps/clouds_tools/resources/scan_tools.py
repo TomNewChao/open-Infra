@@ -14,9 +14,10 @@ from threading import Thread, Lock
 from logging import getLogger
 from collections import defaultdict
 from django.db.models import Sum, Count
+from django.db import models
 from clouds_tools.models import HWCloudProjectInfo, HWCloudAccount, HWCloudEipInfo, HWCloudScanEipPortInfo, \
     HWCloudScanEipPortStatus, HWCloudScanObsAnonymousBucket, HWCloudScanObsAnonymousFile, HWCloudScanObsAnonymousStatus, \
-    HWCloudHighRiskPort, ServiceInfo, HWCloudBillInfo
+    HWCloudHighRiskPort, ServiceInfo, HWCloudBillInfo, CpuResourceUtilization, MemResourceUtilization
 from clouds_tools.resources.constants import NetProtocol, ScanToolsLock, ScanPortStatus, ScanObsStatus, HWCloudEipStatus
 from open_infra.libs.lib_cloud import HWCloudObs, HWCloudIAM, HWCloudBSS, HWCloudBSSIntl
 from open_infra.utils.common import output_scan_port_excel, output_scan_obs_excel, get_suitable_range, convert_yaml, \
@@ -870,3 +871,43 @@ class IndexMgr:
             "eip": eip_count_dict["count"],
         }
         return data
+
+
+class ResourceUtilizationMgr:
+    def __init__(self):
+        super(ResourceUtilizationMgr, self).__init__()
+
+    def get_month(self, model):
+        if not issubclass(model, models.Model):
+            raise Exception("[get_month] model must be the sub class of models.Model")
+        all_list = model.objects.order_by("-create_time").values("create_time").distinct()
+        ret_list = list()
+        for temp in all_list:
+            dict_data = dict()
+            time_array = time.localtime(temp["create_time"])
+            date_temp = time.strftime("%Y-%m-%d %H:%M:%S", time_array)
+            dict_data["title"] = date_temp
+            dict_data["key"] = date_temp
+            ret_list.append(dict_data)
+        return ret_list
+
+    def get_cpu_month(self):
+        return self.get_month(CpuResourceUtilization)
+
+    def get_mem_month(self):
+        return self.get_month(MemResourceUtilization)
+
+    def get_data(self, model, date_str):
+        if not issubclass(model, models.Model):
+            raise Exception("[get_data] model must be the sub class of models.Model")
+        time_array = time.strptime(date_str, "%Y-%m-%d %H:%M:%S")
+        time_stamp = int(time.mktime(time_array))
+        result_list = model.objects.filter(create_time=time_stamp)
+        return [result.to_dict() for result in result_list]
+
+    def get_cpu_data(self, date_str):
+        return self.get_data(CpuResourceUtilization, date_str)
+
+    def get_mem_data(self, date_str):
+        return self.get_data(CpuResourceUtilization, date_str)
+

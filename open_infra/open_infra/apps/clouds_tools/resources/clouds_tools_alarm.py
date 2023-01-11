@@ -16,3 +16,14 @@ class CloudsToolsAlarm(ActiveAlarmBase):
             "des_var": [],
         }
         return alarm_info_dict
+
+
+class ResourceUtilizationAlarm(ActiveAlarmBase):
+    @classmethod
+    def get_alarm_info(cls, name):
+        """get alarm info, Overload the method of ActiveAlarmBase"""
+        alarm_info_dict = {
+            "alarm_id": AlarmCode.TOOLS_NODE_RESOURCE_UTILIZATION_LOW,
+            "des_var": [name],
+        }
+        return alarm_info_dict

@@ -15,6 +15,7 @@ from clouds_tools.models import HWCloudAccount, HWCloudProjectInfo, HWCloudEipIn
     HWCloudHighRiskPort, ServiceInfo
 from clouds_tools.resources.clouds_tools_alarm import CloudsToolsAlarm
 from clouds_tools.resources.constants import ScanToolsLock, ClousToolsGlobalConfig
+from clouds_tools.resources.resource_utilization_mgr import ResourceUtilizationMgr
 from clouds_tools.resources.scan_tools import ScanBaseTools, ScanOrmTools, SlaMgr, BillMgr
 from open_infra.tools.scan_server_info import scan_server_info
 from open_infra.utils.common import func_retry, func_catch_exception
@@ -40,7 +41,8 @@ class ScanToolsOnceJobThread(object):
             logger.info("[scan_high_level_port] There has data, no initial data")
         else:
             default_port_list = list(default_port_dict.keys())
-            save_list_data = [HWCloudHighRiskPort(port=create_port, desc=default_port_dict[create_port]) for create_port in
+            save_list_data = [HWCloudHighRiskPort(port=create_port, desc=default_port_dict[create_port]) for create_port
+                              in
                               default_port_list]
             with transaction.atomic():
                 HWCloudHighRiskPort.objects.bulk_create(save_list_data)
@@ -268,3 +270,10 @@ class ScanToolsIntervalJobScanThread(object):
     @classmethod
     def interval_job(cls):
         cls.refresh_sla()
+
+
+class ScanToolsWeekCronJobScanThread(object):
+    @classmethod
+    def cron_job(cls):
+        resource_utilization_mgr = ResourceUtilizationMgr()
+        resource_utilization_mgr.resouce_utilization()

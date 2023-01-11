@@ -99,6 +99,7 @@ class AlarmName:
     NAME_CONTAINER_SERVICE_COUNT = 6
     NAME_APPLY_KUBECONFIG = 7
     NAME_NODE_HIGH_RISK_PORT = 8
+    NAME_NODE_RESOURCE_UTILIZATION_LOW = 9
 
     CN_ALARM_NAME = {
         NAME_NODE_CPU: '服务器CPU告警',
@@ -109,7 +110,8 @@ class AlarmName:
         NAME_CONTAINER_DISK: '容器挂载盘使用率过高',
         NAME_CONTAINER_SERVICE_COUNT: 'PlayGround Code Server容器超限',
         NAME_APPLY_KUBECONFIG: 'Kubeconfig申请失败',
-        NAME_NODE_HIGH_RISK_PORT: '服务器存在高危端口告警'
+        NAME_NODE_HIGH_RISK_PORT: '服务器存在高危端口告警',
+        NAME_NODE_RESOURCE_UTILIZATION_LOW: '服务器资源使用率过低'
     }
 
     EN_ALARM_NAME = {
@@ -121,7 +123,8 @@ class AlarmName:
         NAME_CONTAINER_DISK: "container disk alarm",
         NAME_CONTAINER_SERVICE_COUNT: "PlayGround Code Server container overrun",
         NAME_APPLY_KUBECONFIG: 'Failed to apply for kubeconfig',
-        NAME_NODE_HIGH_RISK_PORT: 'The server has a high-risk port alarm'
+        NAME_NODE_HIGH_RISK_PORT: 'The server has a high-risk port alarm',
+        NAME_NODE_RESOURCE_UTILIZATION_LOW: 'The Server resource usage is too low'
     }
 
     @classmethod
@@ -168,6 +171,7 @@ class AlarmCode:
 
     TOOLS_DESC_CODE_BASE = 200
     TOOLS_NODE_HIGH_RISK_PORT = TOOLS_DESC_CODE_BASE + 1
+    TOOLS_NODE_RESOURCE_UTILIZATION_LOW = TOOLS_DESC_CODE_BASE + 2
 
     # AFTER ALARM CODE BEGIN 20
     CN_DESC_ALARM = {
@@ -225,6 +229,12 @@ class AlarmCode:
             'ALARM_LEVEL': AlarmLevel.MAJOR,
             'ALARM_MODULE': AlarmModule.MODULE_TOOLS,
             'ALARM_CONTENT': "检测到服务器存在高危端口告警。"
+        },
+        TOOLS_NODE_RESOURCE_UTILIZATION_LOW: {
+            'ALARM_NAME': AlarmName.NAME_NODE_RESOURCE_UTILIZATION_LOW,
+            'ALARM_LEVEL': AlarmLevel.MAJOR,
+            'ALARM_MODULE': AlarmModule.MODULE_TOOLS,
+            'ALARM_CONTENT': "检查到服务器(%s)使用率过低。"
         }
     }
 
@@ -283,7 +293,13 @@ class AlarmCode:
             'ALARM_LEVEL': AlarmLevel.MAJOR,
             'ALARM_MODULE': AlarmModule.MODULE_TOOLS,
             'ALARM_CONTENT': "A high-risk port alarm is detected on the server."
-        }
+        },
+        TOOLS_NODE_RESOURCE_UTILIZATION_LOW: {
+            'ALARM_NAME': AlarmName.NAME_NODE_RESOURCE_UTILIZATION_LOW,
+            'ALARM_LEVEL': AlarmLevel.MAJOR,
+            'ALARM_MODULE': AlarmModule.MODULE_TOOLS,
+            'ALARM_CONTENT': "Checked that server (%s) usage is too low."
+        },
     }
 
     @classmethod

@@ -13,7 +13,7 @@ from django.views import View
 from clouds_tools.resources.constants import ObsInteractComment
 from clouds_tools.resources.obs_interact_mgr import ObsInteractMgr, ObsInteractGitBase
 from clouds_tools.resources.scan_tools import ScanPortsMgr, ScanObsMgr, SingleScanPortsMgr, SingleScanObsMgr, EipMgr, \
-    HighRiskPortMgr, SlaMgr, ScanToolsMgr, BillMgr, IndexMgr
+    HighRiskPortMgr, SlaMgr, ScanToolsMgr, BillMgr, IndexMgr, ResourceUtilizationMgr
 from open_infra.utils.auth_permisson import AuthView
 from open_infra.utils.common import assemble_api_result, list_param_check_and_trans
 from open_infra.utils.api_error_code import ErrCode
@@ -361,3 +361,33 @@ class IndexView(AuthView):
         index_mgr = IndexMgr()
         data = index_mgr.get_index_data()
         return assemble_api_result(ErrCode.STATUS_SUCCESS, data=data)
+
+
+class CPUResourceUtilizationMonth(AuthView):
+    def get(self, request):
+        resource_utilization_mgr = ResourceUtilizationMgr()
+        return resource_utilization_mgr.get_cpu_month()
+
+
+class CPUResourceUtilization(AuthView):
+    def get(self, request):
+        date_str = request.GET.get("date")
+        if date_str is None:
+            return assemble_api_result(ErrCode.STATUS_PARAMETER_ERROR)
+        resource_utilization_mgr = ResourceUtilizationMgr()
+        return resource_utilization_mgr.get_cpu_data(date_str)
+
+
+class MemResourceUtilizationMonth(AuthView):
+    def get(self, request):
+        resource_utilization_mgr = ResourceUtilizationMgr()
+        return resource_utilization_mgr.get_mem_month()
+
+
+class MemResourceUtilization(AuthView):
+    def get(self, request):
+        date_str = request.GET.get("date")
+        if date_str is None:
+            return assemble_api_result(ErrCode.STATUS_PARAMETER_ERROR)
+        resource_utilization_mgr = ResourceUtilizationMgr()
+        return resource_utilization_mgr.get_mem_data(date_str)

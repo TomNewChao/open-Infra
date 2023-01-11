@@ -241,3 +241,35 @@ class ServiceInfo(BaseModel):
 
     def __str__(self):
         return self.id
+
+
+class CpuResourceUtilization(BaseModel):
+    name = models.CharField(max_length=256, null=True, verbose_name="服务器名称")
+    create_time = models.IntegerField(null=True, verbose_name="创建时间戳")
+    lower_cpu_count = models.IntegerField(null=True, verbose_name="低cpu统计:<10%的cpu统计个数, 不包含10%")
+    medium_lower_cpu_count = models.IntegerField(null=True, verbose_name="中低cpu统计:10-50%的cpu统计个数, 不包含50%")
+    medium_high_cpu_count = models.IntegerField(null=True, verbose_name="中高cpu统计:50-90%的cpu统计个数, 不包含90%")
+    high_cpu_count = models.IntegerField(null=True, verbose_name="高cpu统计:>90%的cpu统计个数")
+
+    class Meta:
+        db_table = "cpu_resource_utilization"
+        verbose_name = "服务器cpu资源利用率统计"
+
+    def __str__(self):
+        return self.id
+
+
+class MemResourceUtilization(BaseModel):
+    name = models.CharField(max_length=256, null=True, verbose_name="服务器名称")
+    create_time = models.IntegerField(null=True, verbose_name="创建时间戳")
+    lower_mem_count = models.IntegerField(null=True, verbose_name="低mem统计:<10%的cpu统计个数, 不包含10%")
+    medium_lower_mem_count = models.IntegerField(null=True, verbose_name="中低mem统计:10-50%的cpu统计个数, 不包含50%")
+    medium_high_mem_count = models.IntegerField(null=True, verbose_name="中高mem统计:50-90%的cpu统计个数, 不包含90%")
+    high_mem_count = models.IntegerField(null=True, verbose_name="高mem统计:>90%的mem统计个数")
+
+    class Meta:
+        db_table = "mem_resource_utilization"
+        verbose_name = "服务器内存资源利用率统计"
+
+    def __str__(self):
+        return self.id

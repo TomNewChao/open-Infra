@@ -23,3 +23,9 @@ class ActiveAlarmBase(object):
         """Actively trigger an alarm"""
         alarm_info = cls.get_alarm_info(*args, **kwargs)
         active_alarm({'alarm_type': True, 'alarm_info_dict': alarm_info})
+
+    @classmethod
+    def recover_alarm(cls, *args, **kwargs):
+        """Actively trigger an alarm"""
+        alarm_info = cls.get_alarm_info(*args, **kwargs)
+        active_alarm({'alarm_type': False, 'alarm_info_dict': alarm_info})

@@ -7,7 +7,8 @@
 from django.conf.urls import url
 from clouds_tools.views import ScanPortView, ScanObsView, SingleScanPortView, SingleScanObsView, PortsListView, EipView, \
     PortsListDeleteView, ServiceView, SlaExportView, ObsInteractView, NameSpaceView, ClusterView, AccountView, BillView, \
-    ResourceTypeNameView, AccountNameView, MonthAmountView, YearAmountView, AllBillCycleView, IndexView, AllYearView
+    ResourceTypeNameView, AccountNameView, MonthAmountView, YearAmountView, AllBillCycleView, IndexView, AllYearView, \
+    CPUResourceUtilization, CPUResourceUtilizationMonth, MemResourceUtilizationMonth, MemResourceUtilization
 
 urlpatterns = [
     # query/create/delete high level port
@@ -49,6 +50,15 @@ urlpatterns = [
 
     # index
     url(r'index$', IndexView.as_view()),
+
+    # resource utilization
+    url("cpu_month", CPUResourceUtilizationMonth.as_view()),
+    url("cpu_data", CPUResourceUtilization.as_view()),
+
+    url("mem_month", MemResourceUtilizationMonth.as_view()),
+    url("mem_data", MemResourceUtilization.as_view()),
+
+
 
 
 ]
