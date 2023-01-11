@@ -369,6 +369,21 @@ class CPUResourceUtilizationMonth(AuthView):
         return resource_utilization_mgr.get_cpu_month()
 
 
+class CPUResourceUtilizationTable(AuthView):
+    def get(self, request):
+        date_str = request.GET.get("date")
+        if date_str is None:
+            return assemble_api_result(ErrCode.STATUS_PARAMETER_ERROR)
+        resource_utilization_mgr = ResourceUtilizationMgr()
+        data = resource_utilization_mgr.get_cpu_table_data(date_str)
+        res = HttpResponse(content=data, content_type="application/octet-stream")
+        now_date = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+        filename = "cpu_resource_utilization_{}".format(now_date)
+        res["Content-Disposition"] = 'attachment;filename="{}"'.format(filename)
+        res['charset'] = 'utf-8'
+        return res
+
+
 class CPUResourceUtilization(AuthView):
     def get(self, request):
         date_str = request.GET.get("date")
@@ -382,6 +397,21 @@ class MemResourceUtilizationMonth(AuthView):
     def get(self, request):
         resource_utilization_mgr = ResourceUtilizationMgr()
         return resource_utilization_mgr.get_mem_month()
+
+
+class MemResourceUtilizationTable(AuthView):
+    def get(self, request):
+        date_str = request.GET.get("date")
+        if date_str is None:
+            return assemble_api_result(ErrCode.STATUS_PARAMETER_ERROR)
+        resource_utilization_mgr = ResourceUtilizationMgr()
+        data = resource_utilization_mgr.get_mem_table_data(date_str)
+        res = HttpResponse(content=data, content_type="application/octet-stream")
+        now_date = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+        filename = "mem_resource_utilization_{}".format(now_date)
+        res["Content-Disposition"] = 'attachment;filename="{}"'.format(filename)
+        res['charset'] = 'utf-8'
+        return res
 
 
 class MemResourceUtilization(AuthView):

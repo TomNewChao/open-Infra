@@ -59,17 +59,20 @@ class AlarmModule:
     MODULE_MONITOR = 0
     MODULE_PERMISSION = 1
     MODULE_TOOLS = 2
+    MODULE_RESOURCE_CONSUMPTION = 3
 
     CN_ALARM_MODULE = {
         MODULE_MONITOR: "系统监控",
         MODULE_PERMISSION: "权限管控",
-        MODULE_TOOLS: "应用工具"
+        MODULE_TOOLS: "应用工具",
+        MODULE_RESOURCE_CONSUMPTION: "能耗管控"
     }
 
     EN_ALARM_MODULE = {
         MODULE_MONITOR: "SystemMonitor",
         MODULE_PERMISSION: "PermissionControl",
-        MODULE_TOOLS: "ApplicationTools"
+        MODULE_TOOLS: "ApplicationTools",
+        MODULE_RESOURCE_CONSUMPTION: "ResourceConsumption"
     }
 
     @classmethod
@@ -233,7 +236,7 @@ class AlarmCode:
         TOOLS_NODE_RESOURCE_UTILIZATION_LOW: {
             'ALARM_NAME': AlarmName.NAME_NODE_RESOURCE_UTILIZATION_LOW,
             'ALARM_LEVEL': AlarmLevel.MAJOR,
-            'ALARM_MODULE': AlarmModule.MODULE_TOOLS,
+            'ALARM_MODULE': AlarmModule.MODULE_RESOURCE_CONSUMPTION,
             'ALARM_CONTENT': "检查到服务器(%s)使用率过低。"
         }
     }
@@ -297,7 +300,7 @@ class AlarmCode:
         TOOLS_NODE_RESOURCE_UTILIZATION_LOW: {
             'ALARM_NAME': AlarmName.NAME_NODE_RESOURCE_UTILIZATION_LOW,
             'ALARM_LEVEL': AlarmLevel.MAJOR,
-            'ALARM_MODULE': AlarmModule.MODULE_TOOLS,
+            'ALARM_MODULE': AlarmModule.MODULE_RESOURCE_CONSUMPTION,
             'ALARM_CONTENT': "Checked that server (%s) usage is too low."
         },
     }

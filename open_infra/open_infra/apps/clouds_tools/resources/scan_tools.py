@@ -21,7 +21,7 @@ from clouds_tools.models import HWCloudProjectInfo, HWCloudAccount, HWCloudEipIn
 from clouds_tools.resources.constants import NetProtocol, ScanToolsLock, ScanPortStatus, ScanObsStatus, HWCloudEipStatus
 from open_infra.libs.lib_cloud import HWCloudObs, HWCloudIAM, HWCloudBSS, HWCloudBSSIntl
 from open_infra.utils.common import output_scan_port_excel, output_scan_obs_excel, get_suitable_range, convert_yaml, \
-    output_cla_excel, load_yaml, get_month_range, format_float
+    output_cla_excel, load_yaml, get_month_range, format_float, output_table_excel
 from open_infra.libs.lib_crypto import AESCrypt
 from open_infra.utils.default_port_list import HighRiskPort
 from open_infra.tools.scan_port import scan_port
@@ -903,11 +903,69 @@ class ResourceUtilizationMgr:
         time_array = time.strptime(date_str, "%Y-%m-%d %H:%M:%S")
         time_stamp = int(time.mktime(time_array))
         result_list = model.objects.filter(create_time=time_stamp)
-        return [result.to_dict() for result in result_list]
+        return result_list
 
     def get_cpu_data(self, date_str):
-        return self.get_data(CpuResourceUtilization, date_str)
+        result_list = self.get_data(CpuResourceUtilization, date_str)
+        ret_list = list()
+        for result in result_list:
+            total_count = sum([result.lower_cpu_count, result.medium_lower_cpu_count,
+                               result.medium_high_cpu_count, result.high_cpu_count])
+            if result.lower_cpu_count > 0:
+                ret_list.append([round((result.lower_cpu_count * 100.0) / total_count, 2), 0, result.name])
+            if result.medium_lower_cpu_count > 0:
+                ret_list.append([round((result.medium_lower_cpu_count * 100.0) / total_count, 2), 10, result.name])
+            if result.medium_high_cpu_count > 0:
+                ret_list.append([round((result.medium_high_cpu_count * 100.0) / total_count, 2), 50, result.name])
+            if result.high_cpu_count > 0:
+                ret_list.append([round((result.high_cpu_count * 100.0) / total_count, 2), 90, result.name])
+        return ret_list
 
     def get_mem_data(self, date_str):
-        return self.get_data(CpuResourceUtilization, date_str)
+        result_list = self.get_data(MemResourceUtilization, date_str)
+        ret_list = list()
+        for result in result_list:
+            total_count = sum([result.lower_mem_count, result.medium_lower_mem_count,
+                               result.medium_high_mem_count, result.high_mem_count])
+            if result.lower_mem_count > 0:
+                ret_list.append([round((result.lower_mem_count * 100.0) / total_count, 2), 0, result.name])
+            if result.medium_lower_mem_count > 0:
+                ret_list.append([round((result.medium_lower_mem_count * 100.0) / total_count, 2), 10, result.name])
+            if result.medium_high_mem_count > 0:
+                ret_list.append([round((result.medium_high_mem_count * 100.0) / total_count, 2), 50, result.name])
+            if result.high_mem_count > 0:
+                ret_list.append([round((result.high_mem_count * 100.0) / total_count, 2), 90, result.name])
+        return ret_list
+
+    def get_cpu_table_data(self, date):
+        result_list = self.get_data(CpuResourceUtilization, date)
+        ret_list = list()
+        for result in result_list:
+            line_data = list()
+            total_count = sum([result.lower_cpu_count, result.medium_lower_cpu_count,
+                               result.medium_high_cpu_count, result.high_cpu_count])
+            line_data.append(result.name)
+            line_data.append(round((result.lower_cpu_count * 100.0) / total_count, 2))
+            line_data.append(round((result.medium_lower_cpu_count * 100.0) / total_count, 2))
+            line_data.append(round((result.medium_high_cpu_count * 100.0) / total_count, 2))
+            line_data.append(round((result.high_cpu_count * 100.0) / total_count, 2))
+            ret_list.append(line_data)
+        title_name = ["服务器名称", "10>CPU资源利用率", "50>CPU资源利用率>=10", "90>CPU资源利用率>=50", "CPU资源利用率>=90"]
+        return output_table_excel("cpu", title_name, ret_list)
+
+    def get_mem_table_data(self, date):
+        result_list = self.get_data(MemResourceUtilization, date)
+        ret_list = list()
+        for result in result_list:
+            line_data = list()
+            line_data.append(result.name)
+            total_count = sum([result.lower_mem_count, result.medium_lower_mem_count,
+                               result.medium_high_mem_count, result.high_mem_count])
+            line_data.append(round((result.lower_mem_count * 100.0) / total_count, 2))
+            line_data.append(round((result.medium_lower_mem_count * 100.0) / total_count, 2))
+            line_data.append(round((result.medium_high_mem_count * 100.0) / total_count, 2))
+            line_data.append(round((result.high_mem_count * 100.0) / total_count, 2))
+            ret_list.append(line_data)
+        title_name = ["服务器名称", "10>内存资源利用率", "50>内存资源利用率>=10", "90>内存资源利用率>=50", "内存资源利用率>=90"]
+        return output_table_excel("内存", title_name, ret_list)
 

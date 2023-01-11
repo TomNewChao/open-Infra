@@ -358,6 +358,25 @@ def output_cla_excel(list_data):
     return buf.read()
 
 
+def output_table_excel(sheet_name, title_name, table_list_data):
+    """output list data to excel"""
+    work_book = openpyxl.Workbook()
+    if sheet_name not in work_book.get_sheet_names():
+        work_book.create_sheet(sheet_name)
+    if settings.DEFAULT_SHEET_NAME in work_book.get_sheet_names():
+        need_remove_sheet = work_book.get_sheet_by_name(settings.DEFAULT_SHEET_NAME)
+        work_book.remove_sheet(need_remove_sheet)
+    table = work_book.get_sheet_by_name(sheet_name)
+    table.delete_rows(1, 65536)
+    table.append(title_name)
+    for table_list in table_list_data:
+        table.append(table_list)
+    buf = StringIO()
+    work_book.save(buf)
+    buf.seek(0)
+    return buf.read()
+
+
 def runserver_executor(func):
     """A decorator for a method to be executed only when the service is run"""
     @wraps(func)

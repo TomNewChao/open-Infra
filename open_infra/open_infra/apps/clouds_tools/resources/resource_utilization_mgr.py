@@ -66,6 +66,7 @@ class ResourceUtilizationMgr:
 
     @func_retry(delay=10)
     def resouce_utilization(self):
+        start_time = int(time.time())
         cur_time = self.get_start_time()
         cpu_data = self.get_range_data(cur_time=cur_time)
         mem_data = self.get_range_data(AlarmHandlerRangeConfig.node_mem_query, cur_time=cur_time)
@@ -99,12 +100,6 @@ class ResourceUtilizationMgr:
             medium_lower_cpu_count = len(list(filter(lambda x: 10.0 <= float(x) < 50.0, cpu_value_list)))
             medium_high_cpu_count = len(list(filter(lambda x: 50.0 <= float(x) < 90.0, cpu_value_list)))
             high_cpu_count = len(list(filter(lambda x: 90.0 <= float(x), cpu_value_list)))
-            logger.error("1------------------{}".format(cpu_value_list))
-            logger.error("2------------------{}".format(lower_cpu_count))
-            logger.error("3------------------{}".format(medium_lower_cpu_count))
-            logger.error("4------------------{}".format(medium_high_cpu_count))
-            logger.error("5------------------{}".format(high_cpu_count))
-
             params = {
                 "name": name,
                 "lower_cpu_count": lower_cpu_count,
@@ -130,7 +125,7 @@ class ResourceUtilizationMgr:
         unexcept_name_list = list(set(mem_dict.keys()) - set(cpu_dict.keys()))
         for name in unexcept_name_list:
             logger.info("[resouce_utilization] prom exist in mem and not in cpu:{}".format(name))
-        logger.error("-------------------spend time:{}-----------------".format(int(time.time()-cur_time)))
+        logger.error("-------------------resouce_utilization:spend time:{}-----------------".format(int(time.time())-start_time))
 
 
 if __name__ == '__main__':
