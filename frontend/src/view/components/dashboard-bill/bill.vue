@@ -155,10 +155,7 @@ export default {
     initMonthData () {
       const timeOne = new Date()
       let year = timeOne.getUTCFullYear()
-      let month = timeOne.getUTCMonth()
-      if (month.toString().length === 1) {
-        month = '0' + month
-      }
+      let month = timeOne.getMonth() + 1 < 10 ? '0' + (timeOne.getMonth() + 1) : timeOne.getMonth() + 1
       const last_month = year + '-' + month
       this.billCycle = last_month
       this.searchBillCycle = last_month

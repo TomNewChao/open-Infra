@@ -47,6 +47,19 @@ export default {
   // home
   Home: '首页',
 
+  // resources
+  Resources: '应用资源',
+  Account: 'account查询',
+  Eip: 'eip查询',
+  Service: 'service查询',
+  Sla: 'sla查询',
+
+  // ConsumptionControl
+  ConsumptionControl: '能耗管控',
+  Bill: '账单查询',
+  BillDashboard: '账单大屏',
+  ResourceDashboard: '资源大屏',
+
   // tools
   Tools: '应用工具',
   multi_scan_port: '多账户端口扫描',
@@ -55,14 +68,10 @@ export default {
   single_scan_obs: '单账户对象系统扫描',
   high_risk_port: '高危端口',
 
-  // resources
-  Resources: '应用资源',
-  Account: 'account查询',
-  Eip: 'eip查询',
-  Service: 'service查询',
-  Sla: 'sla查询',
-  Bill: 'bill查询',
-  BillDashboard: 'bill大屏',
+  // permission
+  PermissionControl: '权限管控',
+  KubeConfig: 'kubeconfig',
+  FortressMachine: '堡垒机',
 
   // alarm
   Alarm: '告警通知',
@@ -73,11 +82,6 @@ export default {
   Monitor: '系统监控',
   prometheus: 'prometheus',
   grafana: 'grafana',
-  uptime_status: 'uptime_status',
-
-  // permission
-  PermissionControl: '权限管控',
-  KubeConfig: 'kube_config',
-  FortressMachine: '堡垒机'
+  uptime_status: 'uptime_status'
 
 }

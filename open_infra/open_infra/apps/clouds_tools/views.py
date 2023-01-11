@@ -13,7 +13,7 @@ from django.views import View
 from clouds_tools.resources.constants import ObsInteractComment
 from clouds_tools.resources.obs_interact_mgr import ObsInteractMgr, ObsInteractGitBase
 from clouds_tools.resources.scan_tools import ScanPortsMgr, ScanObsMgr, SingleScanPortsMgr, SingleScanObsMgr, EipMgr, \
-    HighRiskPortMgr, SlaMgr, ScanToolsMgr, BillMgr, IndexMgr
+    HighRiskPortMgr, SlaMgr, ScanToolsMgr, BillMgr, IndexMgr, ResourceUtilizationMgr
 from open_infra.utils.auth_permisson import AuthView
 from open_infra.utils.common import assemble_api_result, list_param_check_and_trans
 from open_infra.utils.api_error_code import ErrCode
@@ -361,3 +361,63 @@ class IndexView(AuthView):
         index_mgr = IndexMgr()
         data = index_mgr.get_index_data()
         return assemble_api_result(ErrCode.STATUS_SUCCESS, data=data)
+
+
+class CPUResourceUtilizationMonth(AuthView):
+    def get(self, request):
+        resource_utilization_mgr = ResourceUtilizationMgr()
+        return resource_utilization_mgr.get_cpu_month()
+
+
+class CPUResourceUtilizationTable(AuthView):
+    def get(self, request):
+        date_str = request.GET.get("date")
+        if date_str is None:
+            return assemble_api_result(ErrCode.STATUS_PARAMETER_ERROR)
+        resource_utilization_mgr = ResourceUtilizationMgr()
+        data = resource_utilization_mgr.get_cpu_table_data(date_str)
+        res = HttpResponse(content=data, content_type="application/octet-stream")
+        now_date = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+        filename = "cpu_resource_utilization_{}".format(now_date)
+        res["Content-Disposition"] = 'attachment;filename="{}"'.format(filename)
+        res['charset'] = 'utf-8'
+        return res
+
+
+class CPUResourceUtilization(AuthView):
+    def get(self, request):
+        date_str = request.GET.get("date")
+        if date_str is None:
+            return assemble_api_result(ErrCode.STATUS_PARAMETER_ERROR)
+        resource_utilization_mgr = ResourceUtilizationMgr()
+        return resource_utilization_mgr.get_cpu_data(date_str)
+
+
+class MemResourceUtilizationMonth(AuthView):
+    def get(self, request):
+        resource_utilization_mgr = ResourceUtilizationMgr()
+        return resource_utilization_mgr.get_mem_month()
+
+
+class MemResourceUtilizationTable(AuthView):
+    def get(self, request):
+        date_str = request.GET.get("date")
+        if date_str is None:
+            return assemble_api_result(ErrCode.STATUS_PARAMETER_ERROR)
+        resource_utilization_mgr = ResourceUtilizationMgr()
+        data = resource_utilization_mgr.get_mem_table_data(date_str)
+        res = HttpResponse(content=data, content_type="application/octet-stream")
+        now_date = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+        filename = "mem_resource_utilization_{}".format(now_date)
+        res["Content-Disposition"] = 'attachment;filename="{}"'.format(filename)
+        res['charset'] = 'utf-8'
+        return res
+
+
+class MemResourceUtilization(AuthView):
+    def get(self, request):
+        date_str = request.GET.get("date")
+        if date_str is None:
+            return assemble_api_result(ErrCode.STATUS_PARAMETER_ERROR)
+        resource_utilization_mgr = ResourceUtilizationMgr()
+        return resource_utilization_mgr.get_mem_data(date_str)

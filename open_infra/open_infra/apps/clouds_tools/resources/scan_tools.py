@@ -14,13 +14,14 @@ from threading import Thread, Lock
 from logging import getLogger
 from collections import defaultdict
 from django.db.models import Sum, Count
+from django.db import models
 from clouds_tools.models import HWCloudProjectInfo, HWCloudAccount, HWCloudEipInfo, HWCloudScanEipPortInfo, \
     HWCloudScanEipPortStatus, HWCloudScanObsAnonymousBucket, HWCloudScanObsAnonymousFile, HWCloudScanObsAnonymousStatus, \
-    HWCloudHighRiskPort, ServiceInfo, HWCloudBillInfo
+    HWCloudHighRiskPort, ServiceInfo, HWCloudBillInfo, CpuResourceUtilization, MemResourceUtilization
 from clouds_tools.resources.constants import NetProtocol, ScanToolsLock, ScanPortStatus, ScanObsStatus, HWCloudEipStatus
 from open_infra.libs.lib_cloud import HWCloudObs, HWCloudIAM, HWCloudBSS, HWCloudBSSIntl
 from open_infra.utils.common import output_scan_port_excel, output_scan_obs_excel, get_suitable_range, convert_yaml, \
-    output_cla_excel, load_yaml, get_month_range, format_float
+    output_cla_excel, load_yaml, get_month_range, format_float, output_table_excel
 from open_infra.libs.lib_crypto import AESCrypt
 from open_infra.utils.default_port_list import HighRiskPort
 from open_infra.tools.scan_port import scan_port
@@ -645,7 +646,10 @@ class BillMgr:
         cur_month = cur_date.tm_mon
         cur_day = cur_date.tm_wday
         start_day = datetime.date(2020, 1, 1)
-        end_day = datetime.date(cur_year, cur_month - 1, cur_day)
+        if int(cur_month) == 1:
+            end_day = datetime.date(cur_year - 1, 12, cur_day)
+        else:
+            end_day = datetime.date(cur_year, cur_month - 1, cur_day)
         cur_bill_cycle_list = get_month_range(start_day, end_day)
         return cur_bill_cycle_list
 
@@ -782,7 +786,7 @@ class BillMgr:
         cur_year = cur_date.tm_year
         cur_month = cur_date.tm_mon
         if cur_year == year:
-            end_day = datetime.date(year, cur_month-1, 1)
+            end_day = datetime.date(year, cur_month, 1)
         else:
             end_day = datetime.date(year, 12, 1)
         start_day = datetime.date(year, 1, 1)
@@ -793,8 +797,10 @@ class BillMgr:
         for account in account_list:
             dict_bill, list_bill = dict(), list()
             account_name = account["account"]
-            bill_list = HWCloudBillInfo.objects.filter(account=account_name).filter(bill_cycle__in=sorted_month_list).values(
-                "bill_cycle").annotate(consume=Sum("actual_cost")).values("consume", "bill_cycle").order_by("bill_cycle")
+            bill_list = HWCloudBillInfo.objects.filter(account=account_name).filter(
+                bill_cycle__in=sorted_month_list).values(
+                "bill_cycle").annotate(consume=Sum("actual_cost")).values("consume", "bill_cycle").order_by(
+                "bill_cycle")
             for i in bill_list:
                 dict_bill[i["bill_cycle"]] = round(i["consume"], 2)
             for month in sorted_month_list:
@@ -822,6 +828,14 @@ class BillMgr:
     def get_all_bill_cycle(self):
         all_bill_list = HWCloudBillInfo.objects.order_by("-bill_cycle").values("bill_cycle").distinct()
         ret_list = list()
+        cur = datetime.datetime.now()
+        cur_year = cur.year
+        cur_month = cur.month
+        if int(cur_month) == 1:
+            dict_data = dict()
+            dict_data["title"] = "{}-0{}".format(cur_year, cur_month)
+            dict_data["key"] = "{}-0{}".format(cur_year, cur_month)
+            ret_list.append(dict_data)
         for bill_cycle_obj in all_bill_list:
             dict_data = dict()
             dict_data["title"] = bill_cycle_obj["bill_cycle"]
@@ -833,6 +847,8 @@ class BillMgr:
         all_bill_list = HWCloudBillInfo.objects.order_by("-bill_cycle").values("bill_cycle").distinct()
         year_set = set()
         ret_list = list()
+        cur_year = datetime.datetime.now().year
+        year_set.add(str(cur_year))
         for bill_cycle_obj in all_bill_list:
             year_set.add(bill_cycle_obj["bill_cycle"].split("-")[0])
         year_list = sorted(list(year_set), reverse=True)
@@ -855,3 +871,101 @@ class IndexMgr:
             "eip": eip_count_dict["count"],
         }
         return data
+
+
+class ResourceUtilizationMgr:
+    def __init__(self):
+        super(ResourceUtilizationMgr, self).__init__()
+
+    def get_month(self, model):
+        if not issubclass(model, models.Model):
+            raise Exception("[get_month] model must be the sub class of models.Model")
+        all_list = model.objects.order_by("-create_time").values("create_time").distinct()
+        ret_list = list()
+        for temp in all_list:
+            dict_data = dict()
+            time_array = time.localtime(temp["create_time"])
+            date_temp = time.strftime("%Y-%m-%d %H:%M:%S", time_array)
+            dict_data["title"] = date_temp
+            dict_data["key"] = date_temp
+            ret_list.append(dict_data)
+        return ret_list
+
+    def get_cpu_month(self):
+        return self.get_month(CpuResourceUtilization)
+
+    def get_mem_month(self):
+        return self.get_month(MemResourceUtilization)
+
+    def get_data(self, model, date_str):
+        if not issubclass(model, models.Model):
+            raise Exception("[get_data] model must be the sub class of models.Model")
+        time_array = time.strptime(date_str, "%Y-%m-%d %H:%M:%S")
+        time_stamp = int(time.mktime(time_array))
+        result_list = model.objects.filter(create_time=time_stamp)
+        return result_list
+
+    def get_cpu_data(self, date_str):
+        result_list = self.get_data(CpuResourceUtilization, date_str)
+        ret_list = list()
+        for result in result_list:
+            total_count = sum([result.lower_cpu_count, result.medium_lower_cpu_count,
+                               result.medium_high_cpu_count, result.high_cpu_count])
+            if result.lower_cpu_count > 0:
+                ret_list.append([round((result.lower_cpu_count * 100.0) / total_count, 2), 0, result.name])
+            if result.medium_lower_cpu_count > 0:
+                ret_list.append([round((result.medium_lower_cpu_count * 100.0) / total_count, 2), 10, result.name])
+            if result.medium_high_cpu_count > 0:
+                ret_list.append([round((result.medium_high_cpu_count * 100.0) / total_count, 2), 50, result.name])
+            if result.high_cpu_count > 0:
+                ret_list.append([round((result.high_cpu_count * 100.0) / total_count, 2), 90, result.name])
+        return ret_list
+
+    def get_mem_data(self, date_str):
+        result_list = self.get_data(MemResourceUtilization, date_str)
+        ret_list = list()
+        for result in result_list:
+            total_count = sum([result.lower_mem_count, result.medium_lower_mem_count,
+                               result.medium_high_mem_count, result.high_mem_count])
+            if result.lower_mem_count > 0:
+                ret_list.append([round((result.lower_mem_count * 100.0) / total_count, 2), 0, result.name])
+            if result.medium_lower_mem_count > 0:
+                ret_list.append([round((result.medium_lower_mem_count * 100.0) / total_count, 2), 10, result.name])
+            if result.medium_high_mem_count > 0:
+                ret_list.append([round((result.medium_high_mem_count * 100.0) / total_count, 2), 50, result.name])
+            if result.high_mem_count > 0:
+                ret_list.append([round((result.high_mem_count * 100.0) / total_count, 2), 90, result.name])
+        return ret_list
+
+    def get_cpu_table_data(self, date):
+        result_list = self.get_data(CpuResourceUtilization, date)
+        ret_list = list()
+        for result in result_list:
+            line_data = list()
+            total_count = sum([result.lower_cpu_count, result.medium_lower_cpu_count,
+                               result.medium_high_cpu_count, result.high_cpu_count])
+            line_data.append(result.name)
+            line_data.append(round((result.lower_cpu_count * 100.0) / total_count, 2))
+            line_data.append(round((result.medium_lower_cpu_count * 100.0) / total_count, 2))
+            line_data.append(round((result.medium_high_cpu_count * 100.0) / total_count, 2))
+            line_data.append(round((result.high_cpu_count * 100.0) / total_count, 2))
+            ret_list.append(line_data)
+        title_name = ["服务器名称", "10>CPU资源利用率", "50>CPU资源利用率>=10", "90>CPU资源利用率>=50", "CPU资源利用率>=90"]
+        return output_table_excel("cpu", title_name, ret_list)
+
+    def get_mem_table_data(self, date):
+        result_list = self.get_data(MemResourceUtilization, date)
+        ret_list = list()
+        for result in result_list:
+            line_data = list()
+            line_data.append(result.name)
+            total_count = sum([result.lower_mem_count, result.medium_lower_mem_count,
+                               result.medium_high_mem_count, result.high_mem_count])
+            line_data.append(round((result.lower_mem_count * 100.0) / total_count, 2))
+            line_data.append(round((result.medium_lower_mem_count * 100.0) / total_count, 2))
+            line_data.append(round((result.medium_high_mem_count * 100.0) / total_count, 2))
+            line_data.append(round((result.high_mem_count * 100.0) / total_count, 2))
+            ret_list.append(line_data)
+        title_name = ["服务器名称", "10>内存资源利用率", "50>内存资源利用率>=10", "90>内存资源利用率>=50", "内存资源利用率>=90"]
+        return output_table_excel("内存", title_name, ret_list)
+

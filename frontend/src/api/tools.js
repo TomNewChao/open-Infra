@@ -140,6 +140,7 @@ export const ServiceInfoListApi = (page, size, order_by, order_type, filter_name
   })
 }
 
+// *************ConsumptionControl*****************
 export const BillInfoListApi = (page, size, order_by, order_type, filter_name, filter_value, account, type) => {
   return axios.request({
     url: '/api/clouds_tools/bill',
@@ -216,6 +217,58 @@ export const exportSlaData = () => {
   return axios.request({
     url: '/api/clouds_tools/sla_export',
     method: 'get',
+    responseType: 'blob'
+  })
+}
+
+export const queryCpuMonth = () => {
+  return axios.request({
+    url: '/api/clouds_tools/cpu_month',
+    method: 'get'
+  })
+}
+
+export const queryCpuMonthData = (date) => {
+  return axios.request({
+    url: '/api/clouds_tools/cpu_data',
+    method: 'get',
+    params: {
+      date
+    }
+  })
+}
+
+export const exportCpuMonthData = (date) => {
+  return axios.request({
+    url: '/api/clouds_tools/cpu_table',
+    method: 'get',
+    params: { date },
+    responseType: 'blob'
+  })
+}
+
+export const queryMemMonth = () => {
+  return axios.request({
+    url: '/api/clouds_tools/mem_month',
+    method: 'get'
+  })
+}
+
+export const queryMemMonthData = (date) => {
+  return axios.request({
+    url: '/api/clouds_tools/mem_data',
+    method: 'get',
+    params: {
+      date
+    }
+  })
+}
+
+export const exportMemMonthData = (date) => {
+  return axios.request({
+    url: '/api/clouds_tools/mem_table',
+    method: 'get',
+    params: { date },
     responseType: 'blob'
   })
 }

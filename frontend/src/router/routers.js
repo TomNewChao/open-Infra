@@ -107,7 +107,18 @@ export default [
           title: 'eip查询'
         },
         component: () => import('@/view/components/rs-eip/eip.vue')
-      },
+      }
+    ]
+  },
+  {
+    path: '/consumption_control',
+    name: 'ConsumptionControl',
+    meta: {
+      icon: 'logo-buffer',
+      title: '消耗管控'
+    },
+    component: Main,
+    children: [
       {
         path: 'rs_bill_info',
         name: 'Bill',
@@ -126,6 +137,15 @@ export default [
         },
         component: () => import('@/view/components/dashboard-bill/bill.vue')
       },
+      {
+        path: 'dashboard_resource',
+        name: 'ResourceDashboard',
+        meta: {
+          icon: 'md-arrow-round-forward',
+          title: 'Res_Dashboard查询'
+        },
+        component: () => import('@/view/components/dashboard-resource/resource.vue')
+      }
     ]
   },
   {
