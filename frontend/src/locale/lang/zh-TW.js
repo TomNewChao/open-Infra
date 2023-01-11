@@ -69,7 +69,7 @@ export default {
 
   // permission
   PermissionControl: '權限管控',
-  KubeConfig: 'kube_config',
+  KubeConfig: 'kubeconfig',
   FortressMachine: '堡壘機',
 
   // Alarm
