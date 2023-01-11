@@ -58,6 +58,7 @@ export default {
   ConsumptionControl: '能耗管控',
   Bill: '账单查询',
   BillDashboard: '账单大屏',
+  ResourceDashboard: '资源大屏',
 
   // tools
   Tools: '应用工具',

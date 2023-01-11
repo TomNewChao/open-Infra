@@ -58,6 +58,7 @@ export default {
   ConsumptionControl: 'ConsumptionControl',
   Bill: 'bill',
   BillDashboard: 'bill_dashboard',
+  ResourceDashboard: 'res_dashboard',
 
   // tools
   Tools: 'ApplicationTools',

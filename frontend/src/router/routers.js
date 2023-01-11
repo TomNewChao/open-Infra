@@ -136,6 +136,15 @@ export default [
           title: 'Bill_Dashboard查询'
         },
         component: () => import('@/view/components/dashboard-bill/bill.vue')
+      },
+      {
+        path: 'dashboard_resource',
+        name: 'ResourceDashboard',
+        meta: {
+          icon: 'md-arrow-round-forward',
+          title: 'Res_Dashboard查询'
+        },
+        component: () => import('@/view/components/dashboard-resource/resource.vue')
       }
     ]
   },
