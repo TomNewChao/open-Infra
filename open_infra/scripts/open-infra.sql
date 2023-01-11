@@ -380,4 +380,29 @@ CREATE TABLE IF NOT EXISTS `hw_cloud_bill_info` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
+
+CREATE TABLE IF NOT EXISTS `cpu_resource_utilization` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `name` varchar(256) DEFAULT NULL,
+  `lower_cpu_count` int DEFAULT NULL,
+  `medium_lower_cpu_count` int DEFAULT NULL,
+  `medium_high_cpu_count` int DEFAULT NULL,
+  `high_cpu_count` int DEFAULT NULL,
+  `create_time` int DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
+
+
+
+CREATE TABLE IF NOT EXISTS `mem_resource_utilization` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `name` varchar(256) DEFAULT NULL,
+  `lower_mem_count` int DEFAULT NULL,
+  `medium_lower_mem_count` int DEFAULT NULL,
+  `medium_high_mem_count` int DEFAULT NULL,
+  `high_mem_count` int DEFAULT NULL,
+  `create_time` int DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
+
 SET FOREIGN_KEY_CHECKS = 1;
