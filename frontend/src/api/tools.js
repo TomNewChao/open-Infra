@@ -140,6 +140,16 @@ export const ServiceInfoListApi = (page, size, order_by, order_type, filter_name
   })
 }
 
+export const ServiceDetailApi = (id) => {
+  return axios.request({
+    url: '/api/clouds_tools/detail_service',
+    method: 'get',
+    params: {
+      id
+    }
+  })
+}
+
 // *************ConsumptionControl*****************
 export const BillInfoListApi = (page, size, order_by, order_type, filter_name, filter_value, account, type) => {
   return axios.request({
