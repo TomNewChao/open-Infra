@@ -1,100 +1,9 @@
 from itertools import chain
 
-from clouds_tools.resources.constants import HWCloudEipStatus, HWCloudEipType
+from clouds_tools.resources.constants import ScanObsStatus
 from open_infra.utils.models import BaseModel
 from django.db import models
 from django.conf import settings
-
-
-class HWCloudAccount(BaseModel):
-    account = models.CharField(max_length=32, verbose_name="华为云账户name")
-    ak = models.CharField(max_length=255, verbose_name="华为云账户的ak")
-    sk = models.CharField(max_length=255, verbose_name="华为云账户的sk")
-
-    class Meta:
-        db_table = "hw_cloud_account"
-        verbose_name = "华为云账户"
-
-    def __str__(self):
-        return self.account
-
-
-class HWCloudProjectInfo(BaseModel):
-    id = models.CharField(max_length=64, primary_key=True, verbose_name="华为云项目id")
-    zone = models.CharField(max_length=32, verbose_name="华为云项目zone")
-    account = models.ForeignKey(HWCloudAccount, on_delete=models.CASCADE, verbose_name="外键，关联华为云的账户id")
-
-    class Meta:
-        db_table = "hw_cloud_project_info"
-        verbose_name = "华为云项目信息"
-
-    def __str__(self):
-        return str(self.id)
-
-
-# noinspection PyUnresolvedReferences
-class HWCloudEipInfo(BaseModel):
-    id = models.CharField(max_length=64, primary_key=True, verbose_name="华为云eip的id")
-    eip = models.GenericIPAddressField()
-    eip_status = models.IntegerField(null=True, verbose_name="华为云eip的status")
-    eip_type = models.IntegerField(null=True, verbose_name="华为云eip的type")
-    eip_zone = models.CharField(max_length=64, null=True, verbose_name="华为云eip归属区域")
-    bandwidth_id = models.CharField(max_length=64, null=True, verbose_name="华为云的带宽id")
-    bandwidth_name = models.CharField(max_length=64, null=True, verbose_name="华为云的带宽name")
-    bandwidth_size = models.IntegerField(null=True, verbose_name="华为云的带宽size")
-    example_id = models.CharField(max_length=64, null=True, verbose_name="实例id")
-    example_name = models.CharField(max_length=64, null=True, verbose_name="实例name")
-    example_type = models.CharField(max_length=32, null=True, verbose_name="实例type")
-    create_time = models.DateTimeField(verbose_name="创建时间")
-    refresh_time = models.DateTimeField(verbose_name="刷新时间")
-    account = models.CharField(max_length=32, verbose_name="华为云账户名称")  # not use FK, for refresh data
-
-    def to_dict(self, fields=None, exclude=None, is_relate=False):
-        """
-        转dict
-        :return:
-        """
-        dict_data = dict()
-        eip_status_dict = HWCloudEipStatus.get_status_comment()
-        eip_type_dict = HWCloudEipType.get_status_comment()
-        for f in chain(self._meta.concrete_fields, self._meta.many_to_many):
-            value = f.value_from_object(self)
-            if fields and f.name not in fields:
-                continue
-            if exclude and f.name in exclude:
-                continue
-            if isinstance(f, models.ManyToManyField):
-                if is_relate is False:
-                    continue
-                value = [i.to_dict() for i in value] if self.pk else None
-            if isinstance(f, models.DateTimeField):
-                value = value.strftime('%Y-%m-%d %H:%M:%S') if value else None
-            if f.name == "eip_status":
-                value = eip_status_dict[value]
-            if f.name == "eip_type":
-                value = eip_type_dict[value]
-            dict_data[f.name] = value
-        return dict_data
-
-    class Meta:
-        db_table = "hw_cloud_eip_info"
-        verbose_name = "华为云eip信息"
-
-    def __str__(self):
-        return str(self.id)
-
-
-class HWCloudBillInfo(BaseModel):
-    bill_cycle = models.CharField(max_length=16, verbose_name="账期(单位月)")
-    account = models.CharField(max_length=32, verbose_name="华为云账户名称")
-    resource_type_name = models.CharField(max_length=64, verbose_name="云服务类型名称")
-    consume_amount = models.FloatField(verbose_name="应付金额")
-    discount_rate = models.FloatField(null=True, verbose_name="折扣率")
-    actual_cost = models.FloatField(null=True, verbose_name="实际费用")
-
-    class Meta:
-        db_table = "hw_cloud_bill_info"
-        verbose_name = "华为云账单信息"
 
 
 class HWCloudScanEipPortStatus(BaseModel):
@@ -104,12 +13,35 @@ class HWCloudScanEipPortStatus(BaseModel):
     class Meta:
         db_table = "hw_cloud_scan_eip_port_status"
         verbose_name = "华为云高危端口扫描状态表"
+        verbose_name_plural = verbose_name
 
     def __str__(self):
         return str(self.account)
 
+    @classmethod
+    def delete_all(cls):
+        return cls.objects.all().delete()
 
-# noinspection PyUnresolvedReferences
+    @classmethod
+    def save_scan_eip_port_status(cls, account, status):
+        return cls.objects.create(account=account, status=status)
+
+    @classmethod
+    def query_scan_eip_port_status(cls, account):
+        try:
+            return cls.objects.get(account=account)
+        except cls.DoesNotExist:
+            return None
+
+    @classmethod
+    def create_all(cls, status_list):
+        return cls.objects.bulk_create(status_list)
+
+    @classmethod
+    def update_status(cls, account_list, status):
+        return HWCloudScanEipPortStatus.objects.filter(account__in=account_list).update(status=status)
+
+
 class HWCloudScanEipPortInfo(BaseModel):
     eip = models.GenericIPAddressField(verbose_name="华为云EIP")
     port = models.IntegerField(verbose_name="华为云EIP的暴露端口")
@@ -147,9 +79,26 @@ class HWCloudScanEipPortInfo(BaseModel):
     class Meta:
         db_table = "hw_cloud_scan_eip_port_info"
         verbose_name = "华为云高危端口扫描信息"
+        verbose_name_plural = verbose_name
 
     def __str__(self):
         return str(self.eip)
+
+    @classmethod
+    def equal_account(cls, account):
+        return cls.objects.filter(account=account)
+
+    @classmethod
+    def filter_account(cls, account_list):
+        return cls.objects.filter(account__in=account_list)
+
+    @classmethod
+    def delete_all(cls):
+        return cls.objects.all().delete()
+
+    @classmethod
+    def create_single(cls, **kwargs):
+        return cls.objects.create(**kwargs)
 
 
 class HWCloudScanObsAnonymousStatus(BaseModel):
@@ -159,9 +108,33 @@ class HWCloudScanObsAnonymousStatus(BaseModel):
     class Meta:
         db_table = "hw_cloud_scan_obs_anonymous_bucket_status"
         verbose_name = "华为云对象系统匿名桶状态表"
+        verbose_name_plural = verbose_name
 
     def __str__(self):
         return str(self.account)
+
+    @classmethod
+    def query_scan_obs_status(cls, account):
+        try:
+            return cls.objects.get(account=account)
+        except cls.DoesNotExist:
+            return None
+
+    @classmethod
+    def save_scan_obs_status(cls, account, status):
+        return cls.objects.create(account=account, status=status)
+
+    @classmethod
+    def create_all(cls, status_list):
+        return cls.objects.bulk_create(status_list)
+
+    @classmethod
+    def get(cls, account_list, status):
+        return cls.objects.filter(account__in=account_list).update(status=status)
+
+    @classmethod
+    def delete_all(cls):
+        return cls.objects.all().delete()
 
 
 class HWCloudScanObsAnonymousBucket(BaseModel):
@@ -172,9 +145,26 @@ class HWCloudScanObsAnonymousBucket(BaseModel):
     class Meta:
         db_table = "hw_cloud_scan_obs_anonymous_bucket"
         verbose_name = "华为云对象系统匿名桶"
+        verbose_name_plural = verbose_name
 
     def __str__(self):
         return str(self.bucket)
+
+    @classmethod
+    def create_single(cls, **kwargs):
+        return cls.objects.create(**kwargs)
+
+    @classmethod
+    def equal_account(cls, account):
+        return cls.objects.filter(account=account)
+
+    @classmethod
+    def filter_account(cls, account_list):
+        return cls.objects.filter(account__in=account_list)
+
+    @classmethod
+    def delete_all(cls):
+        return cls.objects.all().delete()
 
 
 class HWCloudScanObsAnonymousFile(BaseModel):
@@ -187,9 +177,26 @@ class HWCloudScanObsAnonymousFile(BaseModel):
     class Meta:
         db_table = "hw_cloud_scan_obs_anonymous_file"
         verbose_name = "华为云对象系统匿名文件"
+        verbose_name_plural = verbose_name
 
     def __str__(self):
         return str(self.bucket)
+
+    @classmethod
+    def create_single(cls, **kwargs):
+        return cls.objects.create(**kwargs)
+
+    @classmethod
+    def equal_account(cls, account):
+        return cls.objects.filter(account=account)
+
+    @classmethod
+    def filter_account(cls, account_list):
+        return cls.objects.filter(account__in=account_list)
+
+    @classmethod
+    def delete_all(cls):
+        return cls.objects.all().delete()
 
 
 class HWCloudHighRiskPort(BaseModel):
@@ -200,76 +207,34 @@ class HWCloudHighRiskPort(BaseModel):
     class Meta:
         db_table = "hw_cloud_high_risk_port"
         verbose_name = "华为云高危端口"
+        verbose_name_plural = verbose_name
 
     def __str__(self):
         return str(self.port)
 
+    @classmethod
+    def all(cls):
+        return cls.objects.all()
 
-class HWColudObsInteract(BaseModel):
-    username = models.CharField(max_length=64, verbose_name="华为云IAM用户")
-    community = models.CharField(max_length=16, verbose_name="社区")
-    user_id = models.CharField(max_length=32, verbose_name="用户id")
-    password = models.CharField(max_length=64, verbose_name="用户密码")
-    is_delete = models.BooleanField(default=False, verbose_name="软删除")
+    @classmethod
+    def filter(cls, filter_value):
+        return cls.objects.filter(port__contains=filter_value)
 
-    class Meta:
-        db_table = "hw_cloud_obs_interact"
-        verbose_name = "华为云对象上传系统"
+    @classmethod
+    def create_all(cls, save_list_data):
+        return cls.objects.bulk_create(save_list_data)
 
-    def __str__(self):
-        return str(self.id)
+    @classmethod
+    def query_high_risk_port(cls, port):
+        try:
+            return cls.objects.get(port=port)
+        except cls.DoesNotExist:
+            return None
 
+    @classmethod
+    def create_single(cls, port, desc):
+        return cls.objects.create(port=port, desc=desc)
 
-class ServiceInfo(BaseModel):
-    service_name = models.CharField(max_length=64, null=True, verbose_name="服务名称:argocd")
-    service_alias = models.CharField(max_length=64, null=True, verbose_name="服务别名")
-    url = models.URLField(null=True, verbose_name="域名： argocd")
-    url_alias = models.URLField(null=True, verbose_name="域名别名")
-    namespace = models.CharField(max_length=64, null=True, verbose_name="命名空间")
-    cluster = models.CharField(max_length=64, null=True, verbose_name="集群名")
-    service_introduce = models.CharField(max_length=64, null=True, verbose_name="服务介绍")
-    community = models.CharField(max_length=16, null=True, verbose_name="社区")
-    month_abnormal_time = models.FloatField(null=True, verbose_name="月度异常累计时间")
-    year_abnormal_time = models.FloatField(null=True, verbose_name="年度异常累计时间")
-    month_sla = models.FloatField(null=True, verbose_name="月度sla")
-    year_sla = models.FloatField(null=True, verbose_name="年度sla")
-    remain_time = models.FloatField(null=True, verbose_name="年度剩余sla配额")
-
-    class Meta:
-        db_table = "service_info"
-        verbose_name = "service_info信息表"
-
-    def __str__(self):
-        return self.id
-
-
-class CpuResourceUtilization(BaseModel):
-    name = models.CharField(max_length=256, null=True, verbose_name="服务器名称")
-    create_time = models.IntegerField(null=True, verbose_name="创建时间戳")
-    lower_cpu_count = models.IntegerField(null=True, verbose_name="低cpu统计:<10%的cpu统计个数, 不包含10%")
-    medium_lower_cpu_count = models.IntegerField(null=True, verbose_name="中低cpu统计:10-50%的cpu统计个数, 不包含50%")
-    medium_high_cpu_count = models.IntegerField(null=True, verbose_name="中高cpu统计:50-90%的cpu统计个数, 不包含90%")
-    high_cpu_count = models.IntegerField(null=True, verbose_name="高cpu统计:>90%的cpu统计个数")
-
-    class Meta:
-        db_table = "cpu_resource_utilization"
-        verbose_name = "服务器cpu资源利用率统计"
-
-    def __str__(self):
-        return self.id
-
-
-class MemResourceUtilization(BaseModel):
-    name = models.CharField(max_length=256, null=True, verbose_name="服务器名称")
-    create_time = models.IntegerField(null=True, verbose_name="创建时间戳")
-    lower_mem_count = models.IntegerField(null=True, verbose_name="低mem统计:<10%的cpu统计个数, 不包含10%")
-    medium_lower_mem_count = models.IntegerField(null=True, verbose_name="中低mem统计:10-50%的cpu统计个数, 不包含50%")
-    medium_high_mem_count = models.IntegerField(null=True, verbose_name="中高mem统计:50-90%的cpu统计个数, 不包含90%")
-    high_mem_count = models.IntegerField(null=True, verbose_name="高mem统计:>90%的mem统计个数")
-
-    class Meta:
-        db_table = "mem_resource_utilization"
-        verbose_name = "服务器内存资源利用率统计"
-
-    def __str__(self):
-        return self.id
+    @classmethod
+    def delete_single(cls, port_list):
+        return cls.objects.filter(port__in=port_list).delete()

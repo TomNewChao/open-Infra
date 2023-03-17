@@ -1,0 +1,84 @@
+MindSpore Internship	@		@	https://internship.mindspore.cn/zh/internship/
+openEuler Package Build	@	openEuler社区OBS	@	https://build.openeuler.org/
+openEuler Jenkins CI	@	openEuler镜像构建Jenkins服务	@	https://openeulerjenkins.osinfra.cn/computer/
+Kunpenghui Jenkins	@	鲲鹏Jenkins	@	https://kunpengaccci.osinfra.cn/computer/
+Gitee Website	@		@	https://gitee.com
+openLooKeng SMTP	@	openLooKeng社区邮件发送服务	@	mail.openlookeng.io
+openLooKeng Jenkins	@	openLooKeng社区Jenkins服务	@	https://build.openlookeng.io/computer/
+openLookeng docs	@		@	https://docs.openlookeng.io
+openLooKeng Website	@	openLooKeng社区官网	@	https://openlookeng.io
+openLooKeng docs-bug	@	openLooKeng社区文档捉虫服务	@	https://docs-bug.openlookeng.io
+openLooKeng Search	@		@	https://search.openlookeng.io/docs
+openEuler Datastat Omapi	@	Datastat后台服务	@	https://datastat.openeuler.org/query/all?community=openeuler
+openLooKeng paste	@	上传代码生成分享链接	@	https://paste.openlookeng.io
+openLooKeng Mailweb	@	openLooKeng社区邮件列表	@	https://mailweb.openlookeng.io/postorius/lists/
+openLooKeng Tryme	@	openLooKeng集群部署介绍网站	@	https://tryme.openlookeng.io
+openGauss Mailweb	@	openGauss社区邮箱	@	https://mailweb.opengauss.org/postorius/lists/
+openLooKeng Datastat	@	openLooKeng社区数据展示	@	https://datastat.openlookeng.io
+openEuler Discourse	@	openEuler社区论坛	@	https://forum.openeuler.org/
+openEuler Meetings	@	openEuler社区会议小程序	@	https://meetings.openeuler.org/groups/
+openEuler Moscow Mirror	@	openEuler俄罗斯镜像下载网站	@	https://ru-repo.openeuler.org/
+MindSpore Mailweb	@	MindSpore社区邮箱列表	@	https://mailweb.mindspore.cn/postorius/lists/
+openGauss Jenkins	@	openGauss社区jenkins服务	@	https://jenkins.opengauss.org/computer/
+MindSpore Jenkins	@	MindSpore社区Jenkins	@	https://build.mindspore.cn/computer/
+openEuler CVE Manager	@	openEuler社区CVE管理状态展示	@	https://api.openeuler.org/cve-manager/v1/cve/issue
+openEuler France Mirror	@	openEuler巴黎镜像站点	@	https://fr-repo.openeuler.org/
+openEuler Search	@		@	https://www.openeuler.org/api-search/search/docs
+openEuler Mailling List	@	openEuler社区邮箱列表	@	https://mailweb.openeuler.org/postorius/lists/
+Mindspore search	@		@	https://www.mindspore.cn/searchdoc
+openEuler Quickissue Backend	@	openEuler社区Issue和PR快速提交平台后台服务	@	https://ipb.osinfra.cn/issues/types
+MAJUN	@	代码门禁	@	https://majun.osinfra.cn
+Metadata Service	@	代码仓元数据下载	@	https://api.osinfra.cn/metadata/health
+openEuler HongKong Mirror	@	openEuler镜像下载网站	@	https://repo.openeuler.org/
+openGauss Etherpad	@	记事本	@	https://etherpad.opengauss.org
+MindSpore Xihe	@	昇思大模型平台	@	https://xihe.mindspore.cn
+openEuler Etherpad	@	记事本	@	https://etherpad.openeuler.org/
+MindSpore Internship New	@		@	https://new.mindspore.cn
+MindSpore SMTP	@	MindSpore社区邮件发送服务	@	mail.mindspore.cn
+MindSpore Sunmao	@	MindSpore社区标签机器人服务	@	https://sunmao.mindspore.cn
+openEuler Bugzilla	@		@	https://bugzilla.openeuler.org/
+openEuler Copr	@		@	https://eur.openeuler.openatom.cn/
+openEuler HongKong	@	openEuler官网	@	https://openeuler.org/zh/
+openEuler License Show Room	@	貂蝉License展示	@	https://compliance.openeuler.org/
+openEuler SMTP	@	openEuler社区邮件发送服务	@	159.138.46.20
+openEuler Compass CI Platform	@	开发式测试服务平台Compass CI首页	@	https://compass-ci.openeuler.org/
+openGauss Docs	@		@	https://docs.opengauss.org
+openGauss Search	@		@	https://opengauss.org/api-search/search/docs
+openGauss SMTP	@	openGauss社区邮件发送服务	@	mail.opengauss.org
+openLooKeng Download	@	openLooKeng社区资源下载服务	@	https://download.openlookeng.io
+paas robot	@	Kurator项目prow机器人	@	https://paas-prow.osinfra.cn/hook
+Software Composition Analysis	@	风险数据看板	@	https://sca.osinfra.cn/
+Test Domain Monitor	@		@	https://xihe2.test.osinfra.cn
+openEuler OmniBuildPlatform	@	openEuler社区镜像构建下载服务	@	https://omni.openeuler.sh
+openEuler QA Robot	@	openEuler社区客服机器人欧拉小智	@	https://qa-robot.openeuler.org/
+openEuler Package Manage	@	openEuler Package Management	@	https://pkgmanage.openeuler.org/
+openEuler QuickIssue	@	openEuler社区Issue和PR快速提交平台前端服务	@	https://quickissue.openeuler.org/zh/issues/
+openEuler User Repo Mirror	@	openEuler用户镜像站点	@	https://user-repo.openeuler.openatom.cn
+openEuler Community Certificate	@	openEuler社区认证服务	@	https://ccs.openeuler.org/actuator/health/liveness
+openEuler Usercenter	@	openEuler社区用户中心	@	https://id.openeuler.org/zh/profile
+openEuler NestOS	@	openEuler NestOS云底座操作系统前端服务	@	https://nestos.openeuler.org/
+openEuler MirrorManager	@	openEuler官网	@	https://api.openeuler.org/mirrors/
+openEuler Reproducible Builds	@	openEuler可重复构建	@	https://reproducible-builds.openeuler.org
+Community Talent Certification	@	openEuler社区人才认证IT系统	@	https://talent-assessment.openeuler.org
+Explainshell	@	Shell命令解释服务	@	https://explainshell.openeuler.sh
+openEuler PlayGround2	@	openEuler学习平台	@	https://moocstudio.openeuler.org
+Infra Ops	@	基础设施运维平台	@	https://ops.osinfra.cn/
+openEuler-ECS-Prometheus	@	prometheus监控服务	@	https://openeuler-ecs-beijing4-prometheus.osinfra.cn/graph
+openGauss Usercenter	@	openGauss社区用户中心	@	https://id.opengauss.org/zh/profile
+openGauss odd	@	openGauss社区开发者大会人传人海报生成服务	@	https://odd.opengauss.org
+openGauss HongKong Website	@	openGauss官网	@	https://www.opengauss.org/zh/
+openGauss Blog	@	openGauss博客	@	https://blog.opengauss.org
+openGauss Meetings	@	openGauss社区会议小程序	@	https://opengauss.org/calendar/groups/
+openGauss Moocstudio	@	openGauss社区学习平台	@	https://moocstudio.opengauss.org
+openGauss Reproducible Builds	@	openGauss可重复构建	@	https://reproducible-builds.opengauss.org/
+MindSpore Download	@	MindSpore资源下载	@	https://download.mindspore.cn/
+MindSpore Binaries	@	MindSpore包管理	@	https://repo.mindspore.cn
+voting	@	helios投票服务	@	https://helios-voting.osinfra.cn/
+MindSpore WWW	@	MindSpore官网	@	https://www.mindspore.cn
+MindSpore Xihe Doc	@	昇思文档	@	https://xihe-docs.mindspore.cn/zh/introduction/
+MindSpore Meetings	@	MindSpore会议小程序	@	https://api.mindspore.cn/meetings/sigs/
+MindSpore Reproducible Builds	@	MindSpore可重复构建	@	https://reproducible-builds.mindspore.cn
+openEuler Moscow	@	openEuler俄语官网	@	https://ru.openeuler.org/ru/
+openEuler Beijing Mirror	@	openEuler镜像北京下载地址	@	http://121.36.97.194/
+openEuler Document	@	openEuler社区文档	@	https://docs.openeuler.org/zh/
+Etherpad	@	记事本	@	https://etherpad.mindspore.cn

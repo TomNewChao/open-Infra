@@ -15,6 +15,6 @@ class AlarmConfig(AppConfig):
     @runserver_executor
     def ready(self):
         from alarm.resources.alarm_module.alarm_thread import AlarmClient
-        if settings.IS_RUNSERVER:
+        if settings.IS_COLLECT_ALARM:
             alarm_client = AlarmClient()
             alarm_client.start()

@@ -46,10 +46,14 @@ INSTALLED_APPS = [
     'corsheaders',
 
     # owner apps
-    'clouds_tools.apps.CloudsToolsConfig',
-    'users.apps.UsersConfig',
     'alarm.apps.AlarmConfig',
+    'app_resources.apps.AppResourcesConfig',
+    'clouds_tools.apps.CloudsToolsConfig',
+    'consumption_control.apps.ConsumptionControlConfig',
+    'obs_upload.apps.ObsUploadConfig',
     'permission.apps.PermissionConfig',
+    'users.apps.UsersConfig',
+
 ]
 
 MIDDLEWARE = [
@@ -153,6 +157,12 @@ if len(sys.argv) > 1 and sys.argv[1] == "runserver":
 elif len(sys.argv) >= 1 and sys.argv[0] == "uwsgi":
     IS_RUNSERVER = True
 
+IS_COLLECT_ALARM = True
+IS_COLLECT_APP_RES = True
+IS_COLLECT_CLOUDS_TOOLS = True
+IS_COLLECT_CONSUMPTION_CON = True
+IS_COLLECT_PERMISSION = True
+
 # log and lib path setting
 if platform.system() == "Windows":
     LOG_PATH = os.path.dirname(os.path.dirname(os.getcwd()))
@@ -253,7 +263,7 @@ OBS_DOMAIN_ID = os.getenv("obs_domain_id")
 # obs bucketname and path
 DOWNLOAD_BUCKET_NAME = "obs-for-openeuler-developer"
 DOWNLOAD_EIP_KEY_NAME = "secret-files/collect_elastic_public_ip.yaml"
-DOWNLOAD_SLA_KEY_NAME = "secret-files/sla.yaml"
+DOWNLOAD_SLA_KEY_NAME = "secret-files/sla_bak.yaml"
 
 # hw account
 ZONE_ALIAS_DICT = {

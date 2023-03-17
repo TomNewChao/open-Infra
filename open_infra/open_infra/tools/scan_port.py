@@ -15,7 +15,6 @@ from abc import abstractmethod
 
 from huaweicloudsdkcore.exceptions.exceptions import ClientRequestException, ConnectionException
 
-from clouds_tools.models import HWCloudEipInfo
 from collections import defaultdict
 from logging import getLogger
 from django.conf import settings
@@ -29,6 +28,7 @@ from huaweicloudsdkeip.v2 import ListPublicipsRequest as ListPublicipsRequestV2
 from huaweicloudsdkeip.v3 import EipClient as EipClientV3
 from huaweicloudsdkeip.v3 import ListPublicipsRequest as ListPublicipsRequestV3
 
+from app_resources.models import HWCloudEipInfo
 from open_infra.utils.default_port_list import HighRiskPort
 
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)

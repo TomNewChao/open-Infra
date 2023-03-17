@@ -6,23 +6,13 @@ ENV PYTHONUNBUFFERED 1
 RUN mkdir /opt/open_infra
 WORKDIR /opt/open_infra
 COPY . /opt/open_infra/
-RUN cp /opt/open_infra/kubernetes.repo /etc/yum.repos.d/
-RUN chmod 755 /etc/yum.repos.d/kubernetes.repo
-RUN yum install -y gcc-c++
-RUN yum install -y python3
-RUN yum install -y python3-pip
-RUN yum install -y python3-devel
-RUN yum install -y java-1.8.0-openjdk*
-RUN yum install -y nmap
-RUN yum install -y kubectl
-RUN yum install -y git
-RUN yum install -y mysql
-RUN pip3 install -r /opt/open_infra/requirements.txt
 COPY ./docker-entrypoint.sh /usr/local/bin/
 RUN chmod 777 /usr/local/bin/docker-entrypoint.sh
+RUN cp /opt/open_infra/build/kubernetes.repo /etc/yum.repos.d/ && chmod 755 /etc/yum.repos.d/kubernetes.repo
+RUN yum update && yum install -y gcc-c++ python3 python3-pip python3-devel nmap kubectl git mysql
+RUN pip3 install -r /opt/open_infra/requirements.txt
+RUN tar -zxvf /opt/open_infra/build/kustomize_v3.6.1_linux_amd64.tar.gz -C /usr/bin/
 RUN mkdir /var/log/open-infra/
-
-
 ENV LANG=en_US.UTF-8
 ENV PYTHONPATH=/opt/open_infra
 ENTRYPOINT ["docker-entrypoint.sh"]

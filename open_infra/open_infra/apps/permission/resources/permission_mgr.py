@@ -13,7 +13,8 @@ from django.db import transaction
 from django.db.models import Q
 from pytz import timezone as convert_time_zone
 from django.conf import settings
-from clouds_tools.models import ServiceInfo
+
+from app_resources.models import ServiceInfo
 from open_infra.libs.lib_email import EmailBaseLib
 from open_infra.utils.utils_git import GitBaseToolsLib, GitBase
 from open_infra.utils.utils_kubeconfig import KubeconfigLib

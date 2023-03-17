@@ -179,8 +179,8 @@ def exec_shell_cmd2(api_key, cur_year, cur_month, cur_day):
         count_curl_year_sec = 366 * 60 * 60 * 24
     else:
         count_curl_year_sec = 365 * 60 * 60 * 24
-    allow_err_time_sec = count_curl_year_sec * 0.001
-    allow_err_time_min = count_curl_year_sec / 60 * 0.001
+    allow_err_time_sec = count_curl_year_sec * 0.0005
+    allow_err_time_min = count_curl_year_sec / 60 * 0.0005
     logger.info(f"全年允许异常时间={allow_err_time_sec}s")
     logger.info(f"全年允许异常时间={allow_err_time_min}min")
 
@@ -304,9 +304,9 @@ def scan_cla(year, month, day):
         logger.info("input fault month:{}".format(month))
         raise Exception("params failed")
     api_key = settings.CLA_API_KEY
-    ret_list = exec_shell_cmd2(api_key, year, month, day)
-    return ret_list
+    return exec_shell_cmd2(api_key, year, month, day)
 
 
 if __name__ == '__main__':
-    scan_cla(2022, 8, 25)
+    ret_list = scan_cla(2022, 8, 25)
+    print(ret_list)
