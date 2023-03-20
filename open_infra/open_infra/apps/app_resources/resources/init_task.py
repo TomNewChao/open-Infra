@@ -108,16 +108,22 @@ class InitMgr:
         ServiceInfo.delete_all()
         for config in config_list:
             # todo how to refresh data, need to option, now use first to delete and second to add, ok, it is madness
-            service_info = ServiceInfo.create_single(service_name=config["service_name"],
-                                                     namespace=config["namespace"],
-                                                     cluster=config["cluster"],
-                                                     region=config["region"])
+            service_list = ServiceInfo.get_service_info(config["service_name"], config["namespace"],
+                                                        config["cluster"], config["region"])
+            if len(service_list) == 0:
+                service_info = ServiceInfo.create_single(service_name=config["service_name"],
+                                                         namespace=config["namespace"],
+                                                         cluster=config["cluster"],
+                                                         region=config["region"])
+            else:
+                service_info = service_list[0]
             for image in config["image"]:
                 image_name = image["image"].split(":")[0]
                 image_info = swr_info.get(image_name)
                 if image_info:
                     new_dict = dict()
-                    new_dict["image"] = image_info.get("path")
+                    path = image_info.get("path")
+                    new_dict["image"] = path
                     new_dict["repository"] = image_info.get("repository")
                     new_dict["branch"] = image_info.get("branch")
                     new_dict["developer"] = image_info.get("developer")
@@ -130,7 +136,8 @@ class InitMgr:
                     new_dict["cpu_limit"] = image.get("cpu")
                     new_dict["mem_limit"] = image.get("mem")
                     new_dict["service"] = service_info
-                    ServiceImage.objects.create(**new_dict)
+                    if ServiceImage.get_by_image(image=path, service_id=service_info.id) == 0:
+                        ServiceImage.create_single(**new_dict)
                 else:
                     logger.error("[refresh_service] There find not exist image:{}".format(image_name))
             for url in config["url"]:
@@ -138,8 +145,6 @@ class InitMgr:
                     url = urlparse(url).netloc
                 sla_info = sla_dict.get(url)
                 if sla_info is None:
-                    continue
-                if ServiceSla.objects.filter(url=sla_info["url"]).count() > 0:
                     continue
                 sla_config = ServiceSlaConfig.objects.filter(url=sla_info["url"])
                 if len(sla_config):
@@ -160,7 +165,8 @@ class InitMgr:
                     "remain_time": sla_info.get('remain_time'),
                     "service": service_info,
                 }
-                ServiceSla.create_single(**save_dict)
+                if ServiceSla.get_by_url(url=sla_info["url"]) == 0:
+                    ServiceSla.create_single(**save_dict)
         logger.info("----------------4.end to refresh service-----------------")
 
     @classmethod

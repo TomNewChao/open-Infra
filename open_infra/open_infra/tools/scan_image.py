@@ -22,6 +22,7 @@ logger = getLogger("django")
 
 class GlobalConfig:
     url_list = [
+        "https://gitee.com/opengauss/infra.git",
         "https://github.com/opensourceways/infra-openeuler.git",
         "https://github.com/opensourceways/infra-mindspore.git",
         "https://github.com/opensourceways/infra-openlookeng.git",
@@ -90,6 +91,22 @@ class CollectServiceInfo:
         return dict_data
 
     @staticmethod
+    def read_deploy_config(kustomization_path):
+        cluster, region = str(), str()
+        try:
+            kustomization_info = load_yaml(kustomization_path)
+            if kustomization_info.get("commonAnnotations") and \
+                    kustomization_info["commonAnnotations"].get("kubernetes.ops.cluster"):
+                cluster = kustomization_info["commonAnnotations"]["kubernetes.ops.cluster"]
+            if kustomization_info.get("commonAnnotations") and \
+                    kustomization_info["commonAnnotations"].get("kubernetes.ops.region"):
+                region = kustomization_info["commonAnnotations"]["kubernetes.ops.region"]
+            return True, cluster, region
+        except Exception as e:
+            logger.error("[read_deploy_config] {}, tracekback:{}".format(e, traceback.format_exc()))
+            return False, cluster, region
+
+    @staticmethod
     def get_deploy_config():
         """get the config of k8s"""
         logger.info("[CollectServiceInfo] start to get config data...")
@@ -117,20 +134,16 @@ class CollectServiceInfo:
                         continue
                     elif len(filenames) == 0:
                         continue
-                    is_in_kustomization_dir = False
-                    cluster, region = str(), str()
+                    is_in_kustomization_dir,  cluster, region = False, str(), str()
                     for filename in filenames:
                         if "kustomization.yaml" == filename:
                             kustomization_path = os.path.join(dir_path, filename)
-                            kustomization_info = load_yaml(kustomization_path)
-                            if kustomization_info.get("commonAnnotations") and \
-                                    kustomization_info["commonAnnotations"].get("kubernetes.ops.cluster"):
-                                cluster = kustomization_info["commonAnnotations"]["kubernetes.ops.cluster"]
-                            if kustomization_info.get("commonAnnotations") and \
-                                    kustomization_info["commonAnnotations"].get("kubernetes.ops.region"):
-                                region = kustomization_info["commonAnnotations"]["kubernetes.ops.region"]
-                            is_in_kustomization_dir = True
-                            break
+                            is_ok, cluster, region = CollectServiceInfo.read_deploy_config(kustomization_path)
+                            if is_ok:
+                                is_in_kustomization_dir = True
+                                break
+                            else:
+                                continue
                     if is_in_kustomization_dir:
                         try:
                             all_url, name_space = list(), str()
@@ -139,17 +152,12 @@ class CollectServiceInfo:
                             list_data = yaml.load_all(out_data, Loader=SafeLoader)
                             generator1, generator2 = itertools.tee(list_data, 2)
                             for data in generator1:
-                                # logger.error("0******************************{}".format(dir_path))
                                 if data['kind'].lower() == "ingress":
                                     url = [rule.get("host") for rule in data["spec"]["rules"] if rule.get("host")]
                                     all_url.extend(url)
-                                    # logger.error("1******************************{}".format(url))
-                                    # logger.error("2******************************{}".format(data["spec"]["rules"]))
-                                    # logger.error("3******************************{}".format(data))
                                 if data['kind'].lower() == "namespace":
                                     name_space = data["metadata"]["name"]
                             for data in generator2:
-                                # logger.error("4******************************{}".format(all_url))
                                 if data['kind'].lower() in GlobalConfig.service_kind:
                                     if int(data['spec'].get("replicas", 1)) == 0:
                                         continue
@@ -202,15 +210,15 @@ class CollectServiceInfo:
                                             c["mem"] = ""
                                         dict_data["image"].append(c)
                                     all_list_data.append(dict_data)
-
                         except Exception as e:
-                            logger.error("[CollectServiceInfo] get_deploy_config, path:{},e:{},traceback:{}".format(dir_path, e, traceback.format_exc()))
+                            logger.error(
+                                "[CollectServiceInfo] get_deploy_config, path:{},e:{},traceback:{}".format(dir_path, e,
+                                                                                                           traceback.format_exc()))
                     else:
                         pass
-                        # logger.error("[CollectServiceInfo] There is no kustomization config in dir:{}".format(dir_path))
-                logger.error("[CollectServiceInfo] collect data is:{}".format(len(all_list_data)))
+                logger.info("[CollectServiceInfo] collect data is:{}".format(len(all_list_data)))
             except Exception as e:
-                logger.error(e)
+                logger.error("[scan_image]e:{},traceback:{}".format(e, traceback.format_exc()))
         if os.path.exists(infra_service_dir):
             shutil.rmtree(infra_service_dir)
         return all_list_data

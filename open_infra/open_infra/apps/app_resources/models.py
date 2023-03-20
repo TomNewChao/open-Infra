@@ -86,6 +86,10 @@ class ServiceInfo(BaseModel):
         return cls.objects.aggregate(count=Count('id'))
 
     @classmethod
+    def get_service_info(cls, service_name, namespace, cluster, region):
+        return cls.objects.filter(service_name=service_name, namespace=namespace, cluster=cluster, region=region)
+
+    @classmethod
     def filter(cls, filter_name, filter_value):
         if filter_name and filter_name == "service_name":
             if filter_value:
@@ -150,6 +154,10 @@ class ServiceImage(BaseModel):
         return str(self.id)
 
     @classmethod
+    def get_by_image(cls, image, service_id):
+        return cls.objects.filter(image=image, service__id=service_id).count()
+
+    @classmethod
     def get(cls, service_id, fileds):
         return cls.objects.filter(service_id=service_id).values(fileds)
 
@@ -189,6 +197,10 @@ class ServiceSla(BaseModel):
             "service_alias", "service_introduce", "url",
             "service_zone", "month_abnormal_time", "year_abnormal_time",
             "month_sla", "year_sla", "remain_time")
+
+    @classmethod
+    def get_by_url(cls, url):
+        return cls.objects.filter(url=url).count()
 
     @classmethod
     def create_single(cls, **kwargs):

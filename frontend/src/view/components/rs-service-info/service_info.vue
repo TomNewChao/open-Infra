@@ -63,7 +63,13 @@
 <script>
 import Tables from '_c/tables'
 import './index.less'
-import { exportSlaData, ServiceClusterListApi, ServiceInfoListApi, ServiceDetailApi } from '@/api/tools'
+import {
+  exportSlaData,
+  ServiceClusterListApi,
+  ServiceInfoListApi,
+  ServiceDetailApi,
+  ServiceRegionListApi
+} from '@/api/tools'
 import { getStrDate } from '@/libs/tools'
 import { blobDownload } from '@/libs/download'
 
@@ -78,7 +84,9 @@ export default {
       searchValueServiceInfo: '',
       searchColumnsServiceInfo: [
         { title: '服务名称', key: 'service_name' },
-        { title: '区域', key: 'region' }
+        { title: '代码仓', key: 'repository' },
+        { title: '基础镜像', key: 'base_image' },
+        { title: '基础系统', key: 'base_os' }
       ],
       orderByServiceInfo: 'service_name',
       orderTypeServiceInfo: 1,
@@ -86,10 +94,12 @@ export default {
       pageSizeServiceInfo: 10,
       pageTotalServiceInfo: 10,
       ServiceCluster: '',
+      ServiceRegion: '',
       isServiceDetail: false,
       serviceDetail: {},
       columnsServiceInfo: [
         { title: '服务名称', key: 'service_name', sortable: 'custom' },
+        { title: '集群空间', key: 'namespace' },
         {
           title: '集群名称',
           key: 'cluster',
@@ -99,7 +109,15 @@ export default {
             return value
           }
         },
-        { title: '区域', key: 'region' },
+        {
+          title: '区域',
+          key: 'region',
+          filters: [],
+          filterMultiple: false,
+          filterMethod (value, row) {
+            return value
+          }
+        },
         { title: '代码仓', key: 'repository' },
         { title: '基础镜像', key: 'base_image' },
         { title: '基础系统', key: 'base_os' }
@@ -116,7 +134,6 @@ export default {
         { title: '年度剩余sla', key: 'remain_time' }
       ],
       columnsImageInfo: [
-        { title: '名称', key: 'name' },
         { title: '路径', key: 'image' },
         { title: '仓库', key: 'repository' },
         { title: '分支', key: 'branch' },
@@ -136,6 +153,7 @@ export default {
   mounted () {
     this.handleServiceInfoList()
     this.handleServiceClusterItem()
+    this.handleServiceRegionItem()
   },
   methods: {
     handleServiceInfoSearch () {
@@ -155,7 +173,9 @@ export default {
       this.handleServiceInfoList()
     },
     handleServiceInfoList () {
-      ServiceInfoListApi(this.pageNumServiceInfo, this.pageSizeServiceInfo, this.orderByServiceInfo, this.orderTypeServiceInfo, this.searchKeyServiceInfo, this.searchValueServiceInfo, this.ServiceCluster).then(res => {
+      ServiceInfoListApi(this.pageNumServiceInfo, this.pageSizeServiceInfo, this.orderByServiceInfo,
+        this.orderTypeServiceInfo, this.searchKeyServiceInfo, this.searchValueServiceInfo,
+        this.ServiceCluster, this.ServiceRegion).then(res => {
         if (res.data.err_code !== 0) {
           this.$Message.info(res.data.description)
         } else {
@@ -184,14 +204,22 @@ export default {
         }
       })
     },
+    handleServiceRegionItem () {
+      ServiceRegionListApi().then(res => {
+        if (res.data.err_code !== 0) {
+          this.$Message.info(res.data.description)
+        } else {
+          this.columnsServiceInfo[2].filters = res.data.data
+        }
+      })
+    },
     handleServiceFilter (value) {
       if (value.key === 'cluster') {
         this.ServiceCluster = value._filterChecked[0]
+      } else if (value.key === 'region') {
+        this.ServiceRegion = value._filterChecked[0]
       }
-      // } else if (value.key === 'namespace') {
-      //   this.ServiceNamespace = value._filterChecked[0]
-      // }
-      this.queryServiceInfoList()
+      this.handleServiceInfoList()
     },
     handleRowClick (row, index) {
       const id = row.id

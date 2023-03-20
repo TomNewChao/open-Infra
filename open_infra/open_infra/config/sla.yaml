@@ -250,3 +250,37 @@
 - service_alias: Etherpad
   service_introduce: 记事本
   url: https://etherpad.mindspore.cn
+- service_alias: MindSpore Website
+  service_introduce: MindSpore官网
+  url: https://mindspore.cn
+- service_alias: MindSpore Datastat
+  service_introduce: MindSpore社区数据展示
+  url: https://datastat.mindspore.cn
+- service_alias: openEuler PlayGround
+  service_introduce: openEuler学习平台
+  url: https://moocstudio.openeuler.sh
+- service_alias: Contributor License Agreement
+  service_introduce: 开源社区SLA签署
+  url: https://clasign.osinfra.cn/index
+- service_alias: MindSpore paste
+  service_introduce: 上传代码生成分享链接
+  url: https://paste.mindspore.cn
+- service_alias: openEuler paste
+  service_introduce: 上传代码生成分享链接
+  url: https://paste.openeuler.org
+- service_alias: openGauss paste
+  service_introduce: 上传代码生成分享链接
+  url: https://paste.opengauss.org
+- service_alias: openGauss Datastat
+  service_introduce: openGauss社区数据展示
+  url: https://datastat.opengauss.org
+- service_alias: Majun anti-poison
+  service_introduce: Majun防投毒
+  url: https://anti-poison.osinfra.cn/checkRule/query/rules/config
+- service_alias: Majun source clean
+  service_introduce: Majun来源清洁
+  url: https://source-clean.osinfra.cn
+- service_alias: openEuler Copr
+  service_introduce: openEuler用户仓服务
+  url: https://eur.openeuler.openatom.cn/
+

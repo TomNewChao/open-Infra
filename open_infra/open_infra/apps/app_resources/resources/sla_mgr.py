@@ -36,7 +36,10 @@ class SlaMgr:
             ret_dict["month_sla"] = sla_temp[6].replace("%", "")
             ret_dict["year_sla"] = sla_temp[7].replace("%", "")
             ret_dict["remain_time"] = round(sla_temp[8], 4)
-            key = urlparse(sla_temp[-1]).netloc
+            if sla_temp[-1].startswith("http"):
+                key = urlparse(sla_temp[-1]).netloc
+            else:
+                key = sla_temp[-1]
             all_sla_dict.update({key: ret_dict})
         return all_sla_dict
 
