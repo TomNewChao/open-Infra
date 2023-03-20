@@ -5,6 +5,9 @@
 # @Software: PyCharm
 from django.contrib import admin
 
+admin.site.site_title = "open-infra"
+admin.site.site_header = "open-infra后台管理"
+
 
 class BaseAdmin(admin.ModelAdmin):
     pass

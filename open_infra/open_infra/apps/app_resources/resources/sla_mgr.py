@@ -23,12 +23,13 @@ class SlaMgr:
         logger.info("[SlaMgr] query_all_sla_info query year:{} month:{} day:{}".format(cur_date.year, cur_date.month,
                                                                                        cur_date.day))
         sla_detail_list = scan_cla(year=int(cur_date.year), month=int(cur_date.month), day=int(cur_date.day))
-        all_sla_dict = dict()
+        all_sla_list = list()
         for sla_temp in sla_detail_list:
             ret_dict = dict()
             del sla_temp[0]
             if sla_temp[0] in self._ignore_service_name_alias:
                 continue
+            ret_dict["service_alias"] = sla_temp[0]
             ret_dict["url"] = sla_temp[-1]
             ret_dict["service_zone"] = settings.CLA_EXPLAIN.get(sla_temp[3].lower())
             ret_dict["month_abnormal_time"] = sla_temp[4]
@@ -36,12 +37,8 @@ class SlaMgr:
             ret_dict["month_sla"] = sla_temp[6].replace("%", "")
             ret_dict["year_sla"] = sla_temp[7].replace("%", "")
             ret_dict["remain_time"] = round(sla_temp[8], 4)
-            if sla_temp[-1].startswith("http"):
-                key = urlparse(sla_temp[-1]).netloc
-            else:
-                key = sla_temp[-1]
-            all_sla_dict.update({key: ret_dict})
-        return all_sla_dict
+            all_sla_list.append(ret_dict)
+        return all_sla_list
 
     def get_all_namespace(self):
         """query all namespace from mysql"""

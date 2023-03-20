@@ -52,7 +52,7 @@
               @on-filter-change="handleServiceFilter"
               @on-sort-change="handleServiceInfoSort"
               @on-row-click="handleRowClick"/>
-      <Page :total="pageTotalServiceInfo" :current="pageNumServiceInfo" :page-size="pageSizeServiceInfo"
+      <Page :total="pageTotalServiceInfo" :current="pageNumServiceInfo" :page-size="pageSizeServiceInfo" :pageSizeOpts="pageSizeOpts"
             show-sizer show-total
             @on-change="handleServiceInfoPage"
             @on-page-size-change="handleServiceInfoPageSize"/>
@@ -80,6 +80,7 @@ export default {
   },
   data () {
     return {
+      pageSizeOpts: [10, 20, 50],
       searchKeyServiceInfo: '',
       searchValueServiceInfo: '',
       searchColumnsServiceInfo: [
@@ -99,7 +100,7 @@ export default {
       serviceDetail: {},
       columnsServiceInfo: [
         { title: '服务名称', key: 'service_name', sortable: 'custom' },
-        { title: '集群空间', key: 'namespace' },
+        { title: '命名空间', key: 'namespace' },
         {
           title: '集群名称',
           key: 'cluster',
@@ -200,7 +201,7 @@ export default {
         if (res.data.err_code !== 0) {
           this.$Message.info(res.data.description)
         } else {
-          this.columnsServiceInfo[1].filters = res.data.data
+          this.columnsServiceInfo[2].filters = res.data.data
         }
       })
     },
@@ -209,7 +210,7 @@ export default {
         if (res.data.err_code !== 0) {
           this.$Message.info(res.data.description)
         } else {
-          this.columnsServiceInfo[2].filters = res.data.data
+          this.columnsServiceInfo[3].filters = res.data.data
         }
       })
     },

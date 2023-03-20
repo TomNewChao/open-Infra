@@ -5,12 +5,10 @@
 # @Software: PyCharm
 import datetime
 import os
-from urllib.parse import urlparse
-
 import yaml
 from django.conf import settings
 
-from app_resources.models import HWCloudProjectInfo, HWCloudAccount, HWCloudEipInfo, ServiceSlaConfig, ServiceInfo, \
+from app_resources.models import HWCloudProjectInfo, HWCloudAccount, HWCloudEipInfo, ServiceInfo, \
     ServiceSla, ServiceImage
 from app_resources.resources.account_mgr import AccountMgr
 from app_resources.resources.sla_mgr import SlaMgr
@@ -78,36 +76,13 @@ class InitMgr:
                     HWCloudEipInfo.create_single(**dict_data)
         logger.info("----------------2.finish scan_eip-----------------------")
 
-    @staticmethod
-    @func_retry()
-    def refresh_sla_config():
-        """Through to reading the default high level port from config and write to mysql """
-        logger.info("----------------3.start refresh sla config-----------------")
-        service_sla_config = ServiceSlaConfig.all()
-        if len(service_sla_config) != 0:
-            logger.info("[refresh_sla_config] The data is existed, no initial data")
-        else:
-            path = os.path.join(settings.BASE_DIR, "config", "sla.yaml")
-            with open(path, "r+", encoding="gbk") as file:
-                list_data = yaml.load(file, Loader=yaml.FullLoader)
-            save_list_data = [ServiceSlaConfig(url=data["url"], service_alias=data["service_alias"],
-                                               service_introduce=data["service_introduce"]) for data in list_data]
-            ServiceSlaConfig.create_all(save_list_data)
-        logger.info("----------------3.finish refresh sla config-----------------")
-
     @classmethod
     @func_catch_exception
     def refresh_service(cls):
         """Read the information from uptime-robot and swr and deploy config, and refresh data to mysql"""
-        logger.info("----------------4.start refresh service information-----------------")
+        logger.info("----------------3.start refresh service information-----------------")
         swr_info, config_list = CollectServiceInfo.get_service()
-        sla_mgr = SlaMgr()
-        sla_dict = sla_mgr.query_all_sla_info()
-        ServiceImage.delete_all()
-        ServiceSla.delete_all()
-        ServiceInfo.delete_all()
         for config in config_list:
-            # todo how to refresh data, need to option, now use first to delete and second to add, ok, it is madness
             service_list = ServiceInfo.get_service_info(config["service_name"], config["namespace"],
                                                         config["cluster"], config["region"])
             if len(service_list) == 0:
@@ -119,69 +94,80 @@ class InitMgr:
                 service_info = service_list[0]
             for image in config["image"]:
                 image_name = image["image"].split(":")[0]
-                image_info = swr_info.get(image_name)
-                if image_info:
-                    new_dict = dict()
-                    path = image_info.get("path")
-                    new_dict["image"] = path
-                    new_dict["repository"] = image_info.get("repository")
-                    new_dict["branch"] = image_info.get("branch")
-                    new_dict["developer"] = image_info.get("developer")
-                    new_dict["email"] = image_info.get("email")
-                    new_dict["base_image"] = image_info.get("base_image")
-                    new_dict["base_os"] = image_info.get("os")
-                    new_dict["pipline_url"] = image_info.get("pipline_url")
-                    new_dict["num_download"] = image_info.get("num_download")
-                    new_dict["size"] = image_info.get("size")
-                    new_dict["cpu_limit"] = image.get("cpu")
-                    new_dict["mem_limit"] = image.get("mem")
-                    new_dict["service"] = service_info
-                    if ServiceImage.get_by_image(image=path, service_id=service_info.id) == 0:
-                        ServiceImage.create_single(**new_dict)
-                else:
-                    logger.error("[refresh_service] There find not exist image:{}".format(image_name))
-            for url in config["url"]:
-                if url.startswith(r"http"):
-                    url = urlparse(url).netloc
-                sla_info = sla_dict.get(url)
-                if sla_info is None:
-                    continue
-                sla_config = ServiceSlaConfig.objects.filter(url=sla_info["url"])
-                if len(sla_config):
-                    service_alias = sla_config[0]["service_alias"]
-                    service_introduce = sla_config[0]["service_introduce"]
-                else:
-                    service_alias = ""
-                    service_introduce = ""
+                image_info = swr_info.get(image_name, dict())
+                new_dict = dict()
+                path = image_info.get("path")
+                new_dict["image"] = image_name
+                new_dict["repository"] = image_info.get("repository")
+                new_dict["branch"] = image_info.get("branch")
+                new_dict["developer"] = image_info.get("developer")
+                new_dict["email"] = image_info.get("email")
+                new_dict["base_image"] = image_info.get("base_image")
+                new_dict["base_os"] = image_info.get("os")
+                new_dict["pipline_url"] = image_info.get("pipline_url")
+                new_dict["num_download"] = image_info.get("num_download")
+                new_dict["size"] = image_info.get("size")
+                new_dict["cpu_limit"] = image.get("cpu")
+                new_dict["mem_limit"] = image.get("mem")
+                new_dict["service"] = service_info
+                if ServiceImage.get_by_image(image=path, service_id=service_info.id) == 0:
+                    ServiceImage.create_single(**new_dict)
+        logger.info("----------------3.end to refresh service-----------------")
+
+    @classmethod
+    @func_catch_exception
+    def refersh_service_sla(cls):
+        logger.info("----------------4.start refresh service sla information-----------------")
+        sla_mgr = SlaMgr()
+        sla_list = sla_mgr.query_all_sla_info()
+        path = os.path.join(settings.BASE_DIR, "config", "sla.yaml")
+        with open(path, "r+", encoding="gbk") as file:
+            list_data = yaml.load(file, Loader=yaml.FullLoader)
+        service_sla_dict = {data["service_alias"]: data["service_introduce"] for data in list_data}
+        for sla_info in sla_list:
+            if ServiceSla.get_by_url(url=sla_info["url"]) == 0:
+                service_alias = sla_info.get('service_alias')
                 save_dict = {
                     "url": sla_info["url"],
+                    "service_introduce": service_sla_dict.get(service_alias),
                     "service_alias": service_alias,
-                    "service_introduce": service_introduce,
                     "service_zone": sla_info.get('service_zone'),
                     "month_abnormal_time": sla_info.get('month_abnormal_time'),
                     "year_abnormal_time": sla_info.get('year_abnormal_time'),
                     "month_sla": sla_info.get('month_sla'),
                     "year_sla": sla_info.get('year_sla'),
                     "remain_time": sla_info.get('remain_time'),
-                    "service": service_info,
                 }
-                if ServiceSla.get_by_url(url=sla_info["url"]) == 0:
-                    ServiceSla.create_single(**save_dict)
-        logger.info("----------------4.end to refresh service-----------------")
+                ServiceSla.create_single(**save_dict)
+            else:
+                update_dict = {
+                    "month_abnormal_time": sla_info.get('month_abnormal_time'),
+                    "year_abnormal_time": sla_info.get('year_abnormal_time'),
+                    "month_sla": sla_info.get('month_sla'),
+                    "year_sla": sla_info.get('year_sla'),
+                    "remain_time": sla_info.get('remain_time'),
+                }
+                ServiceSla.update_url(sla_info, **update_dict)
+        logger.info("----------------4.end to refresh sla service-----------------")
 
     @classmethod
     def crontab_task(cls):
         cls.refresh_account_info()
         cls.refresh_eip()
         cls.refresh_service()
+        cls.refersh_service_sla()
 
     @classmethod
     def immediately_task(cls):
-        cls.refresh_sla_config()
+        pass
 
     @classmethod
     def test_task(cls):
         # cls.refresh_account_info()
         # cls.refresh_eip()
         # cls.refresh_sla_config()
+        ServiceImage.delete_all()
+        ServiceSla.delete_all()
+        ServiceInfo.delete_all()
         cls.refresh_service()
+        cls.refersh_service_sla()

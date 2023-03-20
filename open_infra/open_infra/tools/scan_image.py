@@ -114,7 +114,7 @@ class CollectServiceInfo:
         if os.path.exists(infra_service_dir):
             shutil.rmtree(infra_service_dir)
         os.mkdir(infra_service_dir)
-        all_list_data, exist_set = list(), set()
+        all_list_data = list()
         for repo in GlobalConfig.url_list:
             try:
                 logger.info("1.start to git clone:{}".format(repo))
@@ -146,15 +146,12 @@ class CollectServiceInfo:
                                 continue
                     if is_in_kustomization_dir:
                         try:
-                            all_url, name_space = list(), str()
+                            name_space = str()
                             cmd = GlobalConfig.kustomize_cmd.format(dir_path)
                             ret, out_data, err = execute_cmd3_with_tmp(cmd)
                             list_data = yaml.load_all(out_data, Loader=SafeLoader)
                             generator1, generator2 = itertools.tee(list_data, 2)
                             for data in generator1:
-                                if data['kind'].lower() == "ingress":
-                                    url = [rule.get("host") for rule in data["spec"]["rules"] if rule.get("host")]
-                                    all_url.extend(url)
                                 if data['kind'].lower() == "namespace":
                                     name_space = data["metadata"]["name"]
                             for data in generator2:
@@ -166,11 +163,6 @@ class CollectServiceInfo:
                                     dict_data["namespace"] = name_space
                                     dict_data["cluster"] = cluster
                                     dict_data["region"] = region
-                                    if list(dict_data.values()) not in list(exist_set):
-                                        exist_set.add(dict_data.values())
-                                    else:
-                                        continue
-                                    dict_data["url"] = all_url
                                     dict_data["image"] = list()
                                     container_list = data["spec"]["template"]["spec"]["containers"]
                                     for container in container_list:
@@ -192,11 +184,6 @@ class CollectServiceInfo:
                                     dict_data["namespace"] = name_space
                                     dict_data["cluster"] = cluster
                                     dict_data["region"] = region
-                                    if list(dict_data.values()) not in list(exist_set):
-                                        exist_set.add(dict_data.values())
-                                    else:
-                                        continue
-                                    dict_data["url"] = all_url
                                     dict_data["image"] = list()
                                     container_list = data["spec"]["jobTemplate"]["spec"]["template"]["spec"]["containers"]
                                     for container in container_list:

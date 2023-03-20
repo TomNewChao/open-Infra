@@ -181,7 +181,7 @@ class ServiceSla(BaseModel):
     month_sla = models.FloatField(null=True, verbose_name="月度sla")
     year_sla = models.FloatField(null=True, verbose_name="年度sla")
     remain_time = models.FloatField(null=True, verbose_name="年度剩余sla配额")
-    service = models.ForeignKey(ServiceInfo, default="", on_delete=models.SET_DEFAULT)
+    service = models.ForeignKey(ServiceInfo, null=True, on_delete=models.SET_NULL)
 
     class Meta:
         db_table = "service_sla"
@@ -210,28 +210,9 @@ class ServiceSla(BaseModel):
     def delete_all(cls):
         return cls.objects.all().delete()
 
-
-class ServiceSlaConfig(BaseModel):
-    # sla is unique to url
-    url = models.CharField(max_length=64, null=True, verbose_name="服务域名")
-    service_alias = models.CharField(max_length=64, null=True, verbose_name="服务别名")
-    service_introduce = models.CharField(max_length=64, null=True, verbose_name="服务介绍")
-
-    class Meta:
-        db_table = "service_sla_config"
-        verbose_name = "服务SLA_CONFIG表"
-        verbose_name_plural = verbose_name
-
-    def __str__(self):
-        return str(self.id)
-
     @classmethod
-    def all(cls):
-        return cls.objects.all()
-
-    @classmethod
-    def create_all(cls, save_list_data):
-        return ServiceSlaConfig.objects.bulk_create(save_list_data)
+    def update_url(cls, url, **kwargs):
+        return cls.objects.filter(url=url).update(**kwargs)
 
 
 # noinspection PyUnresolvedReferences

@@ -12,7 +12,7 @@ fi
 
 # python3 manage.py collectstatic --noinput
 python3 manage.py makemigrations && python3 manage.py migrate
-mysqldump -u$mysql_user -h $mysql_host -P $mysql_port -p$mysql_password --databases open_infra --skip-lock-tables < /opt/open_infra/scripts/open-infra.sql
+# mysqldump -u$mysql_user -h $mysql_host -P $mysql_port -p$mysql_password --databases open_infra --skip-lock-tables < /opt/open_infra/scripts/open-infra.sql
 
 #if [[ -v ADMIN_USER ]] && [[ -v ADMIN_EMAIL ]];
 #then
