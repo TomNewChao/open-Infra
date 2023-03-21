@@ -119,6 +119,7 @@ export default {
             return value
           }
         },
+        { title: '镜像', key: 'image' },
         { title: '代码仓', key: 'repository' },
         { title: '基础镜像', key: 'base_image' },
         { title: '基础系统', key: 'base_os' }

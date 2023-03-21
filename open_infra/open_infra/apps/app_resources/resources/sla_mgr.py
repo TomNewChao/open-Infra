@@ -124,6 +124,9 @@ class SlaMgr:
             service_dict["repository"] = ",".join(
                 [service_image['repository'] for service_image in ServiceImage.get(service_id, "repository")
                  if service_image['repository']])
+            service_dict["image"] = ",".join(
+                [service_image['image'] for service_image in ServiceImage.get(service_id, "image")
+                 if service_image['image']])
             service_list.append(service_dict)
         res = {
             "size": size,
