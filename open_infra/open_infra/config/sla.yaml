@@ -1,225 +1,191 @@
-- introduce: å®‰å…¨æ‰«æå·¥å…·ç¤¾åŒºç‰ˆ
-  name: community-scan-tools
-  name-alias: Community Scan Tool
-- introduce: openEulerç¤¾åŒºäººæ‰è®¤è¯ITç³»ç»Ÿ
-  name: community-certification-system
-  name-alias: Community Talent Certification
-- introduce: å¼€æºç¤¾åŒºSLAç­¾ç½²
-  name: infrastructure-cla
-  name-alias: Contributor License Agreement
-- introduce: è®°äº‹æœ¬
-  name: ''
-  name-alias: Etherpad
-- introduce: Shellå‘½ä»¤è§£é‡ŠæœåŠ¡
-  name: infrastructure-cla
-  name-alias: Explainshell
-- introduce: å®‰å…¨æ‰«æå·¥å…·åŸºç¡€è®¾æ–½ä¸“ç”¨ç‰ˆ
-  name: infra-scan-tools
-  name-alias: Infra Scan Tools
-- introduce: é²²é¹Jenkins
-  name: ''
-  name-alias: Kunpenghui Jenkins
-- introduce: ä»£ç é—¨ç¦
-  name: ''
-  name-alias: MAJUN
-- introduce: ä»£ç ä»“å…ƒæ•°æ®ä¸‹è½½
-  name: ''
-  name-alias: Metadata Service
-- introduce: MindSporeåŒ…ç®¡ç†
-  name: mindspore-cn-north4-repo
-  name-alias: MindSpore Binaries
-- introduce: MindSporeç¤¾åŒºæ•°æ®å±•ç¤º
-  name: opendesign-datapertus-control
-  name-alias: MindSpore Datastat
-- introduce: MindSporeèµ„æºä¸‹è½½
-  name: mindspore-cn-north4-repo-download-new
-  name-alias: MindSpore Download
-- introduce: MindSporeç¤¾åŒºJenkins
-  name: mindspore-jenkins-master
-  name-alias: MindSpore Jenkins
-- introduce: MindSporeç¤¾åŒºé‚®ç®±åˆ—è¡¨
-  name: mindspore-mail
-  name-alias: MindSpore Mailweb
-- introduce: MindSporeä¼šè®®å°ç¨‹åº
-  name: mindspore-cn-north4-meetingserver
-  name-alias: MindSpore Meetings
-- introduce: ä¸Šä¼ ä»£ç ç”Ÿæˆåˆ†äº«é“¾æ¥
-  name: control-paste
-  name-alias: MindSpore paste
-- introduce: MindSporeç¤¾åŒºé‚®ä»¶å‘é€æœåŠ¡
-  name: ''
-  name-alias: MindSpore SMTP
-- introduce: MindSporeç¤¾åŒºæ ‡ç­¾æœºå™¨äººæœåŠ¡
-  name: ''
-  name-alias: MindSpore Sunmao
-- introduce: MindSporeå®˜ç½‘
-  name: mindspore-cn-north4-website
-  name-alias: MindSpore Website
-- introduce: MindSporeå®˜ç½‘
-  name: mindspore-cn-north4-website
-  name-alias: MindSpore WWW
-- introduce: openEuleré•œåƒåŒ—äº¬ä¸‹è½½åœ°å€
-  name: openeuler-beijing-repo
-  name-alias: openEuler Beijing Mirror
-- introduce: æ¼æ´æœç´¢æœåŠ¡
-  name: openeuler-hk-bugzilla
-  name-alias: openEuler Bugzilla
-- introduce: openEulerç¤¾åŒºè®¤è¯æœåŠ¡
-  name: openeuler-ccs
-  name-alias: openEuler Community Certificate
-- introduce: å¼€å‘å¼æµ‹è¯•æœåŠ¡å¹³å°Compass CIé¦–é¡µ
-  name: openeuler-hk-compass-ci
-  name-alias: openEuler Compass CI Platform
-- introduce: openEulerç¤¾åŒºCVEç®¡ç†çŠ¶æ€å±•ç¤º
-  name: openeuler-hk-cve-manager
-  name-alias: openEuler CVE Manager
-- introduce: openEulerç¤¾åŒºæ•°æ®å±•ç¤º
-  name: opendesign-datapertus-control
-  name-alias: openEuler Datastat
-- introduce: openEulerç¤¾åŒºæ–‡æ¡£
-  name: openeuler-hk-website-docs
-  name-alias: openEuler Document
-- introduce: è®°äº‹æœ¬
-  name: openeuler-hk-etherpad
-  name-alias: openEuler Etherpad
-- introduce: openEulerå®˜ç½‘
-  name: openeuler-hk-website-v2
-  name-alias: openEuler HongKong
-- introduce: openEuleré•œåƒä¸‹è½½ç½‘ç«™
-  name: openeuler-hk-repo
-  name-alias: openEuler HongKong Mirror
-- introduce: openEuleré•œåƒæ„å»ºJenkinsæœåŠ¡
-  name: openeuler-cn-north4-jenkins-2
-  name-alias: openEuler Jenkins CI
-- introduce: è²‚è‰Licenseå±•ç¤º
-  name: ''
-  name-alias: openEuler License Show Room
-- introduce: openEulerç¤¾åŒºé‚®ç®±åˆ—è¡¨
-  name: openeuler-hk-mail
-  name-alias: openEuler Mailling List
-- introduce: openEulerç¤¾åŒºä¼šè®®å°ç¨‹åº
-  name: openeuler-hk-meetingserver
-  name-alias: openEuler Meetings
-- introduce: openEulerå®˜ç½‘
-  name: openeuler-hk-repo-mirrorbits
-  name-alias: openEuler MirrorManager
-- introduce: openEulerä¿„è¯­å®˜ç½‘
-  name: openeuler-mos-website-ru
-  name-alias: openEuler Moscow
-- introduce: openEulerä¿„ç½—æ–¯é•œåƒä¸‹è½½ç½‘ç«™
-  name: openeuler-mos-repo
-  name-alias: openEuler Moscow Mirror
-- introduce: openEulerç¤¾åŒºé•œåƒæ„å»ºä¸‹è½½æœåŠ¡
-  name: openeuler-hk-omni-manager-website
-  name-alias: openEuler OmniBuildPlatform
-- introduce: openEulerç¤¾åŒºOBS
-  name: ''
-  name-alias: openEuler Package Build
-- introduce: openEuler Package Management
-  name: openeuler-hk-package-manage
-  name-alias: openEuler Package Manage
-- introduce: ä¸Šä¼ ä»£ç ç”Ÿæˆåˆ†äº«é“¾æ¥
-  name: control-paste
-  name-alias: openEuler paste
-- introduce: openEulerå­¦ä¹ å¹³å°
-  name: moocstudio-openeuler-webiste-frontend
-  name-alias: openEuler PlayGround
-- introduce: openEulerå­¦ä¹ å¹³å°
-  name: moocstudio-openeuler-webiste-frontend
-  name-alias: openEuler PlayGround2
-- introduce: openEulerç¤¾åŒºé‚®ä»¶å‘é€æœåŠ¡
-  name: ''
-  name-alias: openEuler SMTP
-- introduce: prometheusç›‘æ§æœåŠ¡
-  name: control-openeuler-ecs-cn-north4-promethues-ingress
-  name-alias: openEuler-ECS-Prometheus
-- introduce: openGaussåšå®¢
-  name: opengauss-hk-blog
-  name-alias: openGauss Blog
-- introduce: openGaussç¤¾åŒºæ•°æ®å±•ç¤º
-  name: opendesign-datapertus-control
-  name-alias: openGauss Datastat
-- introduce: è®°äº‹æœ¬
-  name: opengauss-hk-etherpad
-  name-alias: openGauss Etherpad
-- introduce: openGausså®˜ç½‘
-  name: opengauss-hk-website
-  name-alias: openGauss HongKong Website
-- introduce: openGaussç¤¾åŒºjenkinsæœåŠ¡
-  name: opengauss-hk-jenkins
-  name-alias: openGauss Jenkins
-- introduce: openGaussç¤¾åŒºé‚®ç®±
-  name: opengauss-mail
-  name-alias: openGauss Mailweb
-- introduce: openGaussç¤¾åŒºä¼šè®®å°ç¨‹åº
-  name: opengauss-hk-meetingserver
-  name-alias: openGauss Meetings
-- introduce: openGaussç¤¾åŒºå­¦ä¹ å¹³å°
-  name: moocstudio-opengauss-website
-  name-alias: openGauss Moocstudio
-- introduce: openGaussç¤¾åŒºå¼€å‘è€…å¤§ä¼šäººä¼ äººæµ·æŠ¥ç”ŸæˆæœåŠ¡
-  name: opengauss-website-odd
-  name-alias: openGauss odd
-- introduce: ä¸Šä¼ ä»£ç ç”Ÿæˆåˆ†äº«é“¾æ¥
-  name: control-paste
-  name-alias: openGauss paste
-- introduce: openGaussç¤¾åŒºé‚®ä»¶å‘é€æœåŠ¡
-  name: ''
-  name-alias: openGauss SMTP
-- introduce: openLooKengç¤¾åŒºæ•°æ®å±•ç¤º
-  name: opendesign-datapertus-control
-  name-alias: openLooKeng Datastat
-- introduce: openLooKengç¤¾åŒºæ–‡æ¡£æœåŠ¡
-  name: openlookeng-website-docs
-  name-alias: openLooKeng docs
-- introduce: openLooKengç¤¾åŒºæ–‡æ¡£æ‰è™«æœåŠ¡
-  name: openlookeng-website-bugs
-  name-alias: openLooKeng docs-bug
-- introduce: openLooKengç¤¾åŒºèµ„æºä¸‹è½½æœåŠ¡
-  name: ''
-  name-alias: openLooKeng Download
-- introduce: openLooKengç¤¾åŒºJenkinsæœåŠ¡
-  name: openlookeng-jenkins-ingress
-  name-alias: openLooKeng Jenkins
-- introduce: openLooKengç¤¾åŒºé‚®ä»¶åˆ—è¡¨
-  name: openlookeng-mail-ingress
-  name-alias: openLooKeng Mailweb
-- introduce: ä¸Šä¼ ä»£ç ç”Ÿæˆåˆ†äº«é“¾æ¥
-  name: control-paste
-  name-alias: openLooKeng paste
-- introduce: openLooKengç¤¾åŒºé‚®ä»¶å‘é€æœåŠ¡
-  name: ''
-  name-alias: openLooKeng SMTP
-- introduce: openLooKengé›†ç¾¤éƒ¨ç½²ä»‹ç»ç½‘ç«™
-  name: openlookeng-tryme-ingress
-  name-alias: openLooKeng Tryme
-- introduce: openLooKengç¤¾åŒºå®˜ç½‘
-  name: openlookeng-website-ingress
-  name-alias: openLooKeng Website
-- introduce: Kuratoré¡¹ç›®prowæœºå™¨äºº
-  name: ''
-  name-alias: paas robot
-- introduce: æ˜‡è…¾JenkinsæœåŠ¡
-  name: ''
-  name-alias: Ptadapter Jenkins
-- introduce: é£é™©æ•°æ®çœ‹æ¿
-  name: ''
-  name-alias: Software Composition Analysis
-- introduce: openEulerå·´é»é•œåƒç«™ç‚¹
-  name: ''
-  name-alias: openEuler France Mirror
-- introduce: openEulerå¯é‡å¤æ„å»º
-  name: openeuler-reproducible-production-environment
-  name-alias: openEuler Reproducible Builds
-- introduce: MindSporeå¯é‡å¤æ„å»º
-  name: mindspore-reproducible-production-environment
-  name-alias: MindSpore Reproducible Builds
-- introduce: openGausså¯é‡å¤æ„å»º
-  name: opengauss-reproducible-production-environment
-  name-alias: openGauss Reproducible Builds
-- introduce: heliosæŠ•ç¥¨æœåŠ¡
-  name: helios-server
-  name-alias: voting
-- introduce: openEulerç¤¾åŒºå®¢æœæœºå™¨äººæ¬§æ‹‰å°æ™º
-  name: openeuler-qa-robot-production-environment
-  name-alias: openEuler QA Robot
+- service_alias: MindSpore Internship
+  service_introduce: ''
+- service_alias: openEuler Package Build
+  service_introduce: openEulerÉçÇøOBS
+- service_alias: openEuler Jenkins CI
+  service_introduce: openEuler¾µÏñ¹¹½¨Jenkins·şÎñ
+- service_alias: Kunpenghui Jenkins
+  service_introduce: öïÅôJenkins
+- service_alias: Gitee Website
+  service_introduce: ''
+- service_alias: openLooKeng SMTP
+  service_introduce: openLooKengÉçÇøÓÊ¼ş·¢ËÍ·şÎñ
+- service_alias: openLooKeng Jenkins
+  service_introduce: openLooKengÉçÇøJenkins·şÎñ
+- service_alias: openLookeng docs
+  service_introduce: ''
+- service_alias: openLooKeng Website
+  service_introduce: openLooKengÉçÇø¹ÙÍø
+- service_alias: openLooKeng docs-bug
+  service_introduce: openLooKengÉçÇøÎÄµµ×½³æ·şÎñ
+- service_alias: openLooKeng Search
+  service_introduce: ''
+- service_alias: openEuler Datastat Omapi
+  service_introduce: DatastatºóÌ¨·şÎñ
+- service_alias: openLooKeng paste
+  service_introduce: ÉÏ´«´úÂëÉú³É·ÖÏíÁ´½Ó
+- service_alias: openLooKeng Mailweb
+  service_introduce: openLooKengÉçÇøÓÊ¼şÁĞ±í
+- service_alias: openLooKeng Tryme
+  service_introduce: openLooKeng¼¯Èº²¿Êğ½éÉÜÍøÕ¾
+- service_alias: openGauss Mailweb
+  service_introduce: openGaussÉçÇøÓÊÏä
+- service_alias: openLooKeng Datastat
+  service_introduce: openLooKengÉçÇøÊı¾İÕ¹Ê¾
+- service_alias: openEuler Discourse
+  service_introduce: openEulerÉçÇøÂÛÌ³
+- service_alias: openEuler Meetings
+  service_introduce: openEulerÉçÇø»áÒéĞ¡³ÌĞò
+- service_alias: openEuler Moscow Mirror
+  service_introduce: openEuler¶íÂŞË¹¾µÏñÏÂÔØÍøÕ¾
+- service_alias: MindSpore Mailweb
+  service_introduce: MindSporeÉçÇøÓÊÏäÁĞ±í
+- service_alias: openGauss Jenkins
+  service_introduce: openGaussÉçÇøjenkins·şÎñ
+- service_alias: MindSpore Jenkins
+  service_introduce: MindSporeÉçÇøJenkins
+- service_alias: openEuler CVE Manager
+  service_introduce: openEulerÉçÇøCVE¹ÜÀí×´Ì¬Õ¹Ê¾
+- service_alias: openEuler France Mirror
+  service_introduce: openEuler°ÍÀè¾µÏñÕ¾µã
+- service_alias: openEuler Search
+  service_introduce: ''
+- service_alias: openEuler Mailling List
+  service_introduce: openEulerÉçÇøÓÊÏäÁĞ±í
+- service_alias: Mindspore search
+  service_introduce: ''
+- service_alias: openEuler Quickissue Backend
+  service_introduce: openEulerÉçÇøIssueºÍPR¿ìËÙÌá½»Æ½Ì¨ºóÌ¨·şÎñ
+- service_alias: MAJUN
+  service_introduce: ´úÂëÃÅ½û
+- service_alias: Metadata Service
+  service_introduce: ´úÂë²ÖÔªÊı¾İÏÂÔØ
+- service_alias: openEuler HongKong Mirror
+  service_introduce: openEuler¾µÏñÏÂÔØÍøÕ¾
+- service_alias: openGauss Etherpad
+  service_introduce: ¼ÇÊÂ±¾
+- service_alias: MindSpore Xihe
+  service_introduce: •NË¼´óÄ£ĞÍÆ½Ì¨
+- service_alias: openEuler Etherpad
+  service_introduce: ¼ÇÊÂ±¾
+- service_alias: MindSpore Internship New
+  service_introduce: ''
+- service_alias: MindSpore SMTP
+  service_introduce: MindSporeÉçÇøÓÊ¼ş·¢ËÍ·şÎñ
+- service_alias: MindSpore Sunmao
+  service_introduce: MindSporeÉçÇø±êÇ©»úÆ÷ÈË·şÎñ
+- service_alias: openEuler Bugzilla
+  service_introduce: ''
+- service_alias: openEuler Copr
+  service_introduce: ''
+- service_alias: openEuler HongKong
+  service_introduce: openEuler¹ÙÍø
+- service_alias: openEuler License Show Room
+  service_introduce: õõ²õLicenseÕ¹Ê¾
+- service_alias: openEuler SMTP
+  service_introduce: openEulerÉçÇøÓÊ¼ş·¢ËÍ·şÎñ
+- service_alias: openEuler Compass CI Platform
+  service_introduce: ¿ª·¢Ê½²âÊÔ·şÎñÆ½Ì¨Compass CIÊ×Ò³
+- service_alias: openGauss Docs
+  service_introduce: ''
+- service_alias: openGauss Search
+  service_introduce: ''
+- service_alias: openGauss SMTP
+  service_introduce: openGaussÉçÇøÓÊ¼ş·¢ËÍ·şÎñ
+- service_alias: openLooKeng Download
+  service_introduce: openLooKengÉçÇø×ÊÔ´ÏÂÔØ·şÎñ
+- service_alias: paas robot
+  service_introduce: KuratorÏîÄ¿prow»úÆ÷ÈË
+- service_alias: Software Composition Analysis
+  service_introduce: ·çÏÕÊı¾İ¿´°å
+- service_alias: Test Domain Monitor
+  service_introduce: ''
+- service_alias: openEuler OmniBuildPlatform
+  service_introduce: openEulerÉçÇø¾µÏñ¹¹½¨ÏÂÔØ·şÎñ
+- service_alias: openEuler QA Robot
+  service_introduce: openEulerÉçÇø¿Í·ş»úÆ÷ÈËÅ·À­Ğ¡ÖÇ
+- service_alias: openEuler Package Manage
+  service_introduce: openEuler Package Management
+- service_alias: openEuler QuickIssue
+  service_introduce: openEulerÉçÇøIssueºÍPR¿ìËÙÌá½»Æ½Ì¨Ç°¶Ë·şÎñ
+- service_alias: openEuler User Repo Mirror
+  service_introduce: openEulerÓÃ»§¾µÏñÕ¾µã
+- service_alias: openEuler Community Certificate
+  service_introduce: openEulerÉçÇøÈÏÖ¤·şÎñ
+- service_alias: openEuler Usercenter
+  service_introduce: openEulerÉçÇøÓÃ»§ÖĞĞÄ
+- service_alias: openEuler NestOS
+  service_introduce: openEuler NestOSÔÆµ××ù²Ù×÷ÏµÍ³Ç°¶Ë·şÎñ
+- service_alias: openEuler MirrorManager
+  service_introduce: openEuler¹ÙÍø
+- service_alias: openEuler Reproducible Builds
+  service_introduce: openEuler¿ÉÖØ¸´¹¹½¨
+- service_alias: Community Talent Certification
+  service_introduce: openEulerÉçÇøÈË²ÅÈÏÖ¤ITÏµÍ³
+- service_alias: Explainshell
+  service_introduce: ShellÃüÁî½âÊÍ·şÎñ
+- service_alias: openEuler PlayGround2
+  service_introduce: openEulerÑ§Ï°Æ½Ì¨
+- service_alias: Infra Ops
+  service_introduce: »ù´¡ÉèÊ©ÔËÎ¬Æ½Ì¨
+- service_alias: openEuler-ECS-Prometheus
+  service_introduce: prometheus¼à¿Ø·şÎñ
+- service_alias: openGauss Usercenter
+  service_introduce: openGaussÉçÇøÓÃ»§ÖĞĞÄ
+- service_alias: openGauss odd
+  service_introduce: openGaussÉçÇø¿ª·¢Õß´ó»áÈË´«ÈËº£±¨Éú³É·şÎñ
+- service_alias: openGauss HongKong Website
+  service_introduce: openGauss¹ÙÍø
+- service_alias: openGauss Blog
+  service_introduce: openGauss²©¿Í
+- service_alias: openGauss Meetings
+  service_introduce: openGaussÉçÇø»áÒéĞ¡³ÌĞò
+- service_alias: openGauss Moocstudio
+  service_introduce: openGaussÉçÇøÑ§Ï°Æ½Ì¨
+- service_alias: openGauss Reproducible Builds
+  service_introduce: openGauss¿ÉÖØ¸´¹¹½¨
+- service_alias: MindSpore Download
+  service_introduce: MindSpore×ÊÔ´ÏÂÔØ
+- service_alias: MindSpore Binaries
+  service_introduce: MindSpore°ü¹ÜÀí
+- service_alias: voting
+  service_introduce: heliosÍ¶Æ±·şÎñ
+- service_alias: MindSpore WWW
+  service_introduce: MindSpore¹ÙÍø
+- service_alias: MindSpore Xihe Doc
+  service_introduce: •NË¼ÎÄµµ
+- service_alias: MindSpore Meetings
+  service_introduce: MindSpore»áÒéĞ¡³ÌĞò
+- service_alias: MindSpore Reproducible Builds
+  service_introduce: MindSpore¿ÉÖØ¸´¹¹½¨
+- service_alias: openEuler Moscow
+  service_introduce: openEuler¶íÓï¹ÙÍø
+- service_alias: openEuler Beijing Mirror
+  service_introduce: openEuler¾µÏñ±±¾©ÏÂÔØµØÖ·
+- service_alias: openEuler Document
+  service_introduce: openEulerÉçÇøÎÄµµ
+- service_alias: Etherpad
+  service_introduce: ¼ÇÊÂ±¾
+- service_alias: MindSpore Website
+  service_introduce: MindSpore¹ÙÍø
+- service_alias: MindSpore Datastat
+  service_introduce: MindSporeÉçÇøÊı¾İÕ¹Ê¾
+- service_alias: openEuler PlayGround
+  service_introduce: openEulerÑ§Ï°Æ½Ì¨
+- service_alias: Contributor License Agreement
+  service_introduce: ¿ªÔ´ÉçÇøSLAÇ©Êğ
+- service_alias: MindSpore paste
+  service_introduce: ÉÏ´«´úÂëÉú³É·ÖÏíÁ´½Ó
+- service_alias: openEuler paste
+  service_introduce: ÉÏ´«´úÂëÉú³É·ÖÏíÁ´½Ó
+- service_alias: openGauss paste
+  service_introduce: ÉÏ´«´úÂëÉú³É·ÖÏíÁ´½Ó
+- service_alias: openGauss Datastat
+  service_introduce: openGaussÉçÇøÊı¾İÕ¹Ê¾
+- service_alias: Majun anti-poison
+  service_introduce: Majun·ÀÍ¶¶¾
+- service_alias: Majun source clean
+  service_introduce: MajunÀ´Ô´Çå½à
+- service_alias: openEuler Copr
+  service_introduce: openEulerÓÃ»§²Ö·şÎñ
+

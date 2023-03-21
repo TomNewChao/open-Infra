@@ -2,7 +2,7 @@ import axios from '@/libs/api.request'
 // *************Index*****************
 export const indexApiList = () => {
   return axios.request({
-    url: '/api/clouds_tools/index',
+    url: '/api/app_resources/index',
     methods: 'get'
   })
 }
@@ -115,14 +115,14 @@ export const queryProgressSingleScanObsApi = (account) => {
 // *************ApplicationResources*****************
 export const accountListApi = () => {
   return axios.request({
-    url: '/api/clouds_tools/account',
+    url: '/api/app_resources/account',
     method: 'get'
   })
 }
 
 export const eipListApi = (page, size, order_by, order_type, filter_name, filter_value) => {
   return axios.request({
-    url: '/api/clouds_tools/eip',
+    url: '/api/app_resources/eip',
     method: 'get',
     params: {
       page, size, order_by, order_type, filter_name, filter_value
@@ -130,20 +130,52 @@ export const eipListApi = (page, size, order_by, order_type, filter_name, filter
   })
 }
 
-export const ServiceInfoListApi = (page, size, order_by, order_type, filter_name, filter_value, cluster, namespace) => {
+export const ServiceInfoListApi = (page, size, order_by, order_type, filter_name, filter_value, cluster, region) => {
   return axios.request({
-    url: '/api/clouds_tools/service',
+    url: '/api/app_resources/service',
     method: 'get',
     params: {
-      page, size, order_by, order_type, filter_name, filter_value, cluster, namespace
+      page, size, order_by, order_type, filter_name, filter_value, cluster, region
     }
+  })
+}
+
+export const ServiceDetailApi = (id) => {
+  return axios.request({
+    url: '/api/app_resources/detail_service',
+    method: 'get',
+    params: {
+      id
+    }
+  })
+}
+
+export const ServiceClusterListApi = () => {
+  return axios.request({
+    url: '/api/app_resources/cluster',
+    method: 'get'
+  })
+}
+
+export const ServiceRegionListApi = () => {
+  return axios.request({
+    url: '/api/app_resources/region',
+    method: 'get'
+  })
+}
+
+export const exportSlaData = () => {
+  return axios.request({
+    url: '/api/app_resources/sla_export',
+    method: 'get',
+    responseType: 'blob'
   })
 }
 
 // *************ConsumptionControl*****************
 export const BillInfoListApi = (page, size, order_by, order_type, filter_name, filter_value, account, type) => {
   return axios.request({
-    url: '/api/clouds_tools/bill',
+    url: '/api/consumption_control/bill',
     method: 'get',
     params: {
       page, size, order_by, order_type, filter_name, filter_value, account, type
@@ -153,21 +185,21 @@ export const BillInfoListApi = (page, size, order_by, order_type, filter_name, f
 
 export const BillTypeListApi = () => {
   return axios.request({
-    url: '/api/clouds_tools/resource_type_name',
+    url: '/api/consumption_control/resource_type_name',
     method: 'get'
   })
 }
 
 export const BillAccountListApi = () => {
   return axios.request({
-    url: '/api/clouds_tools/account_name',
+    url: '/api/consumption_control/account_name',
     method: 'get'
   })
 }
 
 export const BillYearAmountListApi = (year) => {
   return axios.request({
-    url: '/api/clouds_tools/year_amount',
+    url: '/api/consumption_control/year_amount',
     method: 'get',
     params: {
       year
@@ -177,7 +209,7 @@ export const BillYearAmountListApi = (year) => {
 
 export const BillMonthAccountListApi = (account, bill_cycle) => {
   return axios.request({
-    url: '/api/clouds_tools/month_amount',
+    url: '/api/consumption_control/month_amount',
     method: 'get',
     params: {
       account, bill_cycle
@@ -187,50 +219,28 @@ export const BillMonthAccountListApi = (account, bill_cycle) => {
 
 export const AllBillCycleListApi = () => {
   return axios.request({
-    url: '/api/clouds_tools/all_bill_cycle',
+    url: '/api/consumption_control/all_bill_cycle',
     method: 'get'
   })
 }
 
 export const AllYearListApi = () => {
   return axios.request({
-    url: '/api/clouds_tools/all_year',
+    url: '/api/consumption_control/all_year',
     method: 'get'
-  })
-}
-
-export const ServiceNamespaceListApi = () => {
-  return axios.request({
-    url: '/api/clouds_tools/namespace',
-    method: 'get'
-  })
-}
-
-export const ServiceClusterListApi = () => {
-  return axios.request({
-    url: '/api/clouds_tools/cluster',
-    method: 'get'
-  })
-}
-
-export const exportSlaData = () => {
-  return axios.request({
-    url: '/api/clouds_tools/sla_export',
-    method: 'get',
-    responseType: 'blob'
   })
 }
 
 export const queryCpuMonth = () => {
   return axios.request({
-    url: '/api/clouds_tools/cpu_month',
+    url: '/api/consumption_control/cpu_month',
     method: 'get'
   })
 }
 
 export const queryCpuMonthData = (date) => {
   return axios.request({
-    url: '/api/clouds_tools/cpu_data',
+    url: '/api/consumption_control/cpu_data',
     method: 'get',
     params: {
       date
@@ -240,7 +250,7 @@ export const queryCpuMonthData = (date) => {
 
 export const exportCpuMonthData = (date) => {
   return axios.request({
-    url: '/api/clouds_tools/cpu_table',
+    url: '/api/consumption_control/cpu_table',
     method: 'get',
     params: { date },
     responseType: 'blob'
@@ -249,14 +259,14 @@ export const exportCpuMonthData = (date) => {
 
 export const queryMemMonth = () => {
   return axios.request({
-    url: '/api/clouds_tools/mem_month',
+    url: '/api/consumption_control/mem_month',
     method: 'get'
   })
 }
 
 export const queryMemMonthData = (date) => {
   return axios.request({
-    url: '/api/clouds_tools/mem_data',
+    url: '/api/consumption_control/mem_data',
     method: 'get',
     params: {
       date
@@ -266,7 +276,7 @@ export const queryMemMonthData = (date) => {
 
 export const exportMemMonthData = (date) => {
   return axios.request({
-    url: '/api/clouds_tools/mem_table',
+    url: '/api/consumption_control/mem_table',
     method: 'get',
     params: { date },
     responseType: 'blob'

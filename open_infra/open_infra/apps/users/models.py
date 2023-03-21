@@ -8,7 +8,6 @@ from django.contrib.auth.models import AbstractUser
 
 
 class User(AbstractUser):
-    id = models.IntegerField(primary_key=True, verbose_name="用户id")
     mobile = models.CharField(max_length=11, verbose_name='手机号')
     is_superuser = models.IntegerField(default=1, verbose_name='超级管理员')
 

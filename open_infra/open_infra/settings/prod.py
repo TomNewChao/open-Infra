@@ -46,10 +46,14 @@ INSTALLED_APPS = [
     'corsheaders',
 
     # owner apps
-    'clouds_tools.apps.CloudsToolsConfig',
-    'users.apps.UsersConfig',
     'alarm.apps.AlarmConfig',
+    'app_resources.apps.AppResourcesConfig',
+    'clouds_tools.apps.CloudsToolsConfig',
+    'consumption_control.apps.ConsumptionControlConfig',
+    'obs_upload.apps.ObsUploadConfig',
     'permission.apps.PermissionConfig',
+    'users.apps.UsersConfig',
+
 ]
 
 MIDDLEWARE = [
@@ -95,7 +99,7 @@ DATABASES = {
         'PASSWORD': os.getenv("mysql_password"),  # 数据库用户密码
         'NAME': 'open_infra',  # 数据库名字
         'TIME_ZONE': 'Asia/Shanghai',
-        'POOL_SIZE': 20
+        'POOL_SIZE': 40
     }
 }
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
@@ -152,6 +156,12 @@ if len(sys.argv) > 1 and sys.argv[1] == "runserver":
     IS_RUNSERVER = True
 elif len(sys.argv) >= 1 and sys.argv[0] == "uwsgi":
     IS_RUNSERVER = True
+
+IS_COLLECT_ALARM = True
+IS_COLLECT_APP_RES = True
+IS_COLLECT_CLOUDS_TOOLS = True
+IS_COLLECT_CONSUMPTION_CON = True
+IS_COLLECT_PERMISSION = True
 
 # log and lib path setting
 if platform.system() == "Windows":
@@ -253,7 +263,7 @@ OBS_DOMAIN_ID = os.getenv("obs_domain_id")
 # obs bucketname and path
 DOWNLOAD_BUCKET_NAME = "obs-for-openeuler-developer"
 DOWNLOAD_EIP_KEY_NAME = "secret-files/collect_elastic_public_ip.yaml"
-DOWNLOAD_SLA_KEY_NAME = "secret-files/sla.yaml"
+DOWNLOAD_SLA_KEY_NAME = "secret-files/sla_bak.yaml"
 
 # hw account
 ZONE_ALIAS_DICT = {

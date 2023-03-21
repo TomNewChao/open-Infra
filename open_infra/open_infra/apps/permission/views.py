@@ -9,7 +9,7 @@ import traceback
 from django.db import transaction
 from django.views.generic import View
 
-from clouds_tools.models import ServiceInfo
+from app_resources.models import ServiceInfo
 from open_infra.utils.api_error_code import ErrCode
 from open_infra.utils.auth_permisson import AuthView
 from open_infra.utils.common import assemble_api_result, list_param_check_and_trans

@@ -25,7 +25,7 @@ from huaweicloudsdkecs.v2 import EcsClient, NovaListServersDetailsRequest
 from huaweicloudsdkrds.v3 import RdsClient, ListInstancesRequest
 from huaweicloudsdkcore.exceptions.exceptions import ClientRequestException, ConnectionException
 
-from clouds_tools.resources.constants import HWCloudEipStatus, HWCloudEipType
+from app_resources.resources.constants import HWCloudEipStatus, HWCloudEipType
 from open_infra.utils.common import func_retry
 from django.conf import settings
 

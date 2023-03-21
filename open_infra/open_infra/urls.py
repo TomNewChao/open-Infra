@@ -19,7 +19,10 @@ from django.conf.urls import url, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    url(r'^api/app_resources/', include("app_resources.urls")),
     url(r'^api/clouds_tools/', include("clouds_tools.urls")),
+    url(r'^api/consumption_control/', include("consumption_control.urls")),
+    url(r'^api/obs_upload/', include("obs_upload.urls")),
     url(r'^api/users/', include("users.urls")),
     url(r'^api/alarm/', include("alarm.urls")),
     url(r'^api/permission/', include("permission.urls")),
