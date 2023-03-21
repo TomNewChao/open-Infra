@@ -6,7 +6,7 @@
 
 
 from django.conf.urls import url
-from app_resources.views import ServiceView, SlaExportView, ClusterView, AccountView, DetailServiceView, EipView, IndexView, RegionView
+from app_resources.views import ServiceView, SlaExportView, ClusterView, AccountView, DetailServiceView, EipView, IndexView, RegionView, RepoView
 
 urlpatterns = [
     # index
@@ -24,5 +24,8 @@ urlpatterns = [
     url(r'^cluster$', ClusterView.as_view()),
     url(r'^region$', RegionView.as_view()),
     url(r'^sla_export$', SlaExportView.as_view()),
+
+    # cve interface
+    url(r'^repo$', RepoView.as_view()),
 
 ]

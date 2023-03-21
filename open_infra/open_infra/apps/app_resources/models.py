@@ -169,6 +169,10 @@ class ServiceImage(BaseModel):
     def delete_all(cls):
         return cls.objects.all().delete()
 
+    @classmethod
+    def get_image(cls):
+        return cls.objects.all().values("image", "branch", "developer", "email")
+
 
 class ServiceSla(BaseModel):
     # sla is unique to url

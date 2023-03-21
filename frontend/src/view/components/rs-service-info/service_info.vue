@@ -144,8 +144,8 @@ export default {
         { title: '基础镜像', key: 'base_image' },
         { title: '操作系统', key: 'base_os' },
         { title: '流水线', key: 'pipline_url' },
-        { title: '镜像大小', key: 'num_download' },
-        { title: '下载次数', key: 'size', sortable: 'custom' },
+        { title: '镜像大小', key: 'size' },
+        { title: '下载次数', key: 'num_download', sortable: 'custom' },
         { title: 'cpu限制', key: 'cpu_limit', sortable: 'custom' },
         { title: '内存限制', key: 'mem_limit', sortable: 'custom' }
       ],
