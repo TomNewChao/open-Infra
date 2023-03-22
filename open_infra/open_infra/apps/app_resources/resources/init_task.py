@@ -83,20 +83,19 @@ class InitMgr:
         logger.info("----------------3.start refresh service information-----------------")
         swr_info, config_list = CollectServiceInfo.get_service()
         for config in config_list:
-            service_list = ServiceInfo.get_service_info(config["service_name"], config["namespace"],
-                                                        config["cluster"], config["region"])
-            if len(service_list) == 0:
-                service_info = ServiceInfo.create_single(service_name=config["service_name"],
-                                                         namespace=config["namespace"],
-                                                         cluster=config["cluster"],
-                                                         region=config["region"])
-            else:
-                service_info = service_list[0]
+            # service_list = ServiceInfo.get_service_info(config["service_name"], config["namespace"],
+            #                                             config["cluster"], config["region"])
+            # if len(service_list) == 0:
+            service_info = ServiceInfo.create_single(service_name=config["service_name"],
+                                                     namespace=config["namespace"],
+                                                     cluster=config["cluster"],
+                                                     region=config["region"])
+            # else:
+            #     service_info = service_list[0]
             for image in config["image"]:
                 image_name = image["image"].split(":")[0]
                 image_info = swr_info.get(image_name, dict())
                 new_dict = dict()
-                path = image_info.get("path")
                 new_dict["image"] = image_name
                 new_dict["repository"] = image_info.get("repository")
                 new_dict["branch"] = image_info.get("branch")
@@ -110,8 +109,9 @@ class InitMgr:
                 new_dict["cpu_limit"] = image.get("cpu")
                 new_dict["mem_limit"] = image.get("mem")
                 new_dict["service"] = service_info
-                if ServiceImage.get_by_image(image=path, service_id=service_info.id) == 0:
-                    ServiceImage.create_single(**new_dict)
+                # path = image_info.get("path")
+                # if ServiceImage.get_by_image(image=path, service_id=service_info.id) == 0:
+                ServiceImage.create_single(**new_dict)
         logger.info("----------------3.end to refresh service-----------------")
 
     @classmethod
@@ -154,7 +154,6 @@ class InitMgr:
     def crontab_task(cls):
         cls.refresh_account_info()
         cls.refresh_eip()
-        cls.refresh_service()
         cls.refersh_service_sla()
 
     @classmethod

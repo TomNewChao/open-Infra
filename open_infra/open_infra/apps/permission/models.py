@@ -39,7 +39,7 @@ class KubeConfigInfo(BaseModel):
 
     class Meta:
         db_table = "kubeconfig_info"
-        verbose_name = "kubeconfig_info生成信息表"
+        verbose_name = "kubeconfig_info表"
         verbose_name_plural = verbose_name
 
     def __str__(self):

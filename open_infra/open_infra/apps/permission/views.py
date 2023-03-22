@@ -93,7 +93,7 @@ class KubeConfigView(AuthView):
             return assemble_api_result(ErrCode.STATUS_PARAMETER_ERROR)
         try:
             config_obj = KubeConfigInfo.objects.get(id=config_id)
-            server_info_obj = ServiceInfo.objects.get(service_name=config_obj.service_name)
+            cluster, namespace = config_obj.service_name.split("_")
             # If the roles are the same, modify the expiration time, The roles are different, they are all modified
             if config_obj.role == role and (int(config_obj.expired_time) == int(expired_time)):
                 logger.info("[KubeConfigView] modify the kubeconfig params consistency...")
@@ -102,18 +102,14 @@ class KubeConfigView(AuthView):
             else:
                 with KubeConfigLock.ProcessLock:
                     cur_time = timezone.now()
-                    need_delete, need_create = dict(), dict()
+                    need_create = dict()
                     with transaction.atomic():
-                        need_delete["username"] = config_obj.username
-                        need_delete["role"] = config_obj.role
-                        need_delete["namespace"] = server_info_obj.namespace
-                        need_delete["cluster"] = server_info_obj.cluster
-                        KubeconfigLib.delete_kubeconfig(need_delete)
                         need_create["username"] = config_obj.username
+                        need_create["role"] = config_obj.role
+                        need_create["namespace"] = namespace
+                        need_create["cluster"] = cluster
+                        KubeconfigLib.delete_kubeconfig(need_create)
                         need_create["role"] = role
-                        need_create["namespace"] = server_info_obj.namespace
-                        need_create["cluster"] = server_info_obj.cluster
-                        need_create["url"] = server_info_obj.url
                         is_ok, content = KubeconfigLib.create_kubeconfig(need_create)
                         if not is_ok:
                             raise Exception("[KubeConfigView] create kubeconfig:{}".format(content))
@@ -121,7 +117,7 @@ class KubeConfigView(AuthView):
                         need_create["create_time"] = config_obj.create_time
                         need_create["review_time"] = config_obj.review_time
                         need_create["expired_time"] = int(expired_time)
-                        need_create["namespace"] = server_info_obj.namespace
+                        need_create["namespace"] = namespace
                         need_create["attachment_content"] = content
                         is_send_ok = KubeconfigEmailTool.send_kubeconfig_email(need_create, email_list)
                         KubeConfigInfo.objects.filter(id=config_id).update(expired_time=int(expired_time), role=role,
@@ -153,10 +149,10 @@ class BatchKubeConfigView(AuthView):
             with transaction.atomic():
                 for kubeconfig in kubeconfig_list:
                     try:
+                        cluster, namespace = kubeconfig.service_name.split("_")
                         dict_data = dict()
-                        service_info = ServiceInfo.objects.get(service_name=kubeconfig.service_name)
-                        dict_data["namespace"] = service_info.namespace
-                        dict_data["cluster"] = service_info.cluster
+                        dict_data["namespace"] = namespace
+                        dict_data["cluster"] = cluster
                         dict_data["role"] = kubeconfig.role
                         dict_data["username"] = kubeconfig.username
                         KubeconfigLib.delete_kubeconfig(dict_data)
