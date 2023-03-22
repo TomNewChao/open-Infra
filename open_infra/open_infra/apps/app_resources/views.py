@@ -130,5 +130,5 @@ class SlaExportView(AuthView):
 class RepoView(AuthView):
     def get(self, request):
         list_data = ServiceImage.get_image()
-        list_data = [i for i in list_data]
+        list_data = [i for i in list_data if i["repository"]]
         return assemble_api_result(ErrCode.STATUS_SUCCESS, data=list_data)
