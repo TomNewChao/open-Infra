@@ -171,7 +171,7 @@ class ServiceImage(BaseModel):
 
     @classmethod
     def get_image(cls):
-        return cls.objects.all().values("repository", "branch", "developer", "email")
+        return cls.objects.all().values("repository", "branch", "developer", "email").distinct()
 
 
 class ServiceSla(BaseModel):
