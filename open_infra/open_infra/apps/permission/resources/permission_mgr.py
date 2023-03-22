@@ -35,10 +35,10 @@ class KubeconfigInteractGitToolsLib(GitBaseToolsLib):
             if not isinstance(data, dict):
                 is_ok = False
                 ret_data.append("Parse file fault.")
-            if not all([data.get("username"), data.get("role"), data.get("timelimit"), data.get("servicename"), data.get("email")]):
+            if not all([data.get("username"), data.get("role"), data.get("timelimit"), data.get("email"), data.get("cluster"), data.get("namespace")]):
                 is_ok = False
                 msg = "Whether the input parameters are complete, Please check whether the parameters include " \
-                      "UserName, Role, TimeLimit, ServiceName, Email."
+                      "UserName, Role, TimeLimit, ServiceName, Email, Cluster, NameSpace."
                 ret_data.append(msg)
             if not KubeConfigRole.is_in_kubeconfig_role(data["role"]):
                 is_ok = False
@@ -49,13 +49,6 @@ class KubeconfigInteractGitToolsLib(GitBaseToolsLib):
             if not data["timelimit"].isdigit() or (int(data["timelimit"]) <= 0):
                 is_ok = False
                 ret_data.append("Invalid TimeLimit, Please check TimeLimit")
-            service_info_list = ServiceInfo.objects.filter(service_name=data["servicename"])
-            if len(service_info_list) == 0:
-                is_ok = False
-                ret_data.append("Invalid ServiceName, Please check ServiceName.")
-            elif not service_info_list[0].cluster or not service_info_list[0].namespace:
-                is_ok = False
-                ret_data.append("Invalid ServiceName, Please check the namespace or cluster of ServiceName.")
         if not len(list_data):
             is_ok = False
             ret_data.append("The pr content of parse is empty, Please check the data of submit.")
@@ -203,6 +196,7 @@ class KubeconfigEmailTool(EmailBaseLib):
         kubeconfig_info['email_receivers'] = email_list
         kubeconfig_info['email_subject'] = settings.KUBECONFIG_EMAIL_SUBJECT
         kubeconfig_info['email_content'] = cls.get_content(kubeconfig_info)
+        logger.error("data is -------{}".format(kubeconfig_info))
         return cls._send_email(kubeconfig_info)
 
 
@@ -219,12 +213,13 @@ class KubeconfigMgr:
         """
         need_delete, need_create = dict(), dict()
         username = kubeconfig_info["username"]
-        service_name = kubeconfig_info["servicename"]
+        cluster = kubeconfig_info["cluster"]
+        namespace = kubeconfig_info["namespace"]
         role = kubeconfig_info["role"]
         timelimit = kubeconfig_info["timelimit"]
         email_str = kubeconfig_info["email"]
-        kubeconfig_list = KubeConfigInfo.objects.filter(username=username).filter(service_name=service_name)
-        service_info_list = ServiceInfo.objects.filter(service_name=service_name)
+        service_name = "{}_{}".format(cluster, namespace)
+        kubeconfig_list = KubeConfigInfo.objects.filter(username=username, service_name=service_name)
         # 1.add new record, if exist before, and delete record and kubeconfig
         with transaction.atomic():
             create_temp = {
@@ -237,25 +232,23 @@ class KubeconfigMgr:
                 "expired_time": timelimit,
                 "send_ok": False
             }
-            if len(kubeconfig_list) and len(service_info_list):
+            if len(kubeconfig_list):
+                cluster, namespace = kubeconfig_list[0].service_name.split("_")
+                dict_data["cluster"] = cluster
+                dict_data["namespace"] = namespace
                 dict_data["username"] = kubeconfig_list[0].username
                 dict_data["role"] = kubeconfig_list[0].role
-                dict_data["namespace"] = service_info_list[0].namespace
-                dict_data["cluster"] = service_info_list[0].cluster
                 KubeconfigLib.delete_kubeconfig(dict_data)
-                KubeConfigInfo.objects.filter(username=username).filter(service_name=service_name).delete()
-                KubeConfigInfo.objects.create(**create_temp)
-            elif len(service_info_list):
-                KubeConfigInfo.objects.create(**create_temp)
+                KubeConfigInfo.objects.filter(username=username, service_name=service_name).delete()
             else:
-                raise Exception("service name:{} not exist...".format(service_name))
+                logger.info("[create_kubeconfig] There is not exist kubeconfig:{}".format(service_name))
+            KubeConfigInfo.objects.create(**create_temp)
         # 2. add generate new kubeconfig, send smail, and modify the status
         with transaction.atomic():
             need_create["username"] = username
             need_create["role"] = role
-            need_create["namespace"] = service_info_list[0].namespace
-            need_create["cluster"] = service_info_list[0].cluster
-            need_create["url"] = service_info_list[0].url
+            need_create["cluster"] = cluster
+            need_create["namespace"] = namespace
             is_ok, content = KubeconfigLib.create_kubeconfig(need_create)
             if not is_ok:
                 raise Exception("[KubeConfigView] create kubeconfig:{}".format(content))

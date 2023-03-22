@@ -26,21 +26,15 @@ class KubeconfigClearExpiredThread:
                     review_time = int(time.mktime(config_info.review_time.timetuple()))
                     expired_interval = int(config_info.expired_time) * 24 * 60 * 60
                     if cur_time >= review_time + expired_interval:
-                        logger.info("[KubeconfigClearExpiredThread] start to delete expired data:{}, {}".format(
-                            config_info.username, config_info.service_name))
-                        service_info_list = ServiceInfo.objects.filter(service_name=config_info.service_name)
-                        if len(service_info_list) == 0:
-                            logger.error(
-                                "[KubeconfigClearExpiredThread] get empty service info:{}".format(
-                                    config_info.service_name))
-                            continue
                         dict_data = dict()
-                        dict_data["namespace"] = service_info_list[0].namespace
-                        dict_data["cluster"] = service_info_list[0].cluster
+                        cluster, namespace = config_info.service_name.split("_")
+                        dict_data["cluster"] = cluster
+                        dict_data["namespace"] = namespace
                         dict_data["role"] = config_info.role
                         dict_data["username"] = config_info.username
                         KubeconfigLib.delete_kubeconfig(dict_data)
                         KubeConfigInfo.objects.filter(id=config_info.id).delete()
+                        logger.info("[KubeconfigClearExpiredThread] delete expired data:{},{},{}".format(cluster, namespace, config_info.username))
                 except Exception as e:
                     logger.error("[KubeconfigClearExpiredThread] clear single data failed, e:{},traceback:{}".format(e,
                                                                                                                      traceback.format_exc()))

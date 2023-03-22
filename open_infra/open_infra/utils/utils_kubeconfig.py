@@ -12,7 +12,7 @@ import traceback
 
 from django.conf import settings
 
-from open_infra.utils.common import execute_cmd3_with_tmp
+from open_infra.utils.common import execute_cmd3_with_tmp, load_yaml
 
 logger = logging.getLogger("django")
 
@@ -36,10 +36,11 @@ class KubeconfigLib(object):
         cluster = dict_data["cluster"]
         username = dict_data["username"]
         role = dict_data["role"]
-        url = dict_data["url"]
         try:
             kubeconfig_path = os.path.join(settings.BASE_DIR,
                                            r"config/kubeconfig/cluster-kubeconfig/{}.yaml".format(cluster))
+            kubeconfig_info = load_yaml(kubeconfig_path)
+            url = kubeconfig_info["clusters"][0]["cluster"]["server"]
             # create kubeconfig dir
             kubeconfig_dir = os.path.join(settings.LIB_PATH, "kubeconfig")
             if not os.path.exists(kubeconfig_dir):

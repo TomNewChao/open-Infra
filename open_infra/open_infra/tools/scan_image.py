@@ -146,21 +146,16 @@ class CollectServiceInfo:
                                 continue
                     if is_in_kustomization_dir:
                         try:
-                            name_space = str()
                             cmd = GlobalConfig.kustomize_cmd.format(dir_path)
                             ret, out_data, err = execute_cmd3_with_tmp(cmd)
                             list_data = yaml.load_all(out_data, Loader=SafeLoader)
-                            generator1, generator2 = itertools.tee(list_data, 2)
-                            for data in generator1:
-                                if data['kind'].lower() == "namespace":
-                                    name_space = data["metadata"]["name"]
-                            for data in generator2:
+                            for data in list_data:
                                 if data['kind'].lower() in GlobalConfig.service_kind:
                                     if int(data['spec'].get("replicas", 1)) == 0:
                                         continue
                                     dict_data = dict()
                                     dict_data["service_name"] = data["metadata"]["name"]
-                                    dict_data["namespace"] = name_space
+                                    dict_data["namespace"] = data["metadata"]["namespace"]
                                     dict_data["cluster"] = cluster
                                     dict_data["region"] = region
                                     dict_data["image"] = list()
@@ -181,7 +176,7 @@ class CollectServiceInfo:
                                         continue
                                     dict_data = dict()
                                     dict_data["service_name"] = data["metadata"]["name"]
-                                    dict_data["namespace"] = name_space
+                                    dict_data["namespace"] = data["metadata"]["namespace"]
                                     dict_data["cluster"] = cluster
                                     dict_data["region"] = region
                                     dict_data["image"] = list()
