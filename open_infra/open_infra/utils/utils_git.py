@@ -17,11 +17,12 @@ class GitHubPrStatus(object):
     opened = "opened"
     reopened = "reopened"
     closed = "closed"
+    synchronize = "synchronize"
 
     @classmethod
     def is_in_github_pr_status(cls, status):
         """judge github post status in this class"""
-        if status in [cls.create, cls.opened, cls.reopened, cls.closed]:
+        if status in [cls.create, cls.opened, cls.reopened, cls.closed, cls.synchronize]:
             return True
         else:
             return False
@@ -29,7 +30,7 @@ class GitHubPrStatus(object):
     @classmethod
     def is_in_new_pr_status(cls, status):
         """judge github post action is new pr"""
-        if status in [cls.opened, cls.reopened]:
+        if status in [cls.opened, cls.reopened, cls.synchronize]:
             return True
         else:
             return False

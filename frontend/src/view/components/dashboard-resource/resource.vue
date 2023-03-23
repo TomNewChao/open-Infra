@@ -7,7 +7,7 @@
           <Option v-for="item in CpuMonth" :value="item.key" :key="item.key">{{ item.title }}</Option>
         </Select>
         <Button @click="getCpuMonthData" class="search-btn" type="primary">
-          <Icon type="search"/>&nbsp;&nbsp;搜索
+          <Icon type="search"/>搜索
         </Button>
         <Button type="primary" @click="cpuExportHandler" class="download">导出选择周的CPU数据</Button>
       </div>
@@ -24,7 +24,7 @@
           <Option v-for="item in MemMonth" :value="item.key" :key="item.key">{{ item.title }}</Option>
         </Select>
         <Button @click="getMemMonthData" class="search-btn" type="primary">
-          <Icon type="search"/>&nbsp;&nbsp;搜索
+          <Icon type="search"/>搜索
         </Button>
         <Button type="primary" @click="memExportHandler" class="download">导出选择周的内存数据</Button>
       </div>

@@ -27,6 +27,17 @@ class KubeconfigGlobalConfig:
 class KubeconfigLib(object):
 
     @staticmethod
+    def get_kubeconfig_path(cluster):
+        return os.path.join(settings.BASE_DIR, r"config/kubeconfig/cluster-kubeconfig/{}.yaml".format(cluster))
+
+    @staticmethod
+    def is_cluster_exist(cluster):
+        kubeconfig_path = KubeconfigLib.get_kubeconfig_path(cluster)
+        if os.path.exists(kubeconfig_path):
+            return True
+        return False
+
+    @staticmethod
     def create_kubeconfig(dict_data):
         """create kubeconfig
         @param dict_data: dict and contain namespace and cluster username role url
@@ -37,10 +48,13 @@ class KubeconfigLib(object):
         username = dict_data["username"]
         role = dict_data["role"]
         try:
-            kubeconfig_path = os.path.join(settings.BASE_DIR,
-                                           r"config/kubeconfig/cluster-kubeconfig/{}.yaml".format(cluster))
+            kubeconfig_path = KubeconfigLib.get_kubeconfig_path(cluster)
             kubeconfig_info = load_yaml(kubeconfig_path)
-            url = kubeconfig_info["clusters"][0]["cluster"]["server"]
+            cluster_name = [context["context"]["cluster"] for context in kubeconfig_info["contexts"] if
+                            context["name"] == kubeconfig_info["current-context"]]
+            url_list = [cluster["cluster"]["server"] for cluster in kubeconfig_info["clusters"] if
+                        cluster["name"] == cluster_name[0]]
+            url = url_list[0]
             # create kubeconfig dir
             kubeconfig_dir = os.path.join(settings.LIB_PATH, "kubeconfig")
             if not os.path.exists(kubeconfig_dir):
@@ -95,8 +109,7 @@ class KubeconfigLib(object):
         cluster = dict_data["cluster"]
         username = dict_data["username"]
         role = dict_data["role"]
-        kubeconfig_path = os.path.join(settings.BASE_DIR,
-                                       r"config/kubeconfig/cluster-kubeconfig/{}.yaml".format(cluster))
+        kubeconfig_path = KubeconfigLib.get_kubeconfig_path(cluster)
         script_path = os.path.join(settings.BASE_DIR,
                                    r"config/kubeconfig/script/deleteRoleScript.sh")
         os.chmod(script_path, stat.S_IXGRP)

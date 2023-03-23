@@ -7,7 +7,7 @@
         </Select>
         <Input clearable placeholder="输入关键字搜索" class="search-input" v-model="searchValueBillInfo"/>
         <Button @click="handleSearchBillInfo" class="search-btn" type="primary">
-          <Icon type="search"/>&nbsp;&nbsp;搜索
+          <Icon type="search"/>搜索
         </Button>
         <label class="show-label-first">应付金额总计：{{ totalConsumeAmount }}</label>
         <label class="show-label-second">实际费用总计：{{ totalActualCost }}</label>
