@@ -81,7 +81,7 @@ class InitMgr:
     def refresh_service(cls):
         """Read the information from uptime-robot and swr and deploy config, and refresh data to mysql"""
         logger.info("----------------3.start refresh service information-----------------")
-        swr_info, config_list = CollectServiceInfo.get_service()
+        swr_info, config_list = CollectServiceInfo.get_all_service()
         for config in config_list:
             # service_list = ServiceInfo.get_service_info(config["service_name"], config["namespace"],
             #                                             config["cluster"], config["region"])
@@ -151,10 +151,34 @@ class InitMgr:
         logger.info("----------------4.end to refresh sla service-----------------")
 
     @classmethod
+    @func_catch_exception
+    def refresh_service_swr(cls):
+        """refresh service swr"""
+        logger.info("----------------5.start refresh service swr information-----------------")
+        swr_info = CollectServiceInfo.get_swr_data()
+        image_list = ServiceImage.get_all_image()
+        for image in image_list:
+            image_info = swr_info.get(image['image'])
+            if image_info:
+                new_dict = dict()
+                new_dict["repository"] = image_info.get("repository")
+                new_dict["branch"] = image_info.get("branch")
+                new_dict["developer"] = image_info.get("developer")
+                new_dict["email"] = image_info.get("email")
+                new_dict["base_image"] = image_info.get("base_image")
+                new_dict["base_os"] = image_info.get("os")
+                new_dict["pipline_url"] = image_info.get("pipline_url")
+                new_dict["num_download"] = image_info.get("num_download")
+                new_dict["size"] = image_info.get("size")
+                ServiceImage.update_images(image['image'], **new_dict)
+        logger.info("----------------5.end refresh service swr information-----------------")
+
+    @classmethod
     def crontab_task(cls):
         cls.refresh_account_info()
         cls.refresh_eip()
         cls.refersh_service_sla()
+        cls.refresh_service_swr()
 
     @classmethod
     def immediately_task(cls):

@@ -43,5 +43,5 @@ class KubeConfigInfo(BaseModel):
         verbose_name_plural = verbose_name
 
     def __str__(self):
-        return self.id
+        return str(self.id)
 

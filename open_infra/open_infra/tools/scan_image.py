@@ -92,6 +92,7 @@ class CollectServiceInfo:
 
     @staticmethod
     def read_deploy_config(kustomization_path):
+        """read kustomization and parse cluster and region"""
         cluster, region = str(), str()
         try:
             kustomization_info = load_yaml(kustomization_path)
@@ -206,9 +207,15 @@ class CollectServiceInfo:
         return all_list_data
 
     @classmethod
-    def get_service(cls):
-        """get all the data"""
+    def get_swr_data(cls):
+        """get swr data and parse data"""
         swr_list = cls.get_swr()
         swr_info = cls.parse_swr(swr_list)
+        return swr_info
+
+    @classmethod
+    def get_all_service(cls):
+        """get all the data"""
+        swr_info = cls.get_swr_data()
         config = cls.get_deploy_config()
         return swr_info, config

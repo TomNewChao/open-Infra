@@ -163,6 +163,14 @@ class ServiceImage(BaseModel):
         return str(self.id)
 
     @classmethod
+    def get_all_image(cls):
+        return cls.objects.values("image").distinct()
+
+    @classmethod
+    def update_images(cls, image,  **kwargs):
+        return cls.objects.filter(image=image).update(**kwargs)
+
+    @classmethod
     def get_by_image(cls, image, service_id):
         return cls.objects.filter(image=image, service__id=service_id).count()
 
