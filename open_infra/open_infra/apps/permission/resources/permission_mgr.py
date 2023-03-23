@@ -49,6 +49,12 @@ class KubeconfigInteractGitToolsLib(GitBaseToolsLib):
             if not data["timelimit"].isdigit() or (int(data["timelimit"]) <= 0):
                 is_ok = False
                 ret_data.append("Invalid TimeLimit, Please check TimeLimit")
+            if ServiceInfo.count_namespace(data["namespace"]) == 0:
+                is_ok = False
+                ret_data.append("The NameSpace is not exist, Please check NameSpace")
+            if not KubeconfigLib.is_cluster_exist(data["cluster"]):
+                is_ok = False
+                ret_data.append("The Cluster is not exist, Please check Cluster")
         if not len(list_data):
             is_ok = False
             ret_data.append("The pr content of parse is empty, Please check the data of submit.")
@@ -196,7 +202,6 @@ class KubeconfigEmailTool(EmailBaseLib):
         kubeconfig_info['email_receivers'] = email_list
         kubeconfig_info['email_subject'] = settings.KUBECONFIG_EMAIL_SUBJECT
         kubeconfig_info['email_content'] = cls.get_content(kubeconfig_info)
-        logger.error("data is -------{}".format(kubeconfig_info))
         return cls._send_email(kubeconfig_info)
 
 

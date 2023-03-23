@@ -10,7 +10,7 @@ from permission.views import KubeConfigGitView, KubeConfigView, BatchKubeConfigV
 
 urlpatterns = [
     # the webhook github api of kubeconfig-interact
-    url(r'^github_pr', KubeConfigGitView.as_view()),
+    url(r'^kubeconfig_webhook', KubeConfigGitView.as_view()),
 
     # get the detail of kubeconfig and modify kubeconfig
     url(r'^kubeconfig', KubeConfigView.as_view()),

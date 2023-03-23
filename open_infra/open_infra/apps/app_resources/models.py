@@ -86,6 +86,10 @@ class ServiceInfo(BaseModel):
         return cls.objects.aggregate(count=Count('id'))
 
     @classmethod
+    def count_namespace(cls, namespace):
+        return cls.objects.filter(namespace=namespace).count()
+
+    @classmethod
     def get_service_info(cls, service_name, namespace, cluster, region):
         return cls.objects.filter(service_name=service_name, namespace=namespace, cluster=cluster, region=region)
 
