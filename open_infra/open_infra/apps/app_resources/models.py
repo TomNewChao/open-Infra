@@ -100,6 +100,11 @@ class ServiceInfo(BaseModel):
                 service_info_list = cls.objects.filter(service_name__contains=filter_value)
             else:
                 service_info_list = cls.objects.filter(service_name=filter_value)
+        elif filter_name and filter_name == "namespace":
+            if filter_value:
+                service_info_list = cls.objects.filter(namespace__contains=filter_value)
+            else:
+                service_info_list = cls.objects.filter(namespace=filter_value)
         elif filter_name and filter_name == "base_image":
             if filter_value:
                 service_info_list = ServiceImage.objects.filter(base_image__contains=filter_value)
