@@ -6,7 +6,7 @@
           <Option v-for="item in yearColumns" :value="item.key" :key="item.key">{{ item.title }}</Option>
         </Select>
         <Button @click="handleYearSearch" class="search-btn" type="primary">
-          <Icon type="search"/>&nbsp;&nbsp;搜索
+          <Icon type="search"/>搜索
         </Button>
       </div>
     </Row>
@@ -21,7 +21,7 @@
           <Option v-for="item in billCycleColumns" :value="item.key" :key="item.key">{{ item.title }}</Option>
         </Select>
         <Button @click="handleMonthSearch" class="search-btn" type="primary">
-          <Icon type="search"/>&nbsp;&nbsp;搜索
+          <Icon type="search"/>搜索
         </Button>
       </div>
     </Row>

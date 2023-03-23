@@ -7,7 +7,7 @@
         </Select>
         <Input clearable placeholder="输入关键字搜索" class="search-input" v-model="searchValueServiceInfo"/>
         <Button @click="handleServiceInfoSearch" class="search-btn" type="primary">
-          <Icon type="search"/>&nbsp;&nbsp;搜索
+          <Icon type="search"/>搜索
         </Button>
         <Button type="primary" @click="handleSla" class="sla-export">导出SLA数据</Button>
       </div>
@@ -85,6 +85,7 @@ export default {
       searchValueServiceInfo: '',
       searchColumnsServiceInfo: [
         { title: '服务名称', key: 'service_name' },
+        { title: '命名空间', key: 'namespace' },
         { title: '代码仓', key: 'repository' },
         { title: '基础镜像', key: 'base_image' },
         { title: '基础系统', key: 'base_os' }

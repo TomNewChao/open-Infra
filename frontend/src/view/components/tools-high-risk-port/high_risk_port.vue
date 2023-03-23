@@ -34,7 +34,7 @@
         </Select>
         <Input clearable placeholder="输入关键字搜索" class="search-input" v-model="highRiskPortSearchValue"/>
         <Button @click="handleHighRiskSearch" class="search-btn" type="primary">
-          <Icon type="search"/>&nbsp;&nbsp;搜索
+          <Icon type="search"/>搜索
         </Button>
       </div>
       <Table border ref="selection" search-place="top" :data="highRiskPortTableData" :columns="highRiskColumns" @on-sort-change="handleHighRiskSort"/>

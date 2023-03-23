@@ -7,7 +7,7 @@
         </Select>
         <Input clearable placeholder="输入关键字搜索" class="search-input" v-model="searchValue"/>
         <Button @click="handleSearch" class="search-btn" type="primary">
-          <Icon type="search"/>&nbsp;&nbsp;搜索
+          <Icon type="search"/>搜索
         </Button>
       </div>
       <tables ref="tables" search-place="top" v-model="tableData" :columns="columns" @on-sort-change="handlerEipSort"/>

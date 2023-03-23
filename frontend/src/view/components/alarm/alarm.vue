@@ -7,7 +7,7 @@
         </Select>
         <Input clearable placeholder="输入关键字搜索" class="search-input" v-model="alarmSearchValue"/>
         <Button @click="handleAlarmSearch" class="search-btn" type="primary">
-          <Icon type="search"/>&nbsp;&nbsp;搜索
+          <Icon type="search"/>搜索
         </Button>
         <Button type="primary" @click="handlerRemoveAlarm" class="handlerRemove">手动批量解除报警</Button>
       </div>

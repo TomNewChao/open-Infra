@@ -3,7 +3,7 @@
     <Card>
       <Button class="ivu-btn-one" @click="queryAlarmName" type="primary">+增加告警通知</Button>
       <Button class="ivu-btn-second" @click="deleteAlarmNotify" type="primary">-删除告警通知</Button>
-      <Button class="ivu-btn-third" @click="getAlarmNotify" type="primary"> 修改告警通知</Button>
+      <Button class="ivu-btn-third" @click="getAlarmNotify" type="primary">修改告警通知</Button>
       <Drawer
         title="添加邮件通知"
         v-model="alarmEmailDrawerValue"
@@ -85,7 +85,7 @@
         </Select>
         <Input clearable placeholder="输入关键字搜索" class="search-input" v-model="alarmEmailSearchValue"/>
         <Button @click="handlerAlarmEmailSearch" class="search-btn" type="primary">
-          <Icon type="search"/>&nbsp;&nbsp;搜索
+          <Icon type="search"/>搜索
         </Button>
       </div>
       <Table border ref="selection" search-place="top" :data="alarmEmailTableData" :columns="alarmEmailColumns"
