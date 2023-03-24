@@ -4,7 +4,10 @@
 # @Author  : Tom_zc
 # @FileName: views.py
 # @Software: PyCharm
+import json
 from datetime import datetime
+
+from django.db import transaction
 from django.http import HttpResponse
 from app_resources.models import ServiceInfo, ServiceSla, ServiceImage, HWCloudAccount, HWCloudEipInfo
 from app_resources.resources.account_mgr import AccountMgr
@@ -71,6 +74,45 @@ class ServiceView(AuthView):
         sla_mgr = SlaMgr()
         data = sla_mgr.list(params_dict)
         return assemble_api_result(ErrCode.STATUS_SUCCESS, data=data)
+
+    def post(self, request):
+        """create the service sla and sla image, sla
+        body:
+        {
+            "service_name":"service_name",
+            "namespace": "namespace",
+            "region":  "region",
+            "cluster": "cluster",
+            "image": [
+                {
+                    "image":
+                    "cpu_limit":
+                    "mem_limit":
+                }
+            ]
+        }
+        """
+        dict_data = json.loads(request.body)
+        service_name = dict_data.get("service_name")
+        namespace = dict_data.get("namespace")
+        cluster = dict_data.get("cluster")
+        region = dict_data.get("region")
+        image_list = dict_data.get("image")
+        if not all([service_name, namespace, cluster, region, image_list]):
+            return assemble_api_result(ErrCode.STATUS_PARAMETER_ERROR)
+        if not isinstance(image_list, list):
+            return assemble_api_result(ErrCode.STATUS_PARAMETER_ERROR)
+        for image in image_list:
+            image_name = image.get("image")
+            cpu_limit = image.get("cpu_limit")
+            mem_limit = image.get("mem_limit")
+            if not all([image_name, cpu_limit, mem_limit]):
+                return assemble_api_result(ErrCode.STATUS_PARAMETER_ERROR)
+        service_obj = ServiceInfo.create_single(service_name=service_name, namespace=namespace, cluster=cluster, region=region)
+        with transaction.atomic():
+            for image in image_list:
+                ServiceImage.create_single(image=image["image"], cpu_limit=image["cpu_limit"], mem_limit=image["mem_limit"], service=service_obj)
+        return assemble_api_result(ErrCode.STATUS_SUCCESS)
 
 
 class DetailServiceView(AuthView):

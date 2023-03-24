@@ -91,7 +91,7 @@ export default {
         { title: '基础系统', key: 'base_os' }
       ],
       orderByServiceInfo: 'service_name',
-      orderTypeServiceInfo: 1,
+      orderTypeServiceInfo: 0,
       pageNumServiceInfo: 1,
       pageSizeServiceInfo: 10,
       pageTotalServiceInfo: 10,
