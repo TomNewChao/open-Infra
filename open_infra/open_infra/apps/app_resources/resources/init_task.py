@@ -5,6 +5,7 @@
 # @Software: PyCharm
 import datetime
 import os
+import time
 import yaml
 from django.conf import settings
 
@@ -82,16 +83,12 @@ class InitMgr:
         """Read the information from uptime-robot and swr and deploy config, and refresh data to mysql"""
         logger.info("----------------3.start refresh service information-----------------")
         swr_info, config_list = CollectServiceInfo.get_all_service()
+        client = CollectServiceInfo.get_swr_client()
         for config in config_list:
-            # service_list = ServiceInfo.get_service_info(config["service_name"], config["namespace"],
-            #                                             config["cluster"], config["region"])
-            # if len(service_list) == 0:
             service_info = ServiceInfo.create_single(service_name=config["service_name"],
                                                      namespace=config["namespace"],
                                                      cluster=config["cluster"],
                                                      region=config["region"])
-            # else:
-            #     service_info = service_list[0]
             for image in config["image"]:
                 image_name = image["image"].split(":")[0]
                 image_info = swr_info.get(image_name, dict())
@@ -105,12 +102,16 @@ class InitMgr:
                 new_dict["base_os"] = image_info.get("os")
                 new_dict["pipline_url"] = image_info.get("pipline_url")
                 new_dict["num_download"] = image_info.get("num_download")
-                new_dict["size"] = image_info.get("size")
+                if image_info.get("namespace") and image_info.get("name"):
+                    swr_tag_info = CollectServiceInfo.get_swr_tag(image_info["namespace"], image_info["name"], client=client)
+                    new_dict["size"] = swr_tag_info and (swr_tag_info.size >> 20) + 1
+                    # to resolve the api of huaweicloud flow control
+                    time.sleep(0.5)
+                else:
+                    new_dict["size"] = None
                 new_dict["cpu_limit"] = image.get("cpu")
                 new_dict["mem_limit"] = image.get("mem")
                 new_dict["service"] = service_info
-                # path = image_info.get("path")
-                # if ServiceImage.get_by_image(image=path, service_id=service_info.id) == 0:
                 ServiceImage.create_single(**new_dict)
         logger.info("----------------3.end to refresh service-----------------")
 
@@ -124,6 +125,7 @@ class InitMgr:
         with open(path, "r+", encoding="gbk") as file:
             list_data = yaml.load(file, Loader=yaml.FullLoader)
         service_sla_dict = {data["service_alias"]: data["service_introduce"] for data in list_data}
+        # The service in sla but not in the table of service sla
         for sla_info in sla_list:
             if ServiceSla.get_by_url(url=sla_info["url"]) == 0:
                 service_alias = sla_info.get('service_alias')
@@ -148,6 +150,13 @@ class InitMgr:
                     "remain_time": sla_info.get('remain_time'),
                 }
                 ServiceSla.update_url(sla_info, **update_dict)
+        # delete url
+        # The service in service sla but not in the sla
+        sla_url_list = [sla_info["url"] for sla_info in sla_list]
+        service_sla_url_list = [service_sla["url"] for service_sla in ServiceSla.get_all_url()]
+        not_exist_url = list(set(sla_url_list) - set(service_sla_url_list))
+        logger.info("refresh sla service:{}.".format(",".join(not_exist_url)))
+        ServiceSla.delete_by_url(not_exist_url)
         logger.info("----------------4.end to refresh sla service-----------------")
 
     @classmethod
@@ -157,6 +166,7 @@ class InitMgr:
         logger.info("----------------5.start refresh service swr information-----------------")
         swr_info = CollectServiceInfo.get_swr_data()
         image_list = ServiceImage.get_all_image()
+        client = CollectServiceInfo.get_swr_client()
         for image in image_list:
             image_info = swr_info.get(image['image'])
             if image_info:
@@ -169,7 +179,13 @@ class InitMgr:
                 new_dict["base_os"] = image_info.get("os")
                 new_dict["pipline_url"] = image_info.get("pipline_url")
                 new_dict["num_download"] = image_info.get("num_download")
-                new_dict["size"] = image_info.get("size")
+                if image_info.get("namespace") and image_info.get("name"):
+                    swr_tag_info = CollectServiceInfo.get_swr_tag(image_info["namespace"], image_info["name"], client=client)
+                    new_dict["size"] = swr_tag_info and (swr_tag_info.size >> 20) + 1
+                    # to resolve the api of huaweicloud flow control
+                    time.sleep(0.5)
+                else:
+                    new_dict["size"] = None
                 ServiceImage.update_images(image['image'], **new_dict)
         logger.info("----------------5.end refresh service swr information-----------------")
 

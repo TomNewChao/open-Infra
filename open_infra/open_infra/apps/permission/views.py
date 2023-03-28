@@ -9,7 +9,6 @@ import traceback
 from django.db import transaction
 from django.views.generic import View
 
-from app_resources.models import ServiceInfo
 from open_infra.utils.api_error_code import ErrCode
 from open_infra.utils.auth_permisson import AuthView
 from open_infra.utils.common import assemble_api_result, list_param_check_and_trans
@@ -163,4 +162,3 @@ class BatchKubeConfigView(AuthView):
         if failed_dict:
             return assemble_api_result(ErrCode.STATUS_KUBECONFIG_DELETE_FAILED, trans_para=str(failed_dict))
         return assemble_api_result(ErrCode.STATUS_SUCCESS)
-

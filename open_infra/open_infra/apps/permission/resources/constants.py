@@ -25,9 +25,6 @@ class KubeConfigLock:
     ProcessLock = Lock()
 
 
-
-
-
 class PrComment:
     """The permission of comment"""
     welcome = """Hi ***{}***, welcome to the Open-Infra-Ops Community.\nI'm the Bot here serving you.Thank you for submitting the kubeconfig request.\nApplication check result: ***{}***.\nDetail: {}"""

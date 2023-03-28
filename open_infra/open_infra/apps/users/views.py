@@ -1,6 +1,6 @@
-from rest_framework_jwt.utils import jwt_decode_handler
 from open_infra.utils.auth_permisson import AuthView
-from users.models import User
+# from rest_framework_jwt.utils import jwt_decode_handler
+# from users.models import User
 
 
 class UserView(AuthView):

@@ -220,6 +220,10 @@ class ServiceSla(BaseModel):
             "month_sla", "year_sla", "remain_time")
 
     @classmethod
+    def get_all_url(cls):
+        return cls.objects.all().values("url").distinct()
+
+    @classmethod
     def get_by_url(cls, url):
         return cls.objects.filter(url=url).count()
 
@@ -230,6 +234,10 @@ class ServiceSla(BaseModel):
     @classmethod
     def delete_all(cls):
         return cls.objects.all().delete()
+
+    @classmethod
+    def delete_by_url(cls, url_list):
+        return cls.objects.filter(url__in=url_list).delete()
 
     @classmethod
     def update_url(cls, url, **kwargs):
