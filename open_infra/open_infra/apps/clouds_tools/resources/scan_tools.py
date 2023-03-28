@@ -3,9 +3,6 @@
 # @Author  : Tom_zc
 # @FileName: scan_tools.py
 # @Software: PyCharm
-import datetime
-import os
-import time
 import traceback
 
 from django.db import transaction
@@ -113,7 +110,7 @@ class ScanBaseTools(object):
 
     @staticmethod
     def get_project_info(ak, sk):
-        clouds_config = ScanBaseTools.get_decrypt_hw_account_project_info_from_database()
+        clouds_config = AccountMgr.get_decrypt_hw_account_project_info_from_database()
         for cloud_info in clouds_config:
             if cloud_info["ak"] == ak and cloud_info["sk"] == sk:
                 return cloud_info["project_info"]

@@ -17,4 +17,3 @@ class CloudsToolsAlarm(ActiveAlarmBase):
             "des_var": [],
         }
         return alarm_info_dict
-

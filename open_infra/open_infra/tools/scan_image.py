@@ -37,6 +37,16 @@ class GlobalConfig:
 
 
 class CollectServiceInfo:
+
+    @staticmethod
+    def get_swr_client():
+        credentials = BasicCredentials(GlobalConfig.ak, GlobalConfig.sk)
+        client = SwrClient.new_builder() \
+            .with_credentials(credentials) \
+            .with_region(SwrRegion.value_of("cn-north-4")) \
+            .build()
+        return client
+
     @staticmethod
     def get_swr():
         """through the http request to get the list of swr repo"""
@@ -49,11 +59,11 @@ class CollectServiceInfo:
                 .with_region(SwrRegion.value_of("cn-north-4")) \
                 .build()
             while True:
-                request = ListReposDetailsRequest(limit='100', offset=str(request_begin))
+                request = ListReposDetailsRequest(limit='400', offset=str(request_begin))
                 response = client.list_repos_details(request)
                 repos_list.extend(response.body)
-                if len(response.body) == 100:
-                    request_begin += 100
+                if len(response.body) == 400:
+                    request_begin += 400
                 else:
                     break
             logger.info("[CollectServiceInfo] get_swr len:{}".format(len(repos_list)))
@@ -62,6 +72,37 @@ class CollectServiceInfo:
                                                                                       e.error_code,
                                                                                       e.error_msg))
         return repos_list
+
+    @staticmethod
+    def get_swr_tag(namespace, repository, tag=None, client=None):
+        """through the http request to get the list of swr repo tag"""
+        try:
+            repository = repository.replace(r"/", r"$")
+            if client is None:
+                credentials = BasicCredentials(GlobalConfig.ak, GlobalConfig.sk)
+                client = SwrClient.new_builder() \
+                    .with_credentials(credentials) \
+                    .with_region(SwrRegion.value_of("cn-north-4")) \
+                    .build()
+            request = ListRepositoryTagsRequest()
+            request.namespace = namespace
+            request.repository = repository
+            request.limit = 5
+            request.offset = 0
+            request.order_column = "updated_at"
+            request.order_type = "desc"
+            if tag is not None:
+                request.tag = tag
+            response = client.list_repository_tags(request)
+            if len(response.body) == 0:
+                logger.info("[get_swr_tag] {}/{}/{} get the length:{} not equal 1".format(namespace, repository, tag, response.body))
+            else:
+                return response.body[0]
+        except exceptions.ClientRequestException as e:
+            logger.error("[get_swr_tag] request_id:{}, code:{}, msg:{}".format(e.request_id,
+                                                                               e.error_code,
+                                                                               e.error_msg))
+        return None
 
     @staticmethod
     def parse_swr(swr_list):
@@ -81,9 +122,10 @@ class CollectServiceInfo:
                         continue
                     if "build_config" in meta_data.keys() and not isinstance(meta_data["build_config"], list):
                         continue
+                    meta_data["namespace"] = swr_info.namespace
+                    meta_data["name"] = swr_info.name
                     meta_data["path"] = swr_info.path
                     meta_data["num_download"] = swr_info.num_download
-                    meta_data["size"] = swr_info.size
                     dict_data[swr_info.path] = meta_data
                 except Exception as e:
                     logger.error("[CollectServiceInfo] parse_swr e:{}, traceback:{}".format(e, traceback.format_exc()))

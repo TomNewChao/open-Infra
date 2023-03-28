@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 # @Time    : 2022/7/28 11:27
 # @Author  : Tom_zc
-# @FileName: scan_thread.py
+# @FileName: constants.py
 # @Software: PyCharm
-from threading import Lock
 from open_infra.utils.common import BaseStatus
 
 

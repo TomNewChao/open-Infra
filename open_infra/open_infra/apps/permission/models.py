@@ -14,6 +14,7 @@ class KubeConfigInfo(BaseModel):
     expired_time = models.IntegerField(null=True, verbose_name="过期间隔时间,单位:day")
     send_ok = models.BooleanField(null=True, verbose_name="邮件发送ok")
 
+    # noinspection PyUnresolvedReferences
     def to_dict(self, fields=None, exclude=None, is_relate=False):
         """
         转dict
@@ -44,4 +45,3 @@ class KubeConfigInfo(BaseModel):
 
     def __str__(self):
         return str(self.id)
-

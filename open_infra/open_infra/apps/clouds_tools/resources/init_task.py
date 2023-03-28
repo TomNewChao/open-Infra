@@ -5,9 +5,7 @@
 # @Software: PyCharm
 import traceback
 from logging import getLogger
-
 from django.db import transaction
-
 from app_resources.resources.account_mgr import AccountMgr
 from clouds_tools.models import HWCloudHighRiskPort, HWCloudScanEipPortInfo, HWCloudScanEipPortStatus, \
     HWCloudScanObsAnonymousFile, HWCloudScanObsAnonymousBucket, HWCloudScanObsAnonymousStatus
@@ -91,4 +89,3 @@ class InitMgr:
     def test_task(cls):
         cls.refresh_high_level_port()
         cls.crontab_task()
-

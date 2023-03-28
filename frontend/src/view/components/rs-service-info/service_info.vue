@@ -41,7 +41,7 @@
             <tables ref="tables" search-place="top" :stripe=true v-model="serviceDetail.service_sla"
                     :columns="columnsSlaInfo"/>
           </Row>
-          <h3>服务镜像</h3>
+          <h3>服务镜像（最新版）</h3>
           <Row :gutter="32">
             <tables ref="tables" search-place="top" :stripe=true v-model="serviceDetail.service_image"
                     :columns="columnsImageInfo"/>
@@ -126,7 +126,7 @@ export default {
         { title: '基础系统', key: 'base_os' }
       ],
       columnsSlaInfo: [
-        { title: '域名', key: 'url', sortable: 'custom' },
+        { title: 'url', key: 'url', sortable: 'custom' },
         { title: '别名', key: 'service_alias' },
         { title: '介绍', key: 'service_introduce' },
         { title: '社区', key: 'service_zone' },
@@ -138,15 +138,43 @@ export default {
       ],
       columnsImageInfo: [
         { title: '路径', key: 'image' },
-        { title: '仓库', key: 'repository' },
+        {
+          title: '仓库',
+          key: 'repository',
+          render: (h, params) => {
+            return h('a', {
+              style: {
+                textDecoration: 'underline'
+              },
+              attrs: {
+                href: params.row.repository,
+                target: '_blank'
+              }
+            }, params.row.repository)
+          }
+        },
         { title: '分支', key: 'branch' },
         { title: '开发者', key: 'developer' },
         { title: '邮箱', key: 'email' },
         { title: '基础镜像', key: 'base_image' },
         { title: '操作系统', key: 'base_os' },
-        { title: '流水线', key: 'pipline_url' },
-        { title: '镜像大小', key: 'size' },
-        { title: '下载次数', key: 'num_download', sortable: 'custom' },
+        {
+          title: '流水线',
+          key: 'pipline_url',
+          render: (h, params) => {
+            return h('a', {
+              style: {
+                textDecoration: 'underline'
+              },
+              attrs: {
+                href: params.row.pipline_url,
+                target: '_blank'
+              }
+            }, params.row.pipline_url)
+          }
+        },
+        { title: '镜像大小(M)', key: 'size' },
+        { title: '镜像下载总数', key: 'num_download' },
         { title: 'cpu限制', key: 'cpu_limit', sortable: 'custom' },
         { title: '内存限制', key: 'mem_limit', sortable: 'custom' }
       ],

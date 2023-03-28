@@ -4,7 +4,6 @@
 # @FileName: sla_mgr.py
 # @Software: PyCharm
 import datetime
-from urllib.parse import urlparse
 from django.conf import settings
 from app_resources.models import ServiceInfo, ServiceImage, ServiceSla
 from open_infra.tools.scan_sla import scan_cla

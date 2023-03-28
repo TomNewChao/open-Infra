@@ -4,7 +4,6 @@
 # @FileName: scan_thread.py
 # @Software: PyCharm
 from threading import Lock
-from open_infra.utils.common import BaseStatus
 
 
 class NetProtocol(object):
@@ -33,5 +32,3 @@ class ScanToolsLock:
     scan_obs = Lock()
     refresh_service_info_lock = Lock()
     obs_interact_lock = Lock()
-
-

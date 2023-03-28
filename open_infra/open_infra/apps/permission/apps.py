@@ -4,7 +4,6 @@
 # @FileName: apps.py
 # @Software: PyCharm
 
-import datetime
 from apscheduler.schedulers.background import BackgroundScheduler
 from django.apps import AppConfig
 from open_infra.utils.common import runserver_executor

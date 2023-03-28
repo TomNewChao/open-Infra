@@ -6,8 +6,6 @@
 import logging
 import time
 import traceback
-
-from app_resources.models import ServiceInfo
 from open_infra.utils.utils_kubeconfig import KubeconfigLib
 from permission.models import KubeConfigInfo
 

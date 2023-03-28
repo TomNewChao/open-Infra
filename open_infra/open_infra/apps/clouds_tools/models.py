@@ -1,6 +1,4 @@
 from itertools import chain
-
-from clouds_tools.resources.constants import ScanObsStatus
 from open_infra.utils.models import BaseModel
 from django.db import models
 from django.conf import settings
@@ -53,6 +51,7 @@ class HWCloudScanEipPortInfo(BaseModel):
     service_info = models.CharField(max_length=128, null=True, verbose_name="服务器版本信息")
     protocol = models.IntegerField(verbose_name="协议:1_tcp/0_udp")
 
+    # noinspection PyUnresolvedReferences
     def to_dict(self, fields=None, exclude=None, is_relate=False):
         """
         转dict
