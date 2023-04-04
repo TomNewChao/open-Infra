@@ -64,6 +64,8 @@ class ServiceView(AuthView):
         filter_name, filter_value = dict_data.get("filter_name"), dict_data.get("filter_value")
         cluster = dict_data.get("cluster")
         region = dict_data.get("region")
+        base_image = dict_data.get("base_image")
+        base_os = dict_data.get("base_os")
         if filter_name:
             params_dict["filter_name"] = filter_name.strip()
             params_dict["filter_value"] = filter_value.strip()
@@ -71,6 +73,10 @@ class ServiceView(AuthView):
             params_dict["cluster"] = cluster.strip()
         if region:
             params_dict["region"] = region.strip()
+        if base_image:
+            params_dict["base_image"] = base_image.strip()
+        if base_os:
+            params_dict["base_os"] = base_os.strip()
         sla_mgr = SlaMgr()
         data = sla_mgr.list(params_dict)
         return assemble_api_result(ErrCode.STATUS_SUCCESS, data=data)
@@ -108,10 +114,12 @@ class ServiceView(AuthView):
             mem_limit = image.get("mem_limit")
             if not all([image_name, cpu_limit, mem_limit]):
                 return assemble_api_result(ErrCode.STATUS_PARAMETER_ERROR)
-        service_obj = ServiceInfo.create_single(service_name=service_name, namespace=namespace, cluster=cluster, region=region)
+        service_obj = ServiceInfo.create_single(service_name=service_name, namespace=namespace, cluster=cluster,
+                                                region=region)
         with transaction.atomic():
             for image in image_list:
-                ServiceImage.create_single(image=image["image"], cpu_limit=image["cpu_limit"], mem_limit=image["mem_limit"], service=service_obj)
+                ServiceImage.create_single(image=image["image"], cpu_limit=image["cpu_limit"],
+                                           mem_limit=image["mem_limit"], service=service_obj)
         return assemble_api_result(ErrCode.STATUS_SUCCESS)
 
 
@@ -153,6 +161,20 @@ class RegionView(AuthView):
         sla_mgr = SlaMgr()
         data = sla_mgr.get_all_region()
         return assemble_api_result(ErrCode.STATUS_SUCCESS, data=data)
+
+
+class BaseOsView(AuthView):
+    def get(self, request):
+        list_data = ServiceImage.get_all_base_os()
+        list_data = [{"label": i["base_os"], "value": i["base_os"]} for i in list_data if i["base_os"]]
+        return assemble_api_result(ErrCode.STATUS_SUCCESS, data=list_data)
+
+
+class BaseImageView(AuthView):
+    def get(self, request):
+        list_data = ServiceImage.get_all_base_image()
+        list_data = [{"label": i["base_image"], "value": i["base_image"]} for i in list_data if i["base_image"]]
+        return assemble_api_result(ErrCode.STATUS_SUCCESS, data=list_data)
 
 
 # noinspection DuplicatedCode,PyMethodMayBeStatic

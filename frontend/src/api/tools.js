@@ -130,12 +130,12 @@ export const eipListApi = (page, size, order_by, order_type, filter_name, filter
   })
 }
 
-export const ServiceInfoListApi = (page, size, order_by, order_type, filter_name, filter_value, cluster, region) => {
+export const ServiceInfoListApi = (page, size, order_by, order_type, filter_name, filter_value, cluster, region, base_image, base_os) => {
   return axios.request({
     url: '/api/app_resources/service',
     method: 'get',
     params: {
-      page, size, order_by, order_type, filter_name, filter_value, cluster, region
+      page, size, order_by, order_type, filter_name, filter_value, cluster, region, base_image, base_os
     }
   })
 }
@@ -160,6 +160,20 @@ export const ServiceClusterListApi = () => {
 export const ServiceRegionListApi = () => {
   return axios.request({
     url: '/api/app_resources/region',
+    method: 'get'
+  })
+}
+
+export const ServiceBaseOsListApi = () => {
+  return axios.request({
+    url: '/api/app_resources/base_os',
+    method: 'get'
+  })
+}
+
+export const ServiceBaseImageListApi = () => {
+  return axios.request({
+    url: '/api/app_resources/base_image',
     method: 'get'
   })
 }
