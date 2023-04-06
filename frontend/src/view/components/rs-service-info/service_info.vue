@@ -68,7 +68,9 @@ import {
   ServiceClusterListApi,
   ServiceInfoListApi,
   ServiceDetailApi,
-  ServiceRegionListApi
+  ServiceRegionListApi,
+  ServiceBaseOsListApi,
+  ServiceBaseImageListApi
 } from '@/api/tools'
 import { getStrDate } from '@/libs/tools'
 import { blobDownload } from '@/libs/download'
@@ -86,9 +88,7 @@ export default {
       searchColumnsServiceInfo: [
         { title: '服务名称', key: 'service_name' },
         { title: '命名空间', key: 'namespace' },
-        { title: '代码仓', key: 'repository' },
-        { title: '基础镜像', key: 'base_image' },
-        { title: '基础系统', key: 'base_os' }
+        { title: '代码仓', key: 'repository' }
       ],
       orderByServiceInfo: 'service_name',
       orderTypeServiceInfo: 0,
@@ -97,6 +97,8 @@ export default {
       pageTotalServiceInfo: 10,
       ServiceCluster: '',
       ServiceRegion: '',
+      ServiceBaseImage: '',
+      ServiceBaseOs: '',
       isServiceDetail: false,
       serviceDetail: {},
       columnsServiceInfo: [
@@ -122,8 +124,24 @@ export default {
         },
         { title: '镜像', key: 'image' },
         { title: '代码仓', key: 'repository' },
-        { title: '基础镜像', key: 'base_image' },
-        { title: '基础系统', key: 'base_os' }
+        {
+          title: '基础镜像',
+          key: 'base_image',
+          filters: [],
+          filterMultiple: false,
+          filterMethod (value, row) {
+            return value
+          }
+        },
+        {
+          title: '基础系统',
+          key: 'base_os',
+          filters: [],
+          filterMultiple: false,
+          filterMethod (value, row) {
+            return value
+          }
+        }
       ],
       columnsSlaInfo: [
         { title: 'url', key: 'url', sortable: 'custom' },
@@ -185,6 +203,8 @@ export default {
     this.handleServiceInfoList()
     this.handleServiceClusterItem()
     this.handleServiceRegionItem()
+    this.handleServiceBaseImageItem()
+    this.handleServiceOsItem()
   },
   methods: {
     handleServiceInfoSearch () {
@@ -206,7 +226,7 @@ export default {
     handleServiceInfoList () {
       ServiceInfoListApi(this.pageNumServiceInfo, this.pageSizeServiceInfo, this.orderByServiceInfo,
         this.orderTypeServiceInfo, this.searchKeyServiceInfo, this.searchValueServiceInfo,
-        this.ServiceCluster, this.ServiceRegion).then(res => {
+        this.ServiceCluster, this.ServiceRegion, this.ServiceBaseImage, this.ServiceBaseOs).then(res => {
         if (res.data.err_code !== 0) {
           this.$Message.info(res.data.description)
         } else {
@@ -244,11 +264,33 @@ export default {
         }
       })
     },
+    handleServiceBaseImageItem () {
+      ServiceBaseImageListApi().then(res => {
+        if (res.data.err_code !== 0) {
+          this.$Message.info(res.data.description)
+        } else {
+          this.columnsServiceInfo[6].filters = res.data.data
+        }
+      })
+    },
+    handleServiceOsItem () {
+      ServiceBaseOsListApi().then(res => {
+        if (res.data.err_code !== 0) {
+          this.$Message.info(res.data.description)
+        } else {
+          this.columnsServiceInfo[7].filters = res.data.data
+        }
+      })
+    },
     handleServiceFilter (value) {
       if (value.key === 'cluster') {
         this.ServiceCluster = value._filterChecked[0]
       } else if (value.key === 'region') {
         this.ServiceRegion = value._filterChecked[0]
+      } else if (value.key === 'base_image') {
+        this.ServiceBaseImage = value._filterChecked[0]
+      } else if (value.key === 'base_os') {
+        this.ServiceBaseOs = value._filterChecked[0]
       }
       this.handleServiceInfoList()
     },

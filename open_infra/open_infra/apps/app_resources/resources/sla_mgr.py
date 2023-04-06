@@ -92,6 +92,8 @@ class SlaMgr:
         filter_value = kwargs.get("filter_value")
         cluster = kwargs.get("cluster")
         region = kwargs.get("region")
+        base_image = kwargs.get("base_image")
+        base_os = kwargs.get("base_os")
         service_info_list = ServiceInfo.filter(filter_name, filter_value)
         if cluster:
             if cluster != '0':
@@ -103,6 +105,20 @@ class SlaMgr:
                 service_info_list = service_info_list.filter(region=region)
             else:
                 service_info_list = service_info_list.filter(region='')
+        if base_image:
+            if base_image != '0':
+                service_image_list = ServiceImage.objects.filter(base_image=base_image)
+            else:
+                service_image_list = ServiceImage.objects.filter(base_image='')
+            service_id = [service_info.service.id for service_info in service_image_list]
+            service_info_list = service_info_list.filter(id__in=service_id)
+        if base_os:
+            if base_os != '0':
+                service_image_list = ServiceImage.objects.filter(base_os=base_os)
+            else:
+                service_image_list = ServiceImage.objects.filter(base_os='')
+            service_id = [service_info.service.id for service_info in service_image_list]
+            service_info_list = service_info_list.filter(id__in=service_id)
         total = len(service_info_list)
         page, slice_obj = get_suitable_range(total, page, size)
         order_by = order_by if order_by else "create_time"

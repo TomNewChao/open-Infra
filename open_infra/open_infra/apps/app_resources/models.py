@@ -105,20 +105,6 @@ class ServiceInfo(BaseModel):
                 service_info_list = cls.objects.filter(namespace__contains=filter_value)
             else:
                 service_info_list = cls.objects.filter(namespace=filter_value)
-        elif filter_name and filter_name == "base_image":
-            if filter_value:
-                service_info_list = ServiceImage.objects.filter(base_image__contains=filter_value)
-            else:
-                service_info_list = ServiceImage.objects.filter(base_image=None)
-            service_id = [service_info.service.id for service_info in service_info_list]
-            service_info_list = cls.objects.filter(id__in=service_id)
-        elif filter_name and filter_name == "base_os":
-            if filter_value:
-                service_info_list = ServiceImage.objects.filter(base_os__contains=filter_value)
-            else:
-                service_info_list = ServiceImage.objects.filter(base_os=None)
-            service_id = [service_info.service.id for service_info in service_info_list]
-            service_info_list = cls.objects.filter(id__in=service_id)
         elif filter_name and filter_name == "repository":
             if filter_value:
                 service_info_list = ServiceImage.objects.filter(repository__contains=filter_value)
@@ -189,6 +175,14 @@ class ServiceImage(BaseModel):
     @classmethod
     def get_image(cls):
         return cls.objects.all().values("repository", "branch", "developer", "email").distinct()
+
+    @classmethod
+    def get_all_base_os(cls):
+        return cls.objects.values("base_os").distinct()
+
+    @classmethod
+    def get_all_base_image(cls):
+        return cls.objects.values("base_image").distinct()
 
 
 class ServiceSla(BaseModel):
