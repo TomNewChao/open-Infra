@@ -6,10 +6,9 @@
           <Option v-for="item in searchColumnsServiceInfo" :value="item.key" :key="item.key">{{ item.title }}</Option>
         </Select>
         <Input clearable placeholder="输入关键字搜索" class="search-input" v-model="searchValueServiceInfo"/>
-        <Button @click="handleServiceInfoSearch" class="search-btn" type="primary">
-          <Icon type="search"/>搜索
-        </Button>
-        <Button type="primary" @click="handleSla" class="sla-export">导出SLA数据</Button>
+        <Button @click="handleServiceInfoSearch" class="search-btn" type="primary"><Icon type="search"/>搜索</Button>
+        <Button type="primary" @click="handleExportSla" class="sla-export">导出SLA数据</Button>
+        <Button type="primary" @click="handleExportService" class="service-export">导出当前表格数据</Button>
       </div>
       <Drawer
         class="serviceDetail"
@@ -34,6 +33,9 @@
               <FormItem label="区域:">
                 <label v-text="serviceDetail.region"></label>
               </FormItem>
+              <FormItem label="社区:">
+                <label v-text="serviceDetail.community"></label>
+              </FormItem>
             </Col>
           </Row>
           <h3>服务SLA</h3>
@@ -52,7 +54,8 @@
               @on-filter-change="handleServiceFilter"
               @on-sort-change="handleServiceInfoSort"
               @on-row-click="handleRowClick"/>
-      <Page :total="pageTotalServiceInfo" :current="pageNumServiceInfo" :page-size="pageSizeServiceInfo" :pageSizeOpts="pageSizeOpts"
+      <Page :total="pageTotalServiceInfo" :current="pageNumServiceInfo" :page-size="pageSizeServiceInfo"
+            :pageSizeOpts="pageSizeOpts"
             show-sizer show-total
             @on-change="handleServiceInfoPage"
             @on-page-size-change="handleServiceInfoPageSize"/>
@@ -70,7 +73,9 @@ import {
   ServiceDetailApi,
   ServiceRegionListApi,
   ServiceBaseOsListApi,
-  ServiceBaseImageListApi
+  ServiceBaseImageListApi,
+  ServiceCommunityListApi,
+  exportServiceData
 } from '@/api/tools'
 import { getStrDate } from '@/libs/tools'
 import { blobDownload } from '@/libs/download'
@@ -97,6 +102,7 @@ export default {
       pageTotalServiceInfo: 10,
       ServiceCluster: '',
       ServiceRegion: '',
+      ServiceCommunity: '',
       ServiceBaseImage: '',
       ServiceBaseOs: '',
       isServiceDetail: false,
@@ -116,6 +122,15 @@ export default {
         {
           title: '区域',
           key: 'region',
+          filters: [],
+          filterMultiple: false,
+          filterMethod (value, row) {
+            return value
+          }
+        },
+        {
+          title: '社区',
+          key: 'community',
           filters: [],
           filterMultiple: false,
           filterMethod (value, row) {
@@ -203,6 +218,7 @@ export default {
     this.handleServiceInfoList()
     this.handleServiceClusterItem()
     this.handleServiceRegionItem()
+    this.handleServiceCommunityItem()
     this.handleServiceBaseImageItem()
     this.handleServiceOsItem()
   },
@@ -226,7 +242,7 @@ export default {
     handleServiceInfoList () {
       ServiceInfoListApi(this.pageNumServiceInfo, this.pageSizeServiceInfo, this.orderByServiceInfo,
         this.orderTypeServiceInfo, this.searchKeyServiceInfo, this.searchValueServiceInfo,
-        this.ServiceCluster, this.ServiceRegion, this.ServiceBaseImage, this.ServiceBaseOs).then(res => {
+        this.ServiceCluster, this.ServiceRegion, this.ServiceCommunity, this.ServiceBaseImage, this.ServiceBaseOs).then(res => {
         if (res.data.err_code !== 0) {
           this.$Message.info(res.data.description)
         } else {
@@ -237,11 +253,21 @@ export default {
         }
       })
     },
-    handleSla () {
+    handleExportSla () {
       exportSlaData().then(res => {
         if (res.headers['content-type'] === 'application/octet-stream') {
           let strDate = getStrDate()
           const fileName = 'Sla数据统计表_' + strDate + '.xlsx'
+          blobDownload(res.data, fileName)
+        }
+      })
+    },
+    handleExportService () {
+      exportServiceData(this.orderByServiceInfo, this.orderTypeServiceInfo, this.searchKeyServiceInfo, this.searchValueServiceInfo,
+        this.ServiceCluster, this.ServiceRegion, this.ServiceCommunity, this.ServiceBaseImage, this.ServiceBaseOs).then(res => {
+        if (res.headers['content-type'] === 'application/octet-stream') {
+          let strDate = getStrDate()
+          const fileName = 'service数据统计表_' + strDate + '.xlsx'
           blobDownload(res.data, fileName)
         }
       })
@@ -264,12 +290,21 @@ export default {
         }
       })
     },
+    handleServiceCommunityItem () {
+      ServiceCommunityListApi().then(res => {
+        if (res.data.err_code !== 0) {
+          this.$Message.info(res.data.description)
+        } else {
+          this.columnsServiceInfo[4].filters = res.data.data
+        }
+      })
+    },
     handleServiceBaseImageItem () {
       ServiceBaseImageListApi().then(res => {
         if (res.data.err_code !== 0) {
           this.$Message.info(res.data.description)
         } else {
-          this.columnsServiceInfo[6].filters = res.data.data
+          this.columnsServiceInfo[7].filters = res.data.data
         }
       })
     },
@@ -278,7 +313,7 @@ export default {
         if (res.data.err_code !== 0) {
           this.$Message.info(res.data.description)
         } else {
-          this.columnsServiceInfo[7].filters = res.data.data
+          this.columnsServiceInfo[8].filters = res.data.data
         }
       })
     },
@@ -287,6 +322,8 @@ export default {
         this.ServiceCluster = value._filterChecked[0]
       } else if (value.key === 'region') {
         this.ServiceRegion = value._filterChecked[0]
+      } else if (value.key === 'community') {
+        this.ServiceCommunity = value._filterChecked[0]
       } else if (value.key === 'base_image') {
         this.ServiceBaseImage = value._filterChecked[0]
       } else if (value.key === 'base_os') {
@@ -309,24 +346,30 @@ export default {
 }
 </script>
 <style>
-.ivu-page {
-  margin-top: 30px;
-  text-align: center;
+.search-col {
+  margin-left: 10px;
+  font-size: 16px;
 }
 
-.search-col {
-  margin-left: 3px;
+.search-btn {
+  font-size: 16px;
 }
 
 .sla-export {
-  margin-left: 5px;
+  margin-left: 20px;
+  font-size: 16px;
+}
+
+.service-export {
+  margin-left: 20px;
+  font-size: 16px;
 }
 
 .serviceDetail {
   height: calc(100% - 55px);
   overflow: auto;
-  paddingBottom: 53px;
-  position: static
+  position: static;
+  paddingBottom: 52px
 }
 
 .detail-info {
@@ -335,6 +378,11 @@ export default {
 
 .detail-sla {
   margin-bottom: 30px;
+}
+
+.ivu-page {
+  margin-top: 32px;
+  text-align: center;
 }
 
 .ivu-form-item {

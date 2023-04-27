@@ -7,7 +7,7 @@ import datetime
 from django.conf import settings
 from app_resources.models import ServiceInfo, ServiceImage, ServiceSla
 from open_infra.tools.scan_sla import scan_cla
-from open_infra.utils.common import output_cla_excel, get_suitable_range
+from open_infra.utils.common import output_cla_excel, get_suitable_range, output_excel
 from logging import getLogger
 
 logger = getLogger("django")
@@ -15,6 +15,7 @@ logger = getLogger("django")
 
 class SlaMgr:
     _ignore_service_name_alias = ["Ascend-repo", "openEuler Jenkins ISO", "Ptadapter Jenkins"]
+    _excel_title = ["服务名称", "命名空间", "集群名称", "区域", "社区", "镜像", "代码仓", "基础镜像", "基础系统"]
 
     def query_all_sla_info(self):
         """query all sla info from uptime-robot"""
@@ -70,14 +71,29 @@ class SlaMgr:
         return ret_list
 
     def get_all_region(self):
-        """query all cluster from mysql"""
-        cluster_list = ServiceInfo.objects.order_by("region").values("region").distinct()
+        """query all region from mysql"""
+        region_list = ServiceInfo.objects.order_by("region").values("region").distinct()
         ret_list = list()
-        for cluster in cluster_list:
+        for region in region_list:
             dict_data = dict()
-            if cluster["region"]:
-                dict_data["label"] = cluster["region"]
-                dict_data["value"] = cluster["region"]
+            if region["region"]:
+                dict_data["label"] = region["region"]
+                dict_data["value"] = region["region"]
+            else:
+                dict_data["label"] = '空'
+                dict_data["value"] = '0'
+            ret_list.append(dict_data)
+        return ret_list
+
+    def get_all_community(self):
+        """query all community from mysql"""
+        community_list = ServiceInfo.objects.order_by("community").values("community").distinct()
+        ret_list = list()
+        for community in community_list:
+            dict_data = dict()
+            if community["community"]:
+                dict_data["label"] = community["community"]
+                dict_data["value"] = community["community"]
             else:
                 dict_data["label"] = '空'
                 dict_data["value"] = '0'
@@ -92,6 +108,7 @@ class SlaMgr:
         filter_value = kwargs.get("filter_value")
         cluster = kwargs.get("cluster")
         region = kwargs.get("region")
+        community = kwargs.get("community")
         base_image = kwargs.get("base_image")
         base_os = kwargs.get("base_os")
         service_info_list = ServiceInfo.filter(filter_name, filter_value)
@@ -105,6 +122,11 @@ class SlaMgr:
                 service_info_list = service_info_list.filter(region=region)
             else:
                 service_info_list = service_info_list.filter(region='')
+        if community:
+            if community != '0':
+                service_info_list = service_info_list.filter(community=community)
+            else:
+                service_info_list = service_info_list.filter(community=None)
         if base_image:
             if base_image != '0':
                 service_image_list = ServiceImage.objects.filter(base_image=base_image)
@@ -150,6 +172,70 @@ class SlaMgr:
             "data": service_list
         }
         return res
+
+    def export_service(self, kwargs):
+        order_type, order_by = kwargs.get("order_type"), kwargs.get("order_by")
+        filter_name = kwargs.get("filter_name")
+        filter_value = kwargs.get("filter_value")
+        cluster = kwargs.get("cluster")
+        region = kwargs.get("region")
+        community = kwargs.get("community")
+        base_image = kwargs.get("base_image")
+        base_os = kwargs.get("base_os")
+        service_info_list = ServiceInfo.filter(filter_name, filter_value)
+        if cluster:
+            if cluster != '0':
+                service_info_list = service_info_list.filter(cluster=cluster)
+            else:
+                service_info_list = service_info_list.filter(cluster='')
+        if region:
+            if region != '0':
+                service_info_list = service_info_list.filter(region=region)
+            else:
+                service_info_list = service_info_list.filter(region='')
+        if community:
+            if community != '0':
+                service_info_list = service_info_list.filter(community=community)
+            else:
+                service_info_list = service_info_list.filter(community='')
+        if base_image:
+            if base_image != '0':
+                service_image_list = ServiceImage.objects.filter(base_image=base_image)
+            else:
+                service_image_list = ServiceImage.objects.filter(base_image='')
+            service_id = [service_info.service.id for service_info in service_image_list]
+            service_info_list = service_info_list.filter(id__in=service_id)
+        if base_os:
+            if base_os != '0':
+                service_image_list = ServiceImage.objects.filter(base_os=base_os)
+            else:
+                service_image_list = ServiceImage.objects.filter(base_os='')
+            service_id = [service_info.service.id for service_info in service_image_list]
+            service_info_list = service_info_list.filter(id__in=service_id)
+        order_by = order_by if order_by else "create_time"
+        order_type = order_type if order_type else 0
+        if order_type != 0:
+            order_by = "-" + order_by
+        service_result_list = service_info_list.order_by(order_by)
+        service_list = list()
+        logger.error("service_result_list:{}".format(len(service_result_list)))
+        for service_info in service_result_list:
+            service_dict = service_info.to_dict()
+            service_id = service_dict["id"]
+            service_dict["image"] = ",".join(
+                [service_image['image'] for service_image in ServiceImage.get(service_id, "image")
+                 if service_image['image']])
+            service_dict["repository"] = ",".join(
+                [service_image['repository'] for service_image in ServiceImage.get(service_id, "repository")
+                 if service_image['repository']])
+            service_dict["base_image"] = ",".join(
+                [service_image['base_image'] for service_image in ServiceImage.get(service_id, "base_image")
+                 if service_image['base_image']])
+            service_dict["base_os"] = ",".join(
+                [service_image['base_os'] for service_image in ServiceImage.get(service_id, "base_os")
+                 if service_image['base_os']])
+            service_list.append(service_dict)
+        return output_excel(service_list, page_name="service", title=self._excel_title)
 
     def export(self):
         service_info_list = ServiceSla.all()
