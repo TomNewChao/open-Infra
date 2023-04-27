@@ -92,6 +92,7 @@ class ServiceView(AuthView):
             "namespace": "namespace",
             "region":  "region",
             "cluster": "cluster",
+            "community": "community",
             "image": [
                 {
                     "image":
@@ -106,8 +107,9 @@ class ServiceView(AuthView):
         namespace = dict_data.get("namespace")
         cluster = dict_data.get("cluster")
         region = dict_data.get("region")
+        community = dict_data.get("community")
         image_list = dict_data.get("image")
-        if not all([service_name, namespace, cluster, region, image_list]):
+        if not all([service_name, namespace, cluster, region, community, image_list]):
             return assemble_api_result(ErrCode.STATUS_PARAMETER_ERROR)
         if not isinstance(image_list, list):
             return assemble_api_result(ErrCode.STATUS_PARAMETER_ERROR)
@@ -118,7 +120,7 @@ class ServiceView(AuthView):
             if not all([image_name, cpu_limit, mem_limit]):
                 return assemble_api_result(ErrCode.STATUS_PARAMETER_ERROR)
         service_obj = ServiceInfo.create_single(service_name=service_name, namespace=namespace, cluster=cluster,
-                                                region=region)
+                                                region=region, community=community)
         with transaction.atomic():
             for image in image_list:
                 ServiceImage.create_single(image=image["image"], cpu_limit=image["cpu_limit"],
