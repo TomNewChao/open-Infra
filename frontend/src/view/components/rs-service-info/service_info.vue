@@ -6,7 +6,7 @@
           <Option v-for="item in searchColumnsServiceInfo" :value="item.key" :key="item.key">{{ item.title }}</Option>
         </Select>
         <Input clearable placeholder="输入关键字搜索" class="search-input" v-model="searchValueServiceInfo"/>
-        <Button @click="handleServiceInfoSearch" class="search-btn" type="primary"><Icon type="search"/>搜索</Button>
+        <Button type="primary" @click="handleServiceInfoSearch" class="search-btn"><Icon type="search"/>搜索</Button>
         <Button type="primary" @click="handleExportSla" class="sla-export">导出SLA数据</Button>
         <Button type="primary" @click="handleExportService" class="service-export">导出当前表格数据</Button>
       </div>
@@ -348,21 +348,21 @@ export default {
 <style>
 .search-col {
   margin-left: 10px;
-  font-size: 16px;
+  /*font-size: 16px;*/
 }
 
 .search-btn {
-  font-size: 16px;
+  /*font-size: 16px;*/
 }
 
 .sla-export {
   margin-left: 20px;
-  font-size: 16px;
+  /*font-size: 16px;*/
 }
 
 .service-export {
   margin-left: 20px;
-  font-size: 16px;
+  /*font-size: 16px;*/
 }
 
 .serviceDetail {
