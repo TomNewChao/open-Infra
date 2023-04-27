@@ -64,6 +64,7 @@ class ServiceView(AuthView):
         filter_name, filter_value = dict_data.get("filter_name"), dict_data.get("filter_value")
         cluster = dict_data.get("cluster")
         region = dict_data.get("region")
+        community = dict_data.get("community")
         base_image = dict_data.get("base_image")
         base_os = dict_data.get("base_os")
         if filter_name:
@@ -73,6 +74,8 @@ class ServiceView(AuthView):
             params_dict["cluster"] = cluster.strip()
         if region:
             params_dict["region"] = region.strip()
+        if community:
+            params_dict["community"] = community.strip()
         if base_image:
             params_dict["base_image"] = base_image.strip()
         if base_os:
@@ -139,6 +142,41 @@ class DetailServiceView(AuthView):
         return assemble_api_result(ErrCode.STATUS_SUCCESS, data=service_dict)
 
 
+class SeviceExportView(AuthView):
+    def get(self, request):
+        """get the file excel of sla"""
+        dict_data = request.GET.dict()
+        params_dict = list_param_check_and_trans(dict_data, order_by="service_name")
+        filter_name, filter_value = dict_data.get("filter_name"), dict_data.get("filter_value")
+        cluster = dict_data.get("cluster")
+        region = dict_data.get("region")
+        community = dict_data.get("community")
+        base_image = dict_data.get("base_image")
+        base_os = dict_data.get("base_os")
+        if filter_name:
+            params_dict["filter_name"] = filter_name.strip()
+            params_dict["filter_value"] = filter_value.strip()
+        if cluster:
+            params_dict["cluster"] = cluster.strip()
+        if region:
+            params_dict["region"] = region.strip()
+        if community:
+            params_dict["community"] = community.strip()
+        if base_image:
+            params_dict["base_image"] = base_image.strip()
+        if base_os:
+            params_dict["base_os"] = base_os.strip()
+        logger.error(" data is :{}".format(params_dict))
+        sla_mgr = SlaMgr()
+        data = sla_mgr.export_service(params_dict)
+        res = HttpResponse(content=data, content_type="application/octet-stream")
+        now_date = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+        filename = "service_info_{}".format(now_date)
+        res["Content-Disposition"] = 'attachment;filename="{}"'.format(filename)
+        res['charset'] = 'utf-8'
+        return res
+
+
 class NameSpaceView(AuthView):
     def get(self, request):
         """get all namespace"""
@@ -157,9 +195,17 @@ class ClusterView(AuthView):
 
 class RegionView(AuthView):
     def get(self, request):
-        """get all cluster"""
+        """get all region"""
         sla_mgr = SlaMgr()
         data = sla_mgr.get_all_region()
+        return assemble_api_result(ErrCode.STATUS_SUCCESS, data=data)
+
+
+class CommunityView(AuthView):
+    def get(self, request):
+        """get all community"""
+        sla_mgr = SlaMgr()
+        data = sla_mgr.get_all_community()
         return assemble_api_result(ErrCode.STATUS_SUCCESS, data=data)
 
 

@@ -72,6 +72,7 @@ class ServiceInfo(BaseModel):
     namespace = models.CharField(max_length=64, null=True, verbose_name="命名空间")
     cluster = models.CharField(max_length=64, null=True, verbose_name="集群名称")
     region = models.CharField(max_length=64, null=True, verbose_name="区域")
+    community = models.CharField(max_length=64, null=True, verbose_name="社区")
 
     class Meta:
         db_table = "service_info"
@@ -187,7 +188,7 @@ class ServiceImage(BaseModel):
 
 class ServiceSla(BaseModel):
     # sla is unique to url
-    url = models.CharField(max_length=64, null=True, verbose_name="服务域名")
+    url = models.CharField(max_length=128, null=True, verbose_name="服务域名")
     service_alias = models.CharField(max_length=64, null=True, verbose_name="服务别名")
     service_introduce = models.CharField(max_length=64, null=True, verbose_name="服务介绍")
     service_zone = models.CharField(max_length=64, null=True, verbose_name="服务归属社区")

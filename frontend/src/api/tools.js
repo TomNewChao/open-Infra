@@ -130,12 +130,12 @@ export const eipListApi = (page, size, order_by, order_type, filter_name, filter
   })
 }
 
-export const ServiceInfoListApi = (page, size, order_by, order_type, filter_name, filter_value, cluster, region, base_image, base_os) => {
+export const ServiceInfoListApi = (page, size, order_by, order_type, filter_name, filter_value, cluster, region, community, base_image, base_os) => {
   return axios.request({
     url: '/api/app_resources/service',
     method: 'get',
     params: {
-      page, size, order_by, order_type, filter_name, filter_value, cluster, region, base_image, base_os
+      page, size, order_by, order_type, filter_name, filter_value, cluster, region, community, base_image, base_os
     }
   })
 }
@@ -164,6 +164,13 @@ export const ServiceRegionListApi = () => {
   })
 }
 
+export const ServiceCommunityListApi = () => {
+  return axios.request({
+    url: '/api/app_resources/community',
+    method: 'get'
+  })
+}
+
 export const ServiceBaseOsListApi = () => {
   return axios.request({
     url: '/api/app_resources/base_os',
@@ -183,6 +190,17 @@ export const exportSlaData = () => {
     url: '/api/app_resources/sla_export',
     method: 'get',
     responseType: 'blob'
+  })
+}
+
+export const exportServiceData = (order_by, order_type, filter_name, filter_value, cluster, region, community, base_image, base_os) => {
+  return axios.request({
+    url: '/api/app_resources/service_export',
+    method: 'get',
+    responseType: 'blob',
+    params: {
+      order_by, order_type, filter_name, filter_value, cluster, region, community, base_image, base_os
+    }
   })
 }
 

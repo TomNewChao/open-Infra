@@ -358,6 +358,29 @@ def output_cla_excel(list_data):
     return buf.read()
 
 
+def output_excel(list_data, page_name="Sheet1", title=None):
+    """output list data to excel"""
+    if title is None:
+        title = list()
+    work_book = openpyxl.Workbook()
+    if page_name not in work_book.get_sheet_names():
+        work_book.create_sheet(page_name)
+    if settings.DEFAULT_SHEET_NAME in work_book.get_sheet_names():
+        need_remove_sheet = work_book.get_sheet_by_name(settings.DEFAULT_SHEET_NAME)
+        work_book.remove_sheet(need_remove_sheet)
+    table = work_book.get_sheet_by_name(page_name)
+    table.delete_rows(1, 65536)
+    table.append(title)
+    for dict_data in list_data:
+        temp = dict_data.copy()
+        del temp["id"]
+        table.append(list(temp.values()))
+    buf = StringIO()
+    work_book.save(buf)
+    buf.seek(0)
+    return buf.read()
+
+
 def output_table_excel(sheet_name, title_name, table_list_data):
     """output list data to excel"""
     work_book = openpyxl.Workbook()
