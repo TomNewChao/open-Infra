@@ -166,7 +166,6 @@ class SeviceExportView(AuthView):
             params_dict["base_image"] = base_image.strip()
         if base_os:
             params_dict["base_os"] = base_os.strip()
-        logger.error(" data is :{}".format(params_dict))
         sla_mgr = SlaMgr()
         data = sla_mgr.export_service(params_dict)
         res = HttpResponse(content=data, content_type="application/octet-stream")

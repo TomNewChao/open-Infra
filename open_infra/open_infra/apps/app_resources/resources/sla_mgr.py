@@ -218,7 +218,6 @@ class SlaMgr:
             order_by = "-" + order_by
         service_result_list = service_info_list.order_by(order_by)
         service_list = list()
-        logger.error("service_result_list:{}".format(len(service_result_list)))
         for service_info in service_result_list:
             service_dict = service_info.to_dict()
             service_id = service_dict["id"]
