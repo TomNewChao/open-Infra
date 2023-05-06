@@ -2,7 +2,7 @@
 
 # 背景
 
-将端口扫描工具和对象扫描工具服务化，特意开发open-infra项目，该项目由前端vue+后端django搭建。
+open-infra项目是openEuler的运维管理平台。
 
 # 安装
 
@@ -17,20 +17,32 @@ docker build -t open-infra:latest .
 
 ~~~bash
 1.搭建一个mysql数据库，创建数据库：open_infra
+
+2.设置环境变量，可以保存到env.file中，启动时携带配置启动。
+"pwd"=""
+"mysql_host"="192.168.1.82"
+"mysql_port"="3306"
+"mysql_user"=""
+"mysql_password"=""
+"obs_ak"=""
+"obs_sk"=""
+"obs_url"="obs.cn-north-4.myhuaweicloud.com"
+"obs_domain_id"=""
+"uptime_robot_api_key"=""
+"alarm_email_user"="osinfra"
+"alarm_email_pwd"=""
+"ALARM_SMS_URL"="https://smsapi.cn-south-1.myhuaweicloud.com:443/sms/batchSendSms/v1"
+"ALARM_SMS_KEY"=""
+"ALARM_SMS_SECRET"=""
+"ALARM_SMS_SENDER"=""
+"ALARM_SMS_ALARM_TEMPLATE"=""
+"ALARM_SMS_RECOVER_TEMPLATE"=""
+"GITHUB_SECRET"=""
 ~~~
 
 3.启动容器
 
 ~~~bash
-docker run -dit 
---env pwd="" # django的secret
---env mysql_host=""  # mysql的ip
---env mysql_port="" # mysql的端口 
---env mysql_user="" # mysql的用户
---env mysql_password="" # mysql数据库的密码
---env obs_ak="" #华为云obs的ak
---env obs_sk="" #华为云obs的sk
---env obs_url="" #华为云obs的url
---name open-infra-demo open-infra:latest
+docker run -dit --env-file env.file --name open-infra-demo open-infra:latest
 ~~~
 
