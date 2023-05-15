@@ -56,7 +56,7 @@ class Alarm(BaseModel):
 
 class AlarmNotify(BaseModel):
     email = models.EmailField(unique=True)
-    phone_number = models.CharField(max_length=20, verbose_name="报警手机号", unique=True)
+    phone_number = models.CharField(max_length=20, verbose_name="报警手机号")
     desc = models.CharField(max_length=255, verbose_name="报警Email信息")
     create_time = models.DateTimeField(auto_created=True, verbose_name="创建时间")
 
@@ -79,4 +79,3 @@ class AlarmNotifyStrategy(BaseModel):
 
     def __str__(self):
         return self.id
-

@@ -210,7 +210,7 @@ export default {
       let name = this.alarmEmailFormData.alarmName
       let keywords = this.alarmEmailFormData.alarmKeywords
       let phoneReg = /^1(3[0-9]|4[579]|5[0-3,5-9]|6[6]|7[0135678]|8[0-9]|9[89])\d{8}$/
-      if (!phoneReg.test(phone)) {
+      if (phone.length > 0 && !phoneReg.test(phone)) {
         this.$Message.info("请输入正确的手机号")
         return
       }
@@ -295,7 +295,7 @@ export default {
       let keywords = this.alarmEmailFormData.alarmKeywords
       let id = this.putSelectId
       let phoneReg = /^1(3[0-9]|4[579]|5[0-3,5-9]|6[6]|7[0135678]|8[0-9]|9[89])\d{8}$/
-      if (!phoneReg.test(phone)) {
+      if (phone.length > 0 && !phoneReg.test(phone)) {
         this.$Message.info("请输入正确的手机号")
         return
       }

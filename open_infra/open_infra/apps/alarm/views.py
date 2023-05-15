@@ -67,7 +67,7 @@ class AlarmNotifyView(AuthView):
     def put(self, request):
         dict_data = json.loads(request.body)
         email = dict_data.get("email")
-        phone_number = dict_data.get("phone")
+        phone_number = dict_data.get("phone", "")
         alarm_name_list = dict_data.get("name")
         keywords = dict_data.get("keywords")
         desc = dict_data.get("desc")
@@ -79,8 +79,8 @@ class AlarmNotifyView(AuthView):
                                          phone_number):
             logger.error("phone number invalid:{}".format(phone_number))
             return assemble_api_result(ErrCode.STATUS_PARAMETER_ERROR)
-        if not len(email) and not len(phone_number):
-            logger.error("phone number and email is empty")
+        if not len(email):
+            logger.error("email is empty")
             return assemble_api_result(ErrCode.STATUS_PARAMETER_ERROR)
         if not isinstance(alarm_name_list, list):
             logger.error("alarm name list must be list")
@@ -111,7 +111,7 @@ class AlarmNotifyView(AuthView):
     def post(self, request):
         dict_data = json.loads(request.body)
         email = dict_data.get("email")
-        phone_number = dict_data.get("phone")
+        phone_number = dict_data.get("phone", "")
         alarm_name_list = dict_data.get("name")
         keywords = dict_data.get("keywords")
         desc = dict_data.get("desc")
@@ -122,8 +122,8 @@ class AlarmNotifyView(AuthView):
                                          phone_number):
             logger.error("phone number invalid:{}".format(phone_number))
             return assemble_api_result(ErrCode.STATUS_PARAMETER_ERROR)
-        if not len(email) and not len(phone_number):
-            logger.error("phone number and email is empty")
+        if not len(email):
+            logger.error("email is empty")
             return assemble_api_result(ErrCode.STATUS_PARAMETER_ERROR)
         if not isinstance(alarm_name_list, list):
             logger.error("alarm name list must be list")
@@ -137,8 +137,6 @@ class AlarmNotifyView(AuthView):
         try:
             if AlarmNotify.objects.filter(email=email):
                 return assemble_api_result(ErrCode.STATUS_ALARM_EMAIL_IS_EXIST)
-            if AlarmNotify.objects.filter(phone_number=phone_number):
-                return assemble_api_result(ErrCode.STATUS_ALARM_PHONE_NUMBER_IS_EXIST)
         except AlarmNotify.DoesNotExist as e:
             logger.info("[AlarmEmailView] current email is not exist, could create:{}".format(email, e))
         try:

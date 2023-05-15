@@ -223,7 +223,8 @@ class AlarmServer(object):
                             alarm = alarm.filter(alarm_details__contains=keywords)
                 if len(alarm):
                     email_list.append(alarm_info.alarm_notify.email)
-                    phone_number_list.append(alarm_info.alarm_notify.phone_number)
+                    if alarm_info.alarm_notify.phone_number:
+                        phone_number_list.append(alarm_info.alarm_notify.phone_number)
             email_list = list(set(email_list))
             phone_number_list = list(set(phone_number_list))
             logger.info("[recover_notify_work_thread] check contact email is:{} phone_number is:{}".format(email_list,
@@ -285,7 +286,8 @@ class AlarmServer(object):
                             alarm = alarm.filter(alarm_details__contains=keywords)
                 if len(alarm):
                     email_list.append(alarm_info.alarm_notify.email)
-                    phone_number_list.append(alarm_info.alarm_notify.phone_number)
+                    if alarm_info.alarm_notify.phone_number:
+                        phone_number_list.append(alarm_info.alarm_notify.phone_number)
             email_list = list(set(email_list))
             phone_number_list = list(set(phone_number_list))
             logger.error("alarm_notify_work_thread check contact email is:{} phone_number is:{}".format(email_list,
