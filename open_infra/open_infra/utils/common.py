@@ -474,7 +474,9 @@ def get_suitable_range(total, page, size):
 def get_random_password(bit=12):
     """Automatically generate password"""
     words = string.ascii_lowercase + string.ascii_uppercase + string.digits
-    return "".join(random.sample(words, bit))
+    list_word = random.sample(words, bit)
+    list_word.extend(["!", "@", "#", "1", "a", "A"])
+    return "".join(list_word)
 
 
 def get_month_range(start_day, end_day):
