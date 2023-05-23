@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
 # Create your models here.
 from itertools import chain
-
 from django.db.models import Count
-
 from app_resources.resources.constants import HWCloudEipStatus, HWCloudEipType
 from open_infra.utils.models import BaseModel
 from django.db import models
 from logging import getLogger
+
 logger = getLogger("django")
 
 
@@ -154,7 +153,7 @@ class ServiceImage(BaseModel):
         return cls.objects.values("image").distinct()
 
     @classmethod
-    def update_images(cls, image,  **kwargs):
+    def update_images(cls, image, **kwargs):
         return cls.objects.filter(image=image).update(**kwargs)
 
     @classmethod
@@ -197,7 +196,7 @@ class ServiceSla(BaseModel):
     month_sla = models.FloatField(null=True, verbose_name="月度sla")
     year_sla = models.FloatField(null=True, verbose_name="年度sla")
     remain_time = models.FloatField(null=True, verbose_name="年度剩余sla配额")
-    service = models.ForeignKey(ServiceInfo, null=True, on_delete=models.SET_NULL)
+    service = models.ForeignKey(ServiceInfo, null=True, blank=True, on_delete=models.SET_NULL)
 
     class Meta:
         db_table = "service_sla"
