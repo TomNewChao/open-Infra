@@ -241,5 +241,19 @@ class SlaExportView(AuthView):
 class RepoView(AuthView):
     def get(self, request):
         list_data = ServiceImage.get_image()
-        list_data = [i for i in list_data if i["repository"]]
-        return assemble_api_result(ErrCode.STATUS_SUCCESS, data=list_data)
+        set_data, ret_data = set(), list()
+        for i in list_data:
+            if i["repository"]:
+                if i["repository"].endswith(".git"):
+                    repo = i["repository"]
+                else:
+                    repo = "{}.git".format(i["repository"])
+                set_data.add((repo, i["branch"], i["developer"], i["email"]))
+        for data in list(set_data):
+            dict_data = dict()
+            dict_data["repository"] = data[0]
+            dict_data["branch"] = data[1]
+            dict_data["developer"] = data[2]
+            dict_data["email"] = data[3]
+            ret_data.append(dict_data)
+        return assemble_api_result(ErrCode.STATUS_SUCCESS, data=ret_data)
