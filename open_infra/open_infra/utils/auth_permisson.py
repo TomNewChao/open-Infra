@@ -16,7 +16,8 @@ class AuthView(View):
     """auth view"""
     _auth_url = [
         "/api/app_resources/service_export",
-        "/api/app_resources/repo"
+        "/api/app_resources/repo",
+        "/api/app_resources/service",
     ]
 
     @staticmethod
