@@ -14,11 +14,11 @@ from users.models import User
 
 class AuthView(View):
     """auth view"""
-    _auth_url = [
-        "/api/app_resources/service_export",
-        "/api/app_resources/repo",
-        "/api/app_resources/service",
-    ]
+    _auth_url = {
+        "/api/app_resources/service_export": ["get"],
+        "/api/app_resources/repo": ["get"],
+        "/api/app_resources/service": ["post"],
+    }
 
     @staticmethod
     def _auth_user(request):
@@ -41,7 +41,8 @@ class AuthView(View):
     @auto_response()
     def dispatch(self, request, *args, **kwargs):
         if request.method.lower() in self.http_method_names:
-            if request.path in self._auth_url:
+            if request.path in self._auth_url.keys() and \
+                    request.method.lower() in self._auth_url[request.path]:
                 auth_result = self._auth_user(request)
                 if isinstance(auth_result, HttpResponse):
                     return auth_result
