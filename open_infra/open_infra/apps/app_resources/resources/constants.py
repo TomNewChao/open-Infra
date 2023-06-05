@@ -4,6 +4,7 @@
 # @FileName: constants.py
 # @Software: PyCharm
 from open_infra.utils.common import BaseStatus
+from enum import Enum
 
 
 class HWCloudEipStatus(BaseStatus):
@@ -26,3 +27,8 @@ class HWCloudEipStatus(BaseStatus):
 class HWCloudEipType(BaseStatus):
     """Eip Type"""
     EIP = (0, "全动态BGP")
+
+
+class ServiceIntroduceLangChoice(Enum):
+    en = "en"
+    zh = "zh"

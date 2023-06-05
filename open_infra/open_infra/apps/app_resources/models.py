@@ -2,7 +2,7 @@
 # Create your models here.
 from itertools import chain
 from django.db.models import Count
-from app_resources.resources.constants import HWCloudEipStatus, HWCloudEipType
+from app_resources.resources.constants import HWCloudEipStatus, HWCloudEipType, ServiceIntroduceLangChoice
 from open_infra.utils.models import BaseModel
 from django.db import models
 from logging import getLogger
@@ -207,6 +207,10 @@ class ServiceSla(BaseModel):
         return str(self.id)
 
     @classmethod
+    def all_object(cls):
+        return cls.objects.all().order_by("id")
+
+    @classmethod
     def all(cls):
         return cls.objects.all().order_by("remain_time").values(
             "service_alias", "service_introduce", "url",
@@ -236,6 +240,33 @@ class ServiceSla(BaseModel):
     @classmethod
     def update_url(cls, url, **kwargs):
         return cls.objects.filter(url=url).update(**kwargs)
+
+
+class ServiceIntroduce(BaseModel):
+    service_sla = models.ForeignKey(ServiceSla, null=True, on_delete=models.SET_NULL)
+    service_name = models.CharField(max_length=128, null=True, blank=True, verbose_name="服务名称")
+    service_introduce = models.CharField(max_length=128, null=True, blank=True, verbose_name="服务介绍")
+    service_lang = models.CharField(max_length=4, choices=[(tag.name, tag.value) for tag in ServiceIntroduceLangChoice], verbose_name="语言")
+
+    class Meta:
+        db_table = "service_introduce"
+        verbose_name = "服务介绍表"
+        verbose_name_plural = verbose_name
+
+    @classmethod
+    def create_one(cls, name, introduce, lang, sla_obj):
+        return cls.objects.create(service_sla=sla_obj,
+                                  service_name=name,
+                                  service_introduce=introduce,
+                                  service_lang=lang)
+
+    @classmethod
+    def delete_all(cls):
+        return cls.objects.all().delete()
+
+    @classmethod
+    def all(cls):
+        return cls.objects.all()
 
 
 # noinspection PyUnresolvedReferences

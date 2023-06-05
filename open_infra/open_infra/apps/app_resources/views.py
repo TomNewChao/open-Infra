@@ -9,7 +9,7 @@ from datetime import datetime
 
 from django.db import transaction
 from django.http import HttpResponse
-from app_resources.models import ServiceInfo, ServiceSla, ServiceImage, HWCloudAccount, HWCloudEipInfo
+from app_resources.models import ServiceInfo, ServiceSla, ServiceImage, HWCloudAccount, HWCloudEipInfo, ServiceIntroduce
 from app_resources.resources.account_mgr import AccountMgr
 from app_resources.resources.eip_mgr import EipMgr
 from app_resources.resources.sla_mgr import SlaMgr
@@ -236,6 +236,19 @@ class SlaExportView(AuthView):
         res["Content-Disposition"] = 'attachment;filename="{}"'.format(filename)
         res['charset'] = 'utf-8'
         return res
+
+
+class ServiceIntroduceView(AuthView):
+    """get the service introduce by es"""
+    def get(self, request):
+        data = [{
+                "name": i.service_name,
+                "introduce": i.service_introduce,
+                "lang": i.service_lang,
+                "url": i.service_sla.url,
+                "zone": i.service_sla.service_zone,
+                } for i in ServiceIntroduce.all()]
+        return assemble_api_result(ErrCode.STATUS_SUCCESS, data=data)
 
 
 class RepoView(AuthView):
