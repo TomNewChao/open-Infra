@@ -10,8 +10,9 @@ import yaml
 from django.conf import settings
 
 from app_resources.models import HWCloudProjectInfo, HWCloudAccount, HWCloudEipInfo, ServiceInfo, \
-    ServiceSla, ServiceImage
+    ServiceSla, ServiceImage, ServiceIntroduce
 from app_resources.resources.account_mgr import AccountMgr
+from app_resources.resources.constants import ServiceIntroduceLangChoice
 from app_resources.resources.sla_mgr import SlaMgr
 from open_infra.tools.scan_image import CollectServiceInfo
 from open_infra.utils.common import func_retry, func_catch_exception
@@ -188,6 +189,19 @@ class InitMgr:
                     new_dict["size"] = None
                 ServiceImage.update_images(image['image'], **new_dict)
         logger.info("----------------5.end refresh service swr information-----------------")
+
+    @classmethod
+    @func_catch_exception
+    def create_service_introduce(cls):
+        service_sla_all = ServiceSla.all_object()
+        ServiceIntroduce.delete_all()
+        for service_sla in service_sla_all:
+            ServiceIntroduce.create_one(
+                name=service_sla.service_alias,
+                introduce=service_sla.service_introduce,
+                lang=ServiceIntroduceLangChoice.zh.value,
+                sla_obj=service_sla
+            )
 
     @classmethod
     def crontab_task(cls):

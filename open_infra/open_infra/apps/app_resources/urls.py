@@ -7,7 +7,7 @@
 
 from django.conf.urls import url
 from app_resources.views import ServiceView, SlaExportView, ClusterView, AccountView, DetailServiceView, EipView, \
-    IndexView, RegionView, RepoView, BaseOsView, BaseImageView, CommunityView, SeviceExportView
+    IndexView, RegionView, RepoView, BaseOsView, BaseImageView, CommunityView, SeviceExportView, ServiceIntroduceView
 
 urlpatterns = [
     # index
@@ -29,6 +29,7 @@ urlpatterns = [
     url(r'^base_os$', BaseOsView.as_view()),
     url(r'^base_image$', BaseImageView.as_view()),
     url(r'^sla_export$', SlaExportView.as_view()),
+    url(r'^service_introduce$', ServiceIntroduceView.as_view()),
 
     # cve interface
     url(r'^repo$', RepoView.as_view()),

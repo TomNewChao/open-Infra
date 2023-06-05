@@ -15,7 +15,7 @@ from users.models import User
 class AuthView(View):
     """auth view"""
     _auth_url = {
-        "/api/app_resources/service_export": ["get"],
+        "/api/app_resources/service_introduce": ["get"],
         "/api/app_resources/repo": ["get"],
         "/api/app_resources/service": ["post"],
     }
