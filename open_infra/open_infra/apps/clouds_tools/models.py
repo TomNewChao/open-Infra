@@ -48,7 +48,7 @@ class HWCloudScanEipPortInfo(BaseModel):
     transport_protocol = models.CharField(max_length=64, null=True, verbose_name="端口传输协议")
     account = models.CharField(max_length=32, verbose_name="华为云账户名称")
     region = models.CharField(max_length=32, verbose_name="华为云项目区域")
-    service_info = models.CharField(max_length=128, null=True, verbose_name="服务器版本信息")
+    service_info = models.CharField(max_length=2048, null=True, verbose_name="服务器版本信息")
     protocol = models.IntegerField(verbose_name="协议:1_tcp/0_udp")
 
     # noinspection PyUnresolvedReferences
