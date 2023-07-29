@@ -216,8 +216,8 @@ class InitMgr:
 
     @classmethod
     def test_task(cls):
-        # cls.refresh_account_info()
-        # cls.refresh_eip()
+        cls.refresh_account_info()
+        cls.refresh_eip()
         # cls.refresh_sla_config()
         # ServiceImage.delete_all()
         # ServiceSla.delete_all()

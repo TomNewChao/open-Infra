@@ -296,6 +296,7 @@ EXCEL_TITLE = ["弹性公网IP", "端口", "状态", "链接协议", "传输协�
 EXCEL_TCP_PAGE_NAME = "TCP"
 EXCEL_UDP_PAGE_NAME = "UDP"
 IGNORE_ZONE = ["cn-northeast-1", "MOS", "ap-southeast-1_tryme", "cn-north-1_1"]
+IS_ALL_SCAN_PORT = True
 
 # scan obs setting
 OBS_URL_FORMAT = "https://obs.{}.myhuaweicloud.com"

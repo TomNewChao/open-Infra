@@ -157,7 +157,9 @@ class EipTools(object):
                                 continue
                             port_str = port.groups()[0].strip()
                             port_content = list(filter(lambda x: x != "", port_str.split('/')))
-                            if high_risk_port and int(port_content[0]) not in high_risk_port.keys():
+                            if high_risk_port:
+                                continue
+                            if int(port_content[0]) not in high_risk_port.keys() and not settings.IS_ALL_SCAN_PORT:
                                 continue
                             port_content.extend([account, region])
                             ret_list.append(port_content)

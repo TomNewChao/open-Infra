@@ -10,10 +10,10 @@ from open_infra.utils.utils_alarm import ActiveAlarmBase
 
 class CloudsToolsAlarm(ActiveAlarmBase):
     @classmethod
-    def get_alarm_info(cls):
+    def get_alarm_info(cls, des_var):
         """get alarm info, Overload the method of ActiveAlarmBase"""
         alarm_info_dict = {
             "alarm_id": AlarmCode.TOOLS_NODE_HIGH_RISK_PORT,
-            "des_var": [],
+            "des_var": [des_var, ],
         }
         return alarm_info_dict

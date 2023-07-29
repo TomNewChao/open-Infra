@@ -231,7 +231,7 @@ class AlarmCode:
             'ALARM_NAME': AlarmName.NAME_NODE_HIGH_RISK_PORT,
             'ALARM_LEVEL': AlarmLevel.MAJOR,
             'ALARM_MODULE': AlarmModule.MODULE_TOOLS,
-            'ALARM_CONTENT': "检测到服务器存在高危端口告警。"
+            'ALARM_CONTENT': "检测到服务器存在高危端口告警(%s)。"
         },
         TOOLS_NODE_RESOURCE_UTILIZATION_LOW: {
             'ALARM_NAME': AlarmName.NAME_NODE_RESOURCE_UTILIZATION_LOW,
@@ -295,7 +295,7 @@ class AlarmCode:
             'ALARM_NAME': AlarmName.NAME_NODE_HIGH_RISK_PORT,
             'ALARM_LEVEL': AlarmLevel.MAJOR,
             'ALARM_MODULE': AlarmModule.MODULE_TOOLS,
-            'ALARM_CONTENT': "A high-risk port alarm is detected on the server."
+            'ALARM_CONTENT': "A high-risk port alarm is detected on the server(%s)."
         },
         TOOLS_NODE_RESOURCE_UTILIZATION_LOW: {
             'ALARM_NAME': AlarmName.NAME_NODE_RESOURCE_UTILIZATION_LOW,
