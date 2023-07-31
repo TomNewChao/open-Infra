@@ -118,4 +118,5 @@ XlsxWriter==3.0.3
 xmltodict==0.13.0
 yarl==1.7.2
 zipp==3.6.0
+django-db-connection-pool
 uwsgi

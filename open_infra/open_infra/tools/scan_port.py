@@ -143,7 +143,6 @@ class EipTools(object):
     @classmethod
     def parse_tcp_result_txt(cls, tcp_content_list, account=None, region=None):
         ret_list = list()
-        high_risk_port = HighRiskPort.get_cur_port_dict()
         for info in tcp_content_list:
             if "Host:" in info and "Ports:" in info:
                 info_list = info.split("Ports:")
@@ -157,8 +156,6 @@ class EipTools(object):
                                 continue
                             port_str = port.groups()[0].strip()
                             port_content = list(filter(lambda x: x != "", port_str.split('/')))
-                            if not settings.IS_ALL_SCAN_PORT and high_risk_port and int(port_content[0]) not in high_risk_port.keys():
-                                continue
                             port_content.extend([account, region])
                             ret_list.append(port_content)
         return ret_list

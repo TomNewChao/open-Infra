@@ -31,7 +31,6 @@ class ScanPortView(AuthView):
         dict_data = json.loads(request.body)
         if dict_data.get("account") is None or not isinstance(dict_data["account"], list):
             return assemble_api_result(ErrCode.STATUS_PARAMETER_ERROR)
-        logger.info("ScanPortView collect:{}".format(dict_data["account"]))
         scan_ports = ScanPortsMgr()
         content = scan_ports.query_data(dict_data["account"])
         res = HttpResponse(content=content, content_type="application/octet-stream")

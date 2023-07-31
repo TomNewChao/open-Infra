@@ -47,15 +47,17 @@ class InitMgr:
         HWCloudScanEipPortStatus.delete_all()
         ScanToolsMgr.save_scan_eip_port_info_status(tcp_info, udp_info, account_list)
         HighRiskPort.cur_port_list = None
+        high_risk_port = HighRiskPort.get_cur_port_dict()
         for ip, port_list in tcp_info.items():
             port_list = [i[0] for i in port_list]
+            port_list = list(set(port_list) - set(high_risk_port.keys()))
             port_str = ",".join(port_list)
-            des_var = "{}:{}".format(str(ip), port_str)
+            des_var = "ip:{}/port:{}".format(str(ip), port_str)
             CloudsToolsAlarm.active_alarm(des_var)
         for ip, port_list in udp_info.items():
             port_list = [i[0] for i in port_list]
             port_str = ",".join(port_list)
-            des_var = "{}:{}".format(str(ip), port_str)
+            des_var = "ip:{}/port:{}".format(str(ip), port_str)
             CloudsToolsAlarm.active_alarm(des_var)
         logger.info("----------------1.finish scan_port-----------------------")
 
