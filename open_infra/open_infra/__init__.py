@@ -4,11 +4,8 @@
 # @FileName: __init__.py
 # @Software: PyCharm
 import sys
-import queue
 import logging
-from threading import Lock
 
-from django.utils import asyncio
 
 if sys.version > '3':
     try:
