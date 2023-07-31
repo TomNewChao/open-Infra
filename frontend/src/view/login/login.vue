@@ -8,7 +8,6 @@
       <Card icon="log-in" title="欢迎登录" :bordered="false">
         <div class="form-con">
           <login-form @on-success-valid="handleSubmit"></login-form>
-          <p class="login-tip">输入任意用户名和密码即可</p>
         </div>
       </Card>
     </div>
@@ -17,7 +16,7 @@
 
 <script>
 import LoginForm from '_c/login-form'
-import {mapActions} from 'vuex'
+import { mapActions } from 'vuex'
 
 export default {
   components: {
@@ -28,14 +27,14 @@ export default {
       'handleLogin',
       'getUserInfo'
     ]),
-    handleSubmit({username, password}) {
-      this.handleLogin({username, password}).then(res => {
+    handleSubmit ({ username, password }) {
+      this.handleLogin({ username, password }).then(res => {
         this.getUserInfo().then(res => {
           this.$router.push({
             name: this.$config.homeName
           })
         })
-      }).catch(res =>{
+      }).catch(res => {
         this.$Message.info('用户名或者密码错误，请重新输入。')
       })
     }

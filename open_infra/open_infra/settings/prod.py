@@ -92,14 +92,23 @@ WSGI_APPLICATION = 'open_infra.wsgi.application'
 
 DATABASES = {
     'default': {  # 写（主机）
-        'ENGINE': 'django.db.backends.mysql',  # 数据库引擎
-        'HOST': os.getenv("mysql_host"),  # 数据库主机
-        'PORT': os.getenv("mysql_port"),  # 数据库端口
-        'USER': os.getenv("mysql_user"),  # 数据库用户名
-        'PASSWORD': os.getenv("mysql_password"),  # 数据库用户密码
-        'NAME': 'open_infra',  # 数据库名字
+        'ENGINE': 'dj_db_conn_pool.backends.mysql',     # 数据库引擎
+        'HOST': os.getenv("mysql_host"),                # 数据库主机
+        'PORT': os.getenv("mysql_port"),                # 数据库端口
+        'USER': os.getenv("mysql_user"),                # 数据库用户名
+        'PASSWORD': os.getenv("mysql_password"),        # 数据库用户密码
+        'NAME': 'open_infra',                           # 数据库名字
         'TIME_ZONE': 'Asia/Shanghai',
-        'POOL_SIZE': 40
+        'CONN_MAX_AGE': 0,
+        'OPTIONS': {
+            'charset': 'utf8mb4',
+            'connect_timeout': 30,
+        },
+        'POOL_OPTIONS': {
+            'POOL_SIZE': 30,
+            'MAX_OVERFLOW': 10,
+            'RECYCLE': 60,
+        }
     }
 }
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
