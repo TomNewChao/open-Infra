@@ -124,8 +124,6 @@ class ScanBaseTools(object):
                 tcp_list.append(list(eip_info.to_dict().values())[1:-1])
             elif eip_info.protocol == NetProtocol.UDP:
                 udp_list.append(list(eip_info.to_dict().values())[1:-1])
-        logger.error(tcp_list)
-        logger.error(udp_list)
         content = output_scan_port_excel(tcp_list, udp_list)
         return content
 
