@@ -29,7 +29,7 @@ class AlarmBaseHandler(object):
 
     @classmethod
     def get_metrics_data(cls, url):
-        data = requests.get(url, timeout=(120, 120))
+        data = requests.get(url, timeout=(300, 300))
         if data.status_code != 200:
             logger.info("[get_metrics_data] get metrics data failed:{}".format(data.status_code))
             return list()

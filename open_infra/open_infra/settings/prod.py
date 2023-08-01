@@ -102,11 +102,11 @@ DATABASES = {
         'CONN_MAX_AGE': 0,
         'OPTIONS': {
             'charset': 'utf8mb4',
-            'connect_timeout': 30,
+            'connect_timeout': 60,
         },
         'POOL_OPTIONS': {
-            'POOL_SIZE': 30,
-            'MAX_OVERFLOW': 10,
+            'POOL_SIZE': 50,
+            'MAX_OVERFLOW': 20,
             'RECYCLE': 60,
         }
     }

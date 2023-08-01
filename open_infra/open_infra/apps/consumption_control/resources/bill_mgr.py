@@ -35,7 +35,7 @@ class BillMgr:
                 bill_cycle = i.bill_cycle
                 resource_type_name = i.resource_type_name
             key = (bill_cycle, resource_type_name)
-            dict_data[key] += i.consume_amount
+            dict_data[key] += float(i.consume_amount)
         return dict_data
 
     def get_bill_cycle(self):
@@ -129,7 +129,7 @@ class BillMgr:
             order_by = "-" + order_by
         bill_list = bill_info_list.order_by(order_by)
         task_list = [task.to_dict() for task in bill_list[slice_obj]]
-        total_consume_amount = round(sum([task.consume_amount for task in bill_list]), 2)
+        total_consume_amount = round(sum([float(task.consume_amount) for task in bill_list]), 2)
         total_actual_cost = round(sum([task.actual_cost for task in bill_list]), 2)
         res = {
             "size": size,

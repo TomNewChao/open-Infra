@@ -418,8 +418,6 @@ class AlarmClient(threading.Thread):
                     min_next_run_time = AlarmGlobalConfig.TASK_LIST[0]['run_time']
                     status = AlarmGlobalConfig.TASK_LIST[0]['run_status']
                     if status:
-                        logger.info(
-                            "[AlarmClient] {} task is running".format(AlarmGlobalConfig.TASK_LIST[0]['func_obj']))
                         min_next_run_time = datetime.datetime.max
                     copy_task_list = AlarmGlobalConfig.TASK_LIST[1:]
                     for task_dict in copy_task_list:
