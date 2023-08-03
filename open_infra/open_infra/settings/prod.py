@@ -342,7 +342,7 @@ CLA_EXPLAIN = {
 # email config
 EMAIL_SENDER_EMAIL = "infra@lists.osinfra.cn"
 EMAIL_SENDER_NAME = "infra"
-EMAIL_SENDER_SERVER = "lists.osinfra.cn"
+EMAIL_SENDER_SERVER = os.getenv("alarm_email_host", "lists.osinfra.cn")
 EMAIL_SENDER_PORT = 465
 EMAIL_USERNAME = os.getenv("alarm_email_user")
 EMAIL_PWD = os.getenv("alarm_email_pwd")
