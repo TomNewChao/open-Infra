@@ -18,7 +18,7 @@ from django.conf import settings
 from open_infra.libs.lib_email import EmailBaseLib
 from open_infra.libs.lib_sms import hw_send_sms
 
-logger = logging.getLogger("django")
+logger = logging.getLogger("alarm")
 
 
 class AlarmServerConfig:

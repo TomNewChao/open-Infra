@@ -13,20 +13,25 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 import datetime
 import os
 import platform
+import shutil
 import sys
+
+import yaml
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-LOG_PATH = "/var/log/open-infra"
-LIB_PATH = "/var/lib/open-infra"
-
 sys.path.insert(0, os.path.join(BASE_DIR, "apps"))
+
+config_path = os.getenv("open_infra_config", os.path.join(BASE_DIR, "config/secret.yaml"))
+config = yaml.load(open(config_path, "r", encoding="utf-8"), Loader=yaml.FullLoader)
+if len(sys.argv) >= 1 and sys.argv[0] == "uwsgi":
+    os.remove(config_path)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("pwd")
+SECRET_KEY = config["pwd"]
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
@@ -91,13 +96,13 @@ WSGI_APPLICATION = 'open_infra.wsgi.application'
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
 
 DATABASES = {
-    'default': {  # 写（主机）
-        'ENGINE': 'dj_db_conn_pool.backends.mysql',     # 数据库引擎
-        'HOST': os.getenv("mysql_host"),                # 数据库主机
-        'PORT': os.getenv("mysql_port"),                # 数据库端口
-        'USER': os.getenv("mysql_user"),                # 数据库用户名
-        'PASSWORD': os.getenv("mysql_password"),        # 数据库用户密码
-        'NAME': 'open_infra',                           # 数据库名字
+    'default': {
+        'ENGINE': 'dj_db_conn_pool.backends.mysql',
+        'HOST': config["mysql_host"],
+        'PORT': config["mysql_port"],
+        'USER': config["mysql_user"],
+        'PASSWORD': config["mysql_password"],
+        'NAME': 'open_infra',
         'TIME_ZONE': 'Asia/Shanghai',
         'CONN_MAX_AGE': 0,
         'OPTIONS': {
@@ -153,26 +158,16 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6379/0",  # 可改：ip、port、db
+        "LOCATION": "redis://127.0.0.1:6379/0",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
     }
 }
 
-IS_RUNSERVER = False
-if len(sys.argv) > 1 and sys.argv[1] == "runserver":
-    IS_RUNSERVER = True
-elif len(sys.argv) >= 1 and sys.argv[0] == "uwsgi":
-    IS_RUNSERVER = True
-
-IS_COLLECT_ALARM = True
-IS_COLLECT_APP_RES = True
-IS_COLLECT_CLOUDS_TOOLS = True
-IS_COLLECT_CONSUMPTION_CON = True
-IS_COLLECT_PERMISSION = True
-
 # log and lib path setting
+LOG_PATH = "/var/log/open-infra"
+LIB_PATH = "/var/lib/open-infra"
 if platform.system() == "Windows":
     LOG_PATH = os.path.dirname(os.path.dirname(os.getcwd()))
     LIB_PATH = os.path.dirname(os.path.dirname(os.getcwd()))
@@ -184,8 +179,8 @@ if not os.path.exists(LIB_PATH):
 LOGGING = {
     'version': 1,
     'propagate': False,
-    'disable_existing_loggers': False,  # 是否禁用已经存在的日志器
-    'formatters': {  # 日志信息显示的格式
+    'disable_existing_loggers': False,
+    'formatters': {
         'verbose': {
             'format': '%(levelname)s %(asctime)s %(module)s %(lineno)d %(message)s'
         },
@@ -193,32 +188,45 @@ LOGGING = {
             'format': '%(levelname)s %(module)s %(lineno)d %(message)s'
         },
     },
-    'filters': {  # 对日志进行过滤
-        'require_debug_true': {  # django在debug模式下才输出日志
+    'filters': {
+        'require_debug_true': {
             '()': 'django.utils.log.RequireDebugTrue',
         },
     },
-    'handlers': {  # 日志处理方法
-        'console': {  # 向终端中输出日志
+    'handlers': {
+        'console': {
             'level': 'INFO',
             'filters': ['require_debug_true'],
             'class': 'logging.StreamHandler',
             'formatter': 'simple'
         },
-        'file': {  # 向文件中输出日志
+        'file': {
             'level': 'INFO',
             'class': 'logging.handlers.RotatingFileHandler',
-            'filename': os.path.join(os.path.dirname(BASE_DIR), os.path.join(LOG_PATH, "open-infra.log")),  # 日志文件的位置
+            'filename': os.path.join(os.path.dirname(BASE_DIR), os.path.join(LOG_PATH, "open-infra.log")),
+            'maxBytes': 300 * 1024 * 1024,
+            'backupCount': 10,
+            'formatter': 'verbose'
+        },
+        'alarm': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(os.path.dirname(BASE_DIR), os.path.join(LOG_PATH, "alarm.log")),
             'maxBytes': 300 * 1024 * 1024,
             'backupCount': 10,
             'formatter': 'verbose'
         },
     },
-    'loggers': {  # 日志器
-        'django': {  # 定义了一个名为django的日志器
-            'handlers': ['console', 'file'],  # 可以同时向终端与文件中输出日志
-            'propagate': True,  # 是否继续传递日志信息
-            'level': 'INFO',  # 日志器接收的最低日志级别
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'file'],
+            'propagate': True,
+            'level': 'INFO',
+        },
+        'alarm': {
+            'handlers': ['alarm'],
+            'propagate': True,
+            'level': 'INFO',
         },
     }
 }
@@ -243,7 +251,7 @@ REST_FRAMEWORK = {
 }
 
 # cors setting
-CORS_ORIGIN_ALLOW_ALL = True  # 如果是True，白名单不启用
+CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_METHODS = (
     'DELETE',
     'GET',
@@ -264,10 +272,10 @@ CORS_ALLOW_HEADERS = (
 )
 
 # obs setting
-OBS_AK = os.getenv("obs_ak")
-OBS_SK = os.getenv("obs_sk")
-OBS_URL = os.getenv("obs_url")
-OBS_DOMAIN_ID = os.getenv("obs_domain_id")
+OBS_AK = config["obs_ak"]
+OBS_SK = config["obs_sk"]
+OBS_URL = config["obs_url"]
+OBS_DOMAIN_ID = config["obs_domain_id"]
 
 # obs bucketname and path
 DOWNLOAD_BUCKET_NAME = "obs-for-openeuler-developer"
@@ -327,7 +335,7 @@ OBS_FILE_URL = "https://{}.obs.{}.myhuaweicloud.com/{}"
 EIP_V2_ZONE = ["cn-south-4", ]
 
 # scan cla
-CLA_API_KEY = os.getenv("uptime_robot_api_key")
+CLA_API_KEY = config["uptime_robot_api_key"]
 CLA_EXCEL_TITLE = ["服务名", "服务介绍", "访问地址", "社区", "月度异常累计时间(min)", "年度异常累计时间(min)", "月度SLA", "年度SLA", "年度剩余SLA配额"]
 CLA_EXCEL_NAME = "Sla数据统计表_{}.xlsx"
 CLA_EXCEL_PAGE_NAME = "Sla"
@@ -340,12 +348,12 @@ CLA_EXPLAIN = {
 }
 
 # email config
-EMAIL_SENDER_EMAIL = "infra@lists.osinfra.cn"
+EMAIL_SENDER_EMAIL = "infra@{}".format(config["alarm_email_host"])
 EMAIL_SENDER_NAME = "infra"
-EMAIL_SENDER_SERVER = os.getenv("alarm_email_host", "lists.osinfra.cn")
+EMAIL_SENDER_SERVER = config["alarm_email_host"]
 EMAIL_SENDER_PORT = 465
-EMAIL_USERNAME = os.getenv("alarm_email_user")
-EMAIL_PWD = os.getenv("alarm_email_pwd")
+EMAIL_USERNAME = config["alarm_email_user"]
+EMAIL_PWD = config["alarm_email_pwd"]
 EMAIL_IS_SSL = True
 
 # the alarm email config
@@ -365,25 +373,22 @@ ALARM_RES_COUNT_THRESHOLD = {
     'tencent-beijing-playground-cluster/tencent-beijing-playground-cluster/default': 100
 }
 # the alarm sms
-ALARM_SMS_URL = os.getenv("ALARM_SMS_URL", "https://smsapi.cn-south-1.myhuaweicloud.com:443/sms/batchSendSms/v1")  # guangzhou
-ALARM_SMS_KEY = os.getenv("ALARM_SMS_KEY")
-ALARM_SMS_SECRET = os.getenv("ALARM_SMS_SECRET")
-ALARM_SMS_SENDER = os.getenv("ALARM_SMS_SENDER")
-ALARM_SMS_ALARM_TEMPLATE = os.getenv("ALARM_SMS_ALARM_TEMPLATE")
-ALARM_SMS_RECOVER_TEMPLATE = os.getenv("ALARM_SMS_RECOVER_TEMPLATE")
+ALARM_SMS_URL = config["ALARM_SMS_URL"]
+ALARM_SMS_KEY = config["ALARM_SMS_KEY"]
+ALARM_SMS_SECRET = config["ALARM_SMS_SECRET"]
+ALARM_SMS_SENDER = config["ALARM_SMS_SENDER"]
+ALARM_SMS_ALARM_TEMPLATE = config["ALARM_SMS_ALARM_TEMPLATE"]
+ALARM_SMS_RECOVER_TEMPLATE = config["ALARM_SMS_RECOVER_TEMPLATE"]
 ALARM_SMS_SIGNATURE = "OpenInfraOps监控告警"
-
 
 # the kubeconfig of permission
 KUBECONFIG_EMAIL_SUBJECT = "ops.osinfra.cn: Kubeconfig Notify"
 
 # the github config
-GITHUB_SECRET = os.getenv("GITHUB_SECRET")
+GITHUB_SECRET = config["GITHUB_SECRET"]
 GITHUB_DOMAIN = "https://api.github.com"
 GITHUB_COMMIT_INFO = {"name": "TomNewChao", "email": "353712216@qq.com"}
-# the github reviewer, include obs-interact and kubeconfig-interact
 GITHUB_REVIEWER = ["githubliuyang777", "TomNewChao"]
-
 
 # the obs-interact
 OBS_INTERACT_EMAIL_SUBJECT = "ops.osinfra.cn: Obs-Interact Notify"
@@ -391,7 +396,7 @@ OBS_INTERACT_ZONE = "cn-north-4"
 OBS_INTERACT_BUCEKT_NAME = "obs-transfer"
 OBS_INTERACT_REPO = "https://github.com/{}.git"
 
-# bill rate
+# the bill rate
 BILL_RATE = {
     "interational": 0.5887,
     "common": 0.483,

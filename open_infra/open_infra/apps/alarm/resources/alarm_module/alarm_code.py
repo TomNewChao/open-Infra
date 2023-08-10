@@ -5,7 +5,7 @@ from django.conf import settings
 
 from open_infra.utils.common import unicode_convert
 
-logger = logging.getLogger("django")
+logger = logging.getLogger("alarm")
 
 
 class AlarmCodeConfig:

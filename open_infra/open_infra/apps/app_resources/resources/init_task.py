@@ -204,17 +204,6 @@ class InitMgr:
             )
 
     @classmethod
-    def crontab_task(cls):
-        cls.refresh_account_info()
-        cls.refresh_eip()
-        cls.refersh_service_sla()
-        cls.refresh_service_swr()
-
-    @classmethod
-    def immediately_task(cls):
-        pass
-
-    @classmethod
     def test_task(cls):
         cls.refresh_account_info()
         cls.refresh_eip()

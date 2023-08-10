@@ -13,7 +13,7 @@ from alarm.resources.alarm_module.common import calc_next_run_time
 from alarm.resources.alarm_module.task import get_all_alarm_fun
 from open_infra.utils.common import unicode_convert
 
-logger = logging.getLogger("django")
+logger = logging.getLogger("alarm")
 
 
 class AlarmGlobalConfig:

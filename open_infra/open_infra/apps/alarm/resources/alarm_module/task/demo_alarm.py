@@ -9,7 +9,7 @@ from alarm.resources.alarm_module.alarm_thread import active_alarm
 from alarm.resources.alarm_module.constants import AlarmType
 from alarm.resources.alarm_module.task import BaseAlarm, AlarmTask
 
-logger = logging.getLogger("django")
+logger = logging.getLogger("alarm")
 
 
 class DemoAlarm(BaseAlarm):
