@@ -24,7 +24,7 @@ sys.path.insert(0, os.path.join(BASE_DIR, "apps"))
 
 config_path = os.getenv("open_infra_config", os.path.join(BASE_DIR, "config/secret.yaml"))
 config = yaml.load(open(config_path, "r", encoding="utf-8"), Loader=yaml.FullLoader)
-if len(sys.argv) >= 1 and sys.argv[0] == "uwsgi":
+if len(sys.argv) > 1 and sys.argv[1] == "runserver":
     os.remove(config_path)
 
 # Quick-start development settings - unsuitable for production
