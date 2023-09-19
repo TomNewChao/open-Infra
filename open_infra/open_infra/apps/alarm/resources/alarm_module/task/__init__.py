@@ -11,7 +11,7 @@ from functools import wraps
 from alarm.models import Alarm
 from alarm.resources.alarm_module.common import calc_next_run_time
 
-logger = logging.getLogger("django")
+logger = logging.getLogger("alarm")
 
 
 class BaseAlarm(object):

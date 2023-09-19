@@ -32,18 +32,6 @@ class InitMgr:
         logger.info("------------------2.start to refresh resource utilization----------------------")
 
     @classmethod
-    def crontab_task_week(cls):
-        cls.refresh_resource_utilization()
-
-    @classmethod
-    def crontab_task(cls):
-        cls.refresh_bill_info()
-
-    @classmethod
-    def immediately_task(cls):
-        pass
-
-    @classmethod
     def test_task(cls):
         cls.refresh_resource_utilization()
         cls.refresh_bill_info()

@@ -39,7 +39,3 @@ class KubeconfigClearExpiredThread:
         except Exception as e:
             logger.error(
                 "[KubeconfigClearExpiredThread] work thread fail:{}, traceback:{}".format(e, traceback.format_exc()))
-
-    @classmethod
-    def cron_job(cls):
-        cls.clear_expired_data()

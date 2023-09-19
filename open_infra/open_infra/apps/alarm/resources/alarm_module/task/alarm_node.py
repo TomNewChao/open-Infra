@@ -14,7 +14,7 @@ from alarm.resources.alarm_module.alarm_code import AlarmCode, AlarmName
 from alarm.resources.alarm_module.alarm_thread import batch_recover_faded_alarm, active_alarm
 from alarm.resources.alarm_module.task import BaseAlarm, AlarmTask
 
-logger = logging.getLogger("django")
+logger = logging.getLogger("alarm")
 
 
 class NodeAlarm(BaseAlarm):

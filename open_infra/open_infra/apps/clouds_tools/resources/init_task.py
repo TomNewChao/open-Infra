@@ -10,7 +10,6 @@ from app_resources.resources.account_mgr import AccountMgr
 from clouds_tools.models import HWCloudHighRiskPort, HWCloudScanEipPortInfo, HWCloudScanEipPortStatus, \
     HWCloudScanObsAnonymousFile, HWCloudScanObsAnonymousBucket, HWCloudScanObsAnonymousStatus
 from clouds_tools.resources.alarm import CloudsToolsAlarm
-from clouds_tools.resources.constants import ScanToolsLock
 from clouds_tools.resources.scan_tools import ScanToolsMgr
 from open_infra.tools.scan_obs import scan_obs
 from open_infra.tools.scan_port import scan_port
@@ -74,27 +73,12 @@ class InitMgr:
         logger.info("----------------2.finish scan_obs-----------------------")
 
     @classmethod
-    def crontab_task(cls):
+    def scan_all_task(cls):
         try:
-            ScanToolsLock.scan_port.acquire()
             cls.scan_port()
         except Exception as e:
             logger.error("[cron_job] e:{}, traceback:{}".format(e, traceback.format_exc()))
-        finally:
-            ScanToolsLock.scan_port.release()
         try:
-            ScanToolsLock.scan_obs.acquire()
             cls.scan_obs()
         except Exception as e:
             logger.error("[cron_job] e:{}, traceback:{}".format(e, traceback.format_exc()))
-        finally:
-            ScanToolsLock.scan_obs.release()
-
-    @classmethod
-    def immediately_task(cls):
-        cls.refresh_high_level_port()
-    
-    @classmethod
-    def test_task(cls):
-        cls.refresh_high_level_port()
-        cls.crontab_task()
