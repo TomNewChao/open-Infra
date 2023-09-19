@@ -18,7 +18,7 @@ docker build -t open-infra:latest .
 ~~~bash
 1.搭建一个mysql数据库，创建数据库：open_infra
 
-2.填写配置文件: open_infra/config/secret
+2.填写配置文件: /opt/open_infra/open_infra/config/secret
 pwd: 
 mysql_host: 
 mysql_port: 
@@ -52,7 +52,7 @@ docker run -dit --env-file env.file --name open-infra-demo open-infra:latest
 ~~~bash
 python3 manage.py refresh_resource_command                 # every day 0:00
 python3 manage.py scan_port_command                        # every day 1:00
-python3 manage.py refresh_bill_command                     # month day0 2:00
+python3 manage.py refresh_bill_command                     # every month day0 2:00
 python3 manage.py refresh_refresh_resource_command         # every week 3:00
 python3 manage.py clean_expired_command         		   # every 10 minutes
 ~~~
