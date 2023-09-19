@@ -236,6 +236,7 @@ AUTH_USER_MODEL = 'users.User'
 # jwt settings
 JWT_AUTH = {
     'JWT_EXPIRATION_DELTA': datetime.timedelta(minutes=30),  # 30minutes
+    'JWT_ALLOW_REFRESH': True,
     # 'JWT_RESPONSE_PAYLOAD_HANDLER': "open_infra.utils.jwt_response.jwt_response_payload_handler",
 }
 
