@@ -94,7 +94,9 @@ class CollectServiceInfo:
             if tag is not None:
                 request.tag = tag
             response = client.list_repository_tags(request)
-            if len(response.body) == 0:
+            if not response.body:
+                logger.info("[get_swr_tag] {}/{}/{} get the length:{} equal None".format(namespace, repository, tag, response.body))
+            elif len(response.body) == 0:
                 logger.info("[get_swr_tag] {}/{}/{} get the length:{} not equal 1".format(namespace, repository, tag, response.body))
             else:
                 return response.body[0]
