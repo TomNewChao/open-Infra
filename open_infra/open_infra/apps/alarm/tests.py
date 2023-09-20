@@ -9,8 +9,6 @@ from email.mime.text import MIMEText
 
 
 # from django.test import TestCase
-
-
 # Create your tests here.
 
 
@@ -44,14 +42,14 @@ def build_wsse_header(app_key, app_secret):
 
 def hw_send_sms(url, app_key, app_secret, sender, receiver, template_id, template_param, signature):
     """
-    @param url: 应用url
-    @param app_key: 应用公钥
-    @param app_secret: 应用秘钥
-    @param sender: 发送者
-    @param receiver: 接受者
-    @param template_id: 模板id
-    @param template_param: 模板参数
-    @param signature:  使用国内短信通用模板时,必须填写签名名称
+    @param url:
+    @param app_key:
+    @param app_secret:
+    @param sender:
+    @param receiver:
+    @param template_id:
+    @param template_param:
+    @param signature:
     @return:
     """
     header = {'Authorization': 'WSSE realm="SDP",profile="UsernameToken",type="Appkey"',

@@ -12,7 +12,7 @@ import os
 from django.core.wsgi import get_wsgi_application
 from alarm.resources.alarm_module.alarm_thread import AlarmClient
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'open_infra.settings.dev')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'open_infra.settings.prod')
 
 # Pull up the alarm thread
 print("-" * 25 + "start to alarm" + "-" * 25)

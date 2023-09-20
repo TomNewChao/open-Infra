@@ -18,7 +18,6 @@ import openpyxl
 from functools import wraps
 from collections import Mapping
 from collections import Iterable
-from itsdangerous.jws import TimedJSONWebSignatureSerializer
 from django.conf import settings
 from logging import getLogger
 from django.http import JsonResponse, HttpResponse
@@ -109,25 +108,6 @@ def unicode_convert(input):
         return input.decode('utf-8')
     else:
         return input
-
-
-def dumps(json_dict, expires):
-    """Encryption: Encrypt the dictionary into bytes, then decode"""
-    serial_alter = TimedJSONWebSignatureSerializer(secret_key=settings.SECRET_KEY, expires_in=expires)
-    json_str = serial_alter.dumps(json_dict).decode()
-    return json_str
-
-
-def loads(json_str, expires):
-    """Decrypt: Decrypt the string into a dictionary"""
-    serial_alter = TimedJSONWebSignatureSerializer(secret_key=settings.SECRET_KEY, expires_in=expires)
-    try:
-        json_dict = serial_alter.loads(json_str)
-    except Exception as e:
-        logger.error("e:{}".format(e))
-        return None
-    else:
-        return json_dict
 
 
 def execute_cmd3(cmd, timeout=30, err_log=True):
@@ -243,7 +223,7 @@ def assemble_api_result(err_code, trans_code=None, trans_para=None, data=None, l
             trans_para = [trans_para]
     if replace_none and data is None:
         data = {}
-    api_ret = {'err_code': err_code}
+    api_ret = {'code': err_code}
     if not trans_code:
         trans_code = err_code
     tmp_desc = ErrCode.get_err_desc(trans_code, lang_flag=lang_flag)

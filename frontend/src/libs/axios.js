@@ -1,10 +1,10 @@
 import axios from 'axios'
 import store from '@/store'
-import {getToken, setToken} from "@/libs/util"
+import { getToken, setToken } from '@/libs/util'
 
 // import { Spin } from 'iview'
 const addErrorLog = errorInfo => {
-  const {statusText, status, request: {responseURL}} = errorInfo
+  const { statusText, status, request: { responseURL } } = errorInfo
   let info = {
     type: 'ajax',
     code: status,
@@ -15,12 +15,12 @@ const addErrorLog = errorInfo => {
 }
 
 class HttpRequest {
-  constructor(baseUrl = baseURL) {
+  constructor (baseUrl = baseURL) {
     this.baseUrl = baseUrl
     this.queue = {}
   }
 
-  getInsideConfig() {
+  getInsideConfig () {
     const config = {
       baseURL: this.baseUrl,
       headers: {
@@ -30,23 +30,24 @@ class HttpRequest {
     return config
   }
 
-  destroy(url) {
+  destroy (url) {
     delete this.queue[url]
     if (!Object.keys(this.queue).length) {
       // Spin.hide()
     }
   }
 
-  interceptors(instance, url) {
+  interceptors (instance, url) {
     // 请求拦截
     instance.interceptors.request.use(config => {
       // 添加全局的loading...
       if (!Object.keys(this.queue).length) {
         // Spin.show() // 不建议开启，因为界面不友好
       }
-      let curToken = getToken();
+      let curToken = getToken()
       if (curToken) {
-        config.headers['Authorization'] = "Bearer " + getToken();
+        config.headers['Authorization'] = 'Bearer ' + getToken()
+        config.headers['HTTP_AUTHORIZATION'] = getToken()
       }
       this.queue[url] = true
       return config
@@ -56,14 +57,14 @@ class HttpRequest {
     // 响应拦截
     instance.interceptors.response.use(res => {
       this.destroy(url)
-      const {data, status} = res
+      const { data, status } = res
       return res
     }, error => {
       this.destroy(url)
       let errorInfo = error.response
       if (error.response.status === 403) {
-        setToken('');
-        this.$Message.info("登录超时，请重新登录。")
+        setToken('')
+        this.$Message.info('登录超时，请重新登录。')
       }
       // if (!errorInfo) {
       //   // const { request: { statusText, status }, config } = JSON.parse(JSON.stringify(error))
@@ -79,7 +80,7 @@ class HttpRequest {
     })
   }
 
-  request(options) {
+  request (options) {
     const instance = axios.create()
     options = Object.assign(this.getInsideConfig(), options)
     this.interceptors(instance, options.url)

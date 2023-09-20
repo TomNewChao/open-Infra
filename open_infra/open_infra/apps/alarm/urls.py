@@ -1,9 +1,9 @@
-from django.conf.urls import url
-from alarm.views import AlarmView, AlarmNotifyView, BatchAlarmNotifyView, AlarmNameView
+from rest_framework.routers import DefaultRouter
+from alarm.views import AlarmView, AlarmNotifyView
 
-urlpatterns = [
-    url(r'^alarm$', AlarmView.as_view()),
-    url(r'^alarm_name$', AlarmNameView.as_view()),
-    url(r'^alarm_notify$', AlarmNotifyView.as_view()),
-    url(r'^batch_alarm_notify$', BatchAlarmNotifyView.as_view()),
-]
+
+urlpatterns = list()
+router = DefaultRouter()
+router.register("alarm", AlarmView, basename="alarm")
+router.register("alarm_notify", AlarmNotifyView, basename="alarm_notify")
+urlpatterns += router.urls

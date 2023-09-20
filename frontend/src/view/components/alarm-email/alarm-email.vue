@@ -1,7 +1,7 @@
 <template>
   <div>
     <Card>
-      <Button class="ivu-btn-one" @click="queryAlarmName" type="primary">+增加告警通知</Button>
+      <Button class="ivu-btn-one" @click="getAlarmName" type="primary">+增加告警通知</Button>
       <Button class="ivu-btn-second" @click="deleteAlarmNotify" type="primary">-删除告警通知</Button>
       <Button class="ivu-btn-third" @click="getAlarmNotify" type="primary">修改告警通知</Button>
       <Drawer
@@ -85,7 +85,8 @@
         </Select>
         <Input clearable placeholder="输入关键字搜索" class="search-input" v-model="alarmEmailSearchValue"/>
         <Button @click="handlerAlarmEmailSearch" class="search-btn" type="primary">
-          <Icon type="search"/>搜索
+          <Icon type="search"/>
+          搜索
         </Button>
       </div>
       <Table border ref="selection" search-place="top" :data="alarmEmailTableData" :columns="alarmEmailColumns"
@@ -102,19 +103,20 @@
 import Tables from '_c/tables'
 import './index.less'
 import {
-  alarmNotifyDeletePostApi,
+  alarmNotifyGetApi,
+  alarmNotifyGetNameApi,
   alarmNotifyListApi,
   alarmNotifyPostApi,
-  alarmNameGetApi,
-  alarmNotifyGetApi, alarmNotifyPutApi
-} from '@/api/tools'
+  alarmNotifyPutApi,
+  alarmNotifyBatchDeleteApi
+} from '@/api/alarm'
 
 export default {
   name: 'tables_page',
   components: {
     Tables
   },
-  data() {
+  data () {
     return {
       putSelectId: 0,
       alarmNotifyDrawerValue: false,
@@ -141,8 +143,8 @@ export default {
       alarmEmailOrderBy: 'create_time',
       alarmEmailOrderType: 1,
       alarmEmailFilterColumns: [
-        {title: '邮件', key: 'email'},
-        {title: '手机号', key: 'phone_number'}
+        { title: '邮件', key: 'email' },
+        { title: '手机号', key: 'phone_number' }
       ],
       alarmEmailColumns: [
         {
@@ -150,40 +152,40 @@ export default {
           width: 60,
           align: 'center'
         },
-        {title: '邮件', key: 'email', sortable: 'custom'},
-        {title: '手机号', key: 'phone_number'},
-        {title: '报警名称', key: 'alarm_name'},
-        {title: '报警详细关键字', key: 'alarm_keywords'},
-        {title: '备注', key: 'desc'},
-        {title: '创建时间', key: 'create_time', sortable: 'custom', sortType: "desc"}
+        { title: '邮件', key: 'email', sortable: 'custom' },
+        { title: '手机号', key: 'phone_number' },
+        { title: '报警名称', key: 'alarm_name' },
+        { title: '报警详细关键字', key: 'alarm_keywords' },
+        { title: '备注', key: 'desc' },
+        { title: '创建时间', key: 'create_time', sortable: 'custom', sortType: 'desc' }
       ],
       alarmEmailTableData: []
     }
   },
-  mounted() {
-    this.queryAlarmEmailList()
+  mounted () {
+    this.listAlarmEmail()
   },
   methods: {
-    handlerAlarmEmailSort(column) {
+    handlerAlarmEmailSort (column) {
       this.alarmEmailOrderBy = column.key
-      this.alarmEmailOrderType = column.order === "asc" ? 0 : 1
-      this.queryAlarmEmailList()
+      this.alarmEmailOrderType = column.order === 'asc' ? 0 : 1
+      this.listAlarmEmail()
     },
-    handlerAlarmEmailSearch() {
-      this.queryAlarmEmailList()
+    handlerAlarmEmailSearch () {
+      this.listAlarmEmail()
     },
-    handlerAlarmEmailPage(value) {
+    handlerAlarmEmailPage (value) {
       this.alarmEmailPageNum = value
-      this.queryAlarmEmailList()
+      this.listAlarmEmail()
     },
-    handlerAlarmEmailPageSize(value) {
+    handlerAlarmEmailPageSize (value) {
       this.alarmEmailPageSize = value
-      this.queryAlarmEmailList()
+      this.listAlarmEmail()
     },
-    queryAlarmEmailList() {
+    listAlarmEmail () {
       alarmNotifyListApi(this.alarmEmailPageNum, this.alarmEmailPageSize, this.alarmEmailOrderBy,
         this.alarmEmailOrderType, this.alarmEmailSearchKey, this.alarmEmailSearchValue).then(res => {
-        if (res.data.err_code !== 0) {
+        if (res.data.code !== 0) {
           this.$Message.info(res.data.description)
         } else {
           this.alarmEmailTableData = res.data.data.data
@@ -193,72 +195,7 @@ export default {
         }
       })
     },
-    queryAlarmName() {
-      alarmNameGetApi().then(res => {
-        if (res.data.err_code !== 0) {
-          this.$Message.info(res.data.description)
-        } else {
-          this.alarmNameItem = res.data.data
-          this.alarmEmailDrawerValue = true
-        }
-      })
-    },
-    createAlarmNotify() {
-      let email = this.alarmEmailFormData.email
-      let desc = this.alarmEmailFormData.desc
-      let phone = this.alarmEmailFormData.phoneNumber
-      let name = this.alarmEmailFormData.alarmName
-      let keywords = this.alarmEmailFormData.alarmKeywords
-      let phoneReg = /^1(3[0-9]|4[579]|5[0-3,5-9]|6[6]|7[0135678]|8[0-9]|9[89])\d{8}$/
-      if (phone.length > 0 && !phoneReg.test(phone)) {
-        this.$Message.info("请输入正确的手机号")
-        return
-      }
-      let emailReg = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/
-      if (!emailReg.test(email)) {
-        this.$Message.info("请输入正确的邮箱")
-        return
-      }
-      alarmNotifyPostApi(phone, email, desc, name, keywords).then(res => {
-        if (res.data.err_code === 0) {
-          this.queryAlarmEmailList()
-        }
-        this.$Message.info(res.data.description)
-      })
-      this.alarmEmailDrawerValue = false
-      this.alarmEmailFormData.email = ''
-      this.alarmEmailFormData.desc = ''
-      this.alarmEmailFormData.phoneNumber = ''
-      this.alarmEmailFormData.alarmName = []
-      this.alarmEmailFormData.alarmKeywords = ''
-    },
-    clearAlarmEmailContent() {
-      this.alarmEmailDrawerValue = false
-      this.alarmNotifyDrawerValue = false
-      this.alarmEmailFormData.email = ''
-      this.alarmEmailFormData.desc = ''
-      this.alarmEmailFormData.phoneNumber = ''
-      this.alarmEmailFormData.alarmName = []
-      this.alarmEmailFormData.alarmKeywords = ''
-    },
-    deleteAlarmNotify() {
-      let selectEmailArray = this.$refs.selection.getSelection()
-      let selectEmailList = []
-      for (let i = 0; i < selectEmailArray.length; i++) {
-        selectEmailList.push(selectEmailArray[i].id)
-      }
-      if (selectEmailList.length === 0) {
-        this.$Message.info('请至少选择一条信息。')
-      } else {
-        alarmNotifyDeletePostApi(selectEmailList).then(res => {
-          if (res.data.err_code === 0) {
-            this.queryAlarmEmailList()
-          }
-          this.$Message.info(res.data.description)
-        })
-      }
-    },
-    getAlarmNotify() {
+    getAlarmNotify () {
       let selectNotifyArray = this.$refs.selection.getSelection()
       let selectNotifyList = []
       for (let i = 0; i < selectNotifyArray.length; i++) {
@@ -271,7 +208,7 @@ export default {
       } else {
         let id = selectNotifyList[0]
         alarmNotifyGetApi(id).then(res => {
-          if (res.data.err_code !== 0) {
+          if (res.data.code !== 0) {
             this.$Message.info(res.data.description)
           } else {
             let respData = res.data.data
@@ -287,7 +224,46 @@ export default {
         })
       }
     },
-    putAlarmNotify() {
+    getAlarmName () {
+      alarmNotifyGetNameApi().then(res => {
+        if (res.data.code !== 0) {
+          this.$Message.info(res.data.description)
+        } else {
+          this.alarmNameItem = res.data.data
+          this.alarmEmailDrawerValue = true
+        }
+      })
+    },
+    createAlarmNotify () {
+      let email = this.alarmEmailFormData.email
+      let desc = this.alarmEmailFormData.desc
+      let phone = this.alarmEmailFormData.phoneNumber
+      let name = this.alarmEmailFormData.alarmName
+      let keywords = this.alarmEmailFormData.alarmKeywords
+      let phoneReg = /^1(3[0-9]|4[579]|5[0-3,5-9]|6[6]|7[0135678]|8[0-9]|9[89])\d{8}$/
+      if (phone.length > 0 && !phoneReg.test(phone)) {
+        this.$Message.info('请输入正确的手机号')
+        return
+      }
+      let emailReg = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/
+      if (!emailReg.test(email)) {
+        this.$Message.info('请输入正确的邮箱')
+        return
+      }
+      alarmNotifyPostApi(phone, email, desc, name, keywords).then(res => {
+        if (res.data.code === 0) {
+          this.listAlarmEmail()
+        }
+        this.$Message.info(res.data.description)
+      })
+      this.alarmEmailDrawerValue = false
+      this.alarmEmailFormData.email = ''
+      this.alarmEmailFormData.desc = ''
+      this.alarmEmailFormData.phoneNumber = ''
+      this.alarmEmailFormData.alarmName = []
+      this.alarmEmailFormData.alarmKeywords = ''
+    },
+    putAlarmNotify () {
       let email = this.alarmEmailFormData.email
       let desc = this.alarmEmailFormData.desc
       let phone = this.alarmEmailFormData.phoneNumber
@@ -296,17 +272,17 @@ export default {
       let id = this.putSelectId
       let phoneReg = /^1(3[0-9]|4[579]|5[0-3,5-9]|6[6]|7[0135678]|8[0-9]|9[89])\d{8}$/
       if (phone.length > 0 && !phoneReg.test(phone)) {
-        this.$Message.info("请输入正确的手机号")
+        this.$Message.info('请输入正确的手机号')
         return
       }
       let emailReg = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/
       if (!emailReg.test(email)) {
-        this.$Message.info("请输入正确的邮箱")
+        this.$Message.info('请输入正确的邮箱')
         return
       }
       alarmNotifyPutApi(phone, email, desc, name, keywords, id).then(res => {
-        if (res.data.err_code === 0) {
-          this.queryAlarmEmailList()
+        if (res.data.code === 0) {
+          this.listAlarmEmail()
         }
         this.$Message.info(res.data.description)
       })
@@ -317,7 +293,32 @@ export default {
       this.alarmEmailFormData.phoneNumber = ''
       this.alarmEmailFormData.alarmName = []
       this.alarmEmailFormData.alarmKeywords = ''
-
+    },
+    deleteAlarmNotify () {
+      let selectEmailArray = this.$refs.selection.getSelection()
+      let selectEmailList = []
+      for (let i = 0; i < selectEmailArray.length; i++) {
+        selectEmailList.push(selectEmailArray[i].id)
+      }
+      if (selectEmailList.length === 0) {
+        this.$Message.info('请至少选择一条信息。')
+      } else {
+        alarmNotifyBatchDeleteApi(selectEmailList).then(res => {
+          if (res.data.code === 0) {
+            this.listAlarmEmail()
+          }
+          this.$Message.info(res.data.description)
+        })
+      }
+    },
+    clearAlarmEmailContent () {
+      this.alarmEmailDrawerValue = false
+      this.alarmNotifyDrawerValue = false
+      this.alarmEmailFormData.email = ''
+      this.alarmEmailFormData.desc = ''
+      this.alarmEmailFormData.phoneNumber = ''
+      this.alarmEmailFormData.alarmName = []
+      this.alarmEmailFormData.alarmKeywords = ''
     }
   }
 }

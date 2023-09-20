@@ -13,7 +13,6 @@ from app_resources.models import ServiceInfo, ServiceSla, ServiceImage, HWCloudA
 from app_resources.resources.account_mgr import AccountMgr
 from app_resources.resources.eip_mgr import EipMgr
 from app_resources.resources.sla_mgr import SlaMgr
-from open_infra.utils.auth_permisson import AuthView
 from open_infra.utils.common import assemble_api_result, list_param_check_and_trans
 from open_infra.utils.api_error_code import ErrCode
 from django.conf import settings

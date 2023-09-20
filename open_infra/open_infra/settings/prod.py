@@ -64,7 +64,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware',  # 新增跨域
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -234,25 +234,29 @@ LOGGING = {
 AUTH_USER_MODEL = 'users.User'
 
 # jwt settings
-JWT_AUTH = {
-    'JWT_EXPIRATION_DELTA': datetime.timedelta(minutes=30),  # 30minutes
-    'JWT_ALLOW_REFRESH': True,
-    # 'JWT_RESPONSE_PAYLOAD_HANDLER': "open_infra.utils.jwt_response.jwt_response_payload_handler",
+SIMPLE_JWT = {
+    'USER_ID_FIELD': 'id',
+    'ACCESS_TOKEN_LIFETIME': datetime.timedelta(minutes=30),
+    'REFRESH_TOKEN_LIFETIME': datetime.timedelta(days=1),
+
 }
 
-REST_FRAMEWORK = {
+# REST_FRAMEWORK = {
     # 'DEFAULT_PERMISSION_CLASSES': (
     #     'rest_framework.permissions.IsAuthenticated',
     # ),
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.BasicAuthentication',
-    ),
-}
+    # 'DEFAULT_AUTHENTICATION_CLASSES': (
+    #     'rest_framework_simplejwt.authentication.JWTAuthentication'
+    # ),
+# }
 
 # cors setting
 CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOWED_ORIGINS = (
+    'http://192.168.1.51:8080',
+    'http://192.168.1.82',
+)
 CORS_ALLOW_METHODS = (
     'DELETE',
     'GET',
@@ -263,13 +267,17 @@ CORS_ALLOW_METHODS = (
 )
 CORS_ALLOW_HEADERS = (
     'accept-encoding',
+    'http_authorization',
     'authorization',
     'content-type',
     'dnt',
     'origin',
     'user-agent',
     'x-csrftoken',
-    'x-requested-with'
+    'x-requested-with',
+    'XMLHttpRequest',
+    'X_FILENAME',
+    'Pragma',
 )
 
 # obs setting

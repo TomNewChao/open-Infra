@@ -56,21 +56,21 @@ class AlarmMgr:
         filter_name = kwargs.get("filter_name")
         filter_value = kwargs.get("filter_value")
         if filter_name and filter_name == "alarm_name":
-            eip_list = Alarm.objects.filter(alarm_name__contains=filter_value).filter(is_recover=False)
+            alarm_list = Alarm.objects.filter(alarm_name__contains=filter_value).filter(is_recover=False)
         elif filter_name and filter_name == "alarm_level":
             filter_value = AlarmLevel.get_alarm_level_id_by_name(filter_value)
-            eip_list = Alarm.objects.filter(alarm_level=filter_value).filter(is_recover=False)
+            alarm_list = Alarm.objects.filter(alarm_level=filter_value).filter(is_recover=False)
         elif filter_name and filter_name == "alarm_details":
-            eip_list = Alarm.objects.filter(alarm_details__contains=filter_value).filter(is_recover=False)
+            alarm_list = Alarm.objects.filter(alarm_details__contains=filter_value).filter(is_recover=False)
         else:
-            eip_list = Alarm.objects.all().filter(is_recover=False)
-        total = len(eip_list)
+            alarm_list = Alarm.objects.all().filter(is_recover=False)
+        total = len(alarm_list)
         page, slice_obj = get_suitable_range(total, page, size)
-        order_by = order_by if order_by else "create_time"
+        order_by = order_by if order_by else "alarm_refresh_time"
         order_type = order_type if order_type else 0
         if order_type != 0:
             order_by = "-" + order_by
-        eip_list = eip_list.order_by(order_by)
+        eip_list = alarm_list.order_by(order_by)
         task_list = [task.to_dict() for task in eip_list[slice_obj]]
         res = {
             "size": size,

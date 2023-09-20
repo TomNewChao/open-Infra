@@ -2,11 +2,11 @@ from itertools import chain
 
 from django.db import models
 
-# Create your models here.
 from alarm.resources.alarm_module.alarm_code import AlarmLevel, AlarmModule
 from open_infra.utils.models import BaseModel
 
 
+# Create your models here.
 class Alarm(BaseModel):
     alarm_id = models.IntegerField(verbose_name="报警code")
     alarm_level = models.IntegerField(verbose_name="报警级别")
@@ -27,10 +27,7 @@ class Alarm(BaseModel):
         return self.id
 
     def to_dict(self, fields=None, exclude=None, is_relate=False):
-        """
-        转dict
-        :return:
-        """
+        """to dict"""
         dict_data = dict()
         for f in chain(self._meta.concrete_fields, self._meta.many_to_many):
             value = f.value_from_object(self)
