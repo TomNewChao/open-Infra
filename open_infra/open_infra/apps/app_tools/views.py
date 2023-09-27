@@ -6,10 +6,13 @@
 import json
 from datetime import datetime
 from django.http import HttpResponse
+from rest_framework.viewsets import GenericViewSet
 
 from app_resources.resources.account_mgr import AccountMgr
-from clouds_tools.resources.scan_tools import ScanPortsMgr, ScanObsMgr, SingleScanPortsMgr, SingleScanObsMgr, HighRiskPortMgr
-from open_infra.utils.auth_permisson import AuthView
+from app_tools.resources.scan_tools import ScanPortsMgr, ScanObsMgr, SingleScanPortsMgr, SingleScanObsMgr, \
+    HighRiskPortMgr
+from rest_framework import permissions
+from rest_framework_simplejwt import authentication
 from open_infra.utils.common import assemble_api_result, list_param_check_and_trans
 from open_infra.utils.api_error_code import ErrCode
 from django.conf import settings
@@ -19,14 +22,17 @@ logger = getLogger("django")
 
 
 # noinspection DuplicatedCode,PyMethodMayBeStatic
-class ScanPortView(AuthView):
-    def get(self, request):
+class ScanPortView(GenericViewSet):
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.JWTAuthentication,)
+
+    def list(self, request):
         """get all account"""
         account_mgr = AccountMgr()
         clouds_account = account_mgr.get_cloud_account()
         return clouds_account
 
-    def post(self, request):
+    def create(self, request):
         """output a file of scan port"""
         dict_data = json.loads(request.body)
         if dict_data.get("account") is None or not isinstance(dict_data["account"], list):
@@ -42,14 +48,17 @@ class ScanPortView(AuthView):
 
 
 # noinspection DuplicatedCode,PyMethodMayBeStatic
-class ScanObsView(AuthView):
-    def get(self, request):
+class ScanObsView(GenericViewSet):
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.JWTAuthentication,)
+
+    def list(self, request):
         """get all account"""
         account_mgr = AccountMgr()
         clouds_account = account_mgr.get_cloud_account()
         return clouds_account
 
-    def post(self, request):
+    def create(self, request):
         """output a file of scan obs"""
         dict_data = json.loads(request.body)
         if dict_data.get("account") is None or not isinstance(dict_data["account"], list):
@@ -66,9 +75,11 @@ class ScanObsView(AuthView):
 
 
 # noinspection DuplicatedCode,PyMethodMayBeStatic
-class SingleScanPortView(AuthView):
+class SingleScanPortView(GenericViewSet):
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.JWTAuthentication,)
 
-    def post(self, request):
+    def create(self, request):
         """start to collect the high risk port"""
         dict_data = json.loads(request.body)
         ak = dict_data.get("ak").strip()
@@ -84,7 +95,7 @@ class SingleScanPortView(AuthView):
         else:
             return assemble_api_result(ErrCode.STATUS_SUCCESS)
 
-    def get(self, request):
+    def list(self, request):
         """get excel file"""
         dict_data = request.GET.dict()
         account = dict_data.get("account").strip()
@@ -102,9 +113,11 @@ class SingleScanPortView(AuthView):
 
 
 # noinspection DuplicatedCode,PyMethodMayBeStatic
-class SingleScanObsView(AuthView):
+class SingleScanObsView(GenericViewSet):
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.JWTAuthentication,)
 
-    def post(self, request):
+    def create(self, request):
         """start to collect the sensitive data of obs """
         dict_data = json.loads(request.body)
         ak = dict_data.get("ak").strip()
@@ -120,7 +133,7 @@ class SingleScanObsView(AuthView):
         else:
             return assemble_api_result(ErrCode.STATUS_SUCCESS)
 
-    def get(self, request):
+    def list(self, request):
         """get excel file"""
         dict_data = request.GET.dict()
         account = dict_data.get("account").strip()
@@ -140,15 +153,18 @@ class SingleScanObsView(AuthView):
 
 
 # noinspection DuplicatedCode,PyMethodMayBeStatic
-class PortsListView(AuthView):
-    def get(self, request):
+class PortsListView(GenericViewSet):
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.JWTAuthentication,)
+
+    def list(self, request):
         """get the port list"""
         params_dict = list_param_check_and_trans(request.GET.dict(), order_type="1", order_by="port")
         port_mgr = HighRiskPortMgr()
         data = port_mgr.list(params_dict)
         return assemble_api_result(ErrCode.STATUS_SUCCESS, data=data)
 
-    def post(self, request):
+    def create(self, request):
         """create the port"""
         dict_data = json.loads(request.body)
         port = dict_data.get("port").strip()
@@ -170,8 +186,11 @@ class PortsListView(AuthView):
 
 
 # noinspection DuplicatedCode,PyMethodMayBeStatic
-class PortsListDeleteView(AuthView):
-    def post(self, request):
+class PortsListDeleteView(GenericViewSet):
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.JWTAuthentication,)
+
+    def create(self, request):
         """batch delete the high risk of port"""
         dict_data = json.loads(request.body)
         port_list = dict_data.get("port_list")

@@ -13,7 +13,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from django.conf import settings
 from logging import getLogger
-from clouds_tools.resources.constants import ScanToolsLock
+from app_tools.resources.constants import ScanToolsLock
 from obs_upload.models import HWColudObsInteract
 from obs_upload.resources.constants import ObsInteractComment, Community
 from open_infra.libs.lib_cloud import HWCloudIAM, HWCloudObs

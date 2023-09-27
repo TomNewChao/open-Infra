@@ -75,7 +75,7 @@ class HttpRequest {
       //   // }
       //
       // }
-      addErrorLog(errorInfo)
+      // addErrorLog(errorInfo)
       return Promise.reject(error)
     })
   }

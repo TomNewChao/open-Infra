@@ -35,7 +35,7 @@ export default {
           })
         })
       }).catch(res => {
-        this.$Message.info('用户名或者密码错误，请重新输入。')
+        this.$Message.info(res)
       })
     }
   }

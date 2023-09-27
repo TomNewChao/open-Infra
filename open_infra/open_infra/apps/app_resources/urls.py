@@ -4,34 +4,25 @@
 # @FileName: urls.py
 # @Software: PyCharm
 
+from rest_framework.routers import DefaultRouter
 
-from django.conf.urls import url
 from app_resources.views import ServiceView, SlaExportView, ClusterView, AccountView, DetailServiceView, EipView, \
     IndexView, RegionView, RepoView, BaseOsView, BaseImageView, CommunityView, SeviceExportView, ServiceIntroduceView
 
-urlpatterns = [
-    # index
-    url(r'^index$', IndexView.as_view()),
-
-    # query account
-    url(r'^account$', AccountView.as_view()),
-
-    # query eip
-    url(r'^eip$', EipView.as_view()),
-
-    # query service and sla
-    url(r'^service$', ServiceView.as_view()),
-    url(r'^detail_service$', DetailServiceView.as_view()),
-    url(r'^service_export$', SeviceExportView.as_view()),
-    url(r'^cluster$', ClusterView.as_view()),
-    url(r'^region$', RegionView.as_view()),
-    url(r'^community$', CommunityView.as_view()),
-    url(r'^base_os$', BaseOsView.as_view()),
-    url(r'^base_image$', BaseImageView.as_view()),
-    url(r'^sla_export$', SlaExportView.as_view()),
-    url(r'^service_introduce$', ServiceIntroduceView.as_view()),
-
-    # cve interface
-    url(r'^repo$', RepoView.as_view()),
-
-]
+urlpatterns = list()
+router = DefaultRouter()
+router.register("index", IndexView, basename="index")
+router.register("account", AccountView, basename="account")
+router.register("eip", EipView, basename="eip")
+router.register("service", ServiceView, basename="service")
+router.register("detail_service", DetailServiceView, basename="detail_service")
+router.register("service_export", SeviceExportView, basename="service_export")
+router.register("cluster", ClusterView, basename="cluster")
+router.register("region", RegionView, basename="region")
+router.register("community", CommunityView, basename="community")
+router.register("base_os", BaseOsView, basename="base_os")
+router.register("base_image", BaseImageView, basename="base_image")
+router.register("sla_export", SlaExportView, basename="sla_export")
+router.register("service_introduce", ServiceIntroduceView, basename="service_introduce")
+router.register("repo", RepoView, basename="repo")
+urlpatterns += router.urls

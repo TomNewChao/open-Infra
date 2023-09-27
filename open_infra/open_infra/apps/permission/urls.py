@@ -5,17 +5,14 @@
 # @Software: PyCharm
 
 
-from django.conf.urls import url
+from rest_framework.routers import DefaultRouter
+
 from permission.views import KubeConfigGitView, KubeConfigView, BatchKubeConfigView
 
-urlpatterns = [
-    # the webhook github api of kubeconfig-interact
-    url(r'^kubeconfig_webhook', KubeConfigGitView.as_view()),
+urlpatterns = list()
+router = DefaultRouter()
+router.register("kubeconfig_webhook", KubeConfigGitView, basename="bill")
+router.register("kubeconfig", KubeConfigView, basename="resource_type_name")
+router.register("batch_kubeconfig", BatchKubeConfigView, basename="batch_kubeconfig")
 
-    # get the detail of kubeconfig and modify kubeconfig
-    url(r'^kubeconfig', KubeConfigView.as_view()),
-
-    # get the list of kubeconfig and batch delete kubeconfig
-    url(r'^batch_kubeconfig', BatchKubeConfigView.as_view()),
-
-]
+urlpatterns += router.urls

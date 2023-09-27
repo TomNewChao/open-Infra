@@ -1,10 +1,15 @@
 from django.conf.urls import url
-from users.views import UserView, MessageView, LogInfoView
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from users.views import LoginView, RefreshTokenView, LogoutView, UserView, MessageView
+from rest_framework.routers import DefaultRouter
+
 urlpatterns = [
-    url(r'^user_info', UserView.as_view()),
-    url(r'^message_count', MessageView.as_view()),
-    url(r'^log_info', LogInfoView.as_view()),
-    url(r'^login', TokenObtainPairView.as_view()),
-    url(r'^refresh_token', TokenRefreshView.as_view()),
+    url(r'^login/', LoginView.as_view()),
+    url(r'^refresh_token/', RefreshTokenView.as_view()),
 ]
+
+router = DefaultRouter()
+router.register("logout", LogoutView, basename="logout")
+router.register("user_info", UserView, basename="user_info")
+router.register("message_count", MessageView, basename="message_count")
+
+urlpatterns += router.urls

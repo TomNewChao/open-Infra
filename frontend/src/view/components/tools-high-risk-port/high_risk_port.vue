@@ -115,7 +115,7 @@ export default {
     },
     queryHighRiskPortList() {
       highRiskPortApiList(this.highRiskPortPageNum, this.highRiskPortPageSize, this.highRiskPortOrderBy, this.highRiskPortOrderType, this.highRiskPortSearchKey, this.highRiskPortSearchValue).then(res => {
-        if (res.data.err_code !== 0) {
+        if (res.data.code !== 0) {
           this.$Message.info(res.data.description)
         } else {
           this.highRiskPortTableData = res.data.data.data
@@ -129,7 +129,7 @@ export default {
       let port = this.highRiskPortFormData.port
       let desc = this.highRiskPortFormData.desc
       highRiskPortApiPost(port, desc).then(res => {
-        if (res.data.err_code === 0) {
+        if (res.data.code === 0) {
           this.queryHighRiskPortList()
         }
         this.$Message.info(res.data.description)
@@ -153,7 +153,7 @@ export default {
         this.$Message.info('请至少选择一个Port。')
       } else {
         highRiskPortApiDeletePost(selectPortList).then(res => {
-          if (res.data.err_code === 0) {
+          if (res.data.code === 0) {
             this.queryHighRiskPortList()
           }
           this.$Message.info(res.data.description)

@@ -5,7 +5,7 @@
 # @Software: PyCharm
 import copy
 
-from clouds_tools.models import HWCloudHighRiskPort
+from app_tools.models import HWCloudHighRiskPort
 
 
 class HighRiskPort(object):

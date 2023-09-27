@@ -161,7 +161,7 @@ export default {
     queryKubeConfigList() {
       kubeConfigListApi(this.kubeConfigPageNum, this.kubeConfigPageSize, this.kubeConfigOrderBy,
         this.kubeConfigOrderType, this.kubeConfigSearchKey, this.alarmEmailSearchValue).then(res => {
-        if (res.data.err_code !== 0) {
+        if (res.data.code !== 0) {
           this.$Message.info(res.data.description)
         } else {
           this.kubeConfigTableData = res.data.data.data
@@ -182,7 +182,7 @@ export default {
         this.$Message.info('请至少选择一条信息。')
       } else {
         kubeConfigDeletePostApi(selectKubeConfigList).then(res => {
-          if (res.data.err_code === 0) {
+          if (res.data.code === 0) {
             this.queryKubeConfigList()
           }
           this.$Message.info(res.data.description)
@@ -203,7 +203,7 @@ export default {
       } else {
         let id = selectKubeConfigList[0]
         kubeConfigGetApi(id).then(res => {
-          if (res.data.err_code !== 0) {
+          if (res.data.code !== 0) {
             this.$Message.info(res.data.description)
           } else {
             let respData = res.data.data
@@ -224,7 +224,7 @@ export default {
       let role = this.kubeConfigFormData.role
       let id = this.putSelectId
       kubeConfigPutApi(expired_time, role, id).then(res => {
-        if (res.data.err_code === 0) {
+        if (res.data.code === 0) {
           this.queryKubeConfigList()
         }
         this.$Message.info(res.data.description)

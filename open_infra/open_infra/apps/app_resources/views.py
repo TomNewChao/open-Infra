@@ -6,9 +6,10 @@
 # @Software: PyCharm
 import json
 from datetime import datetime
-
 from django.db import transaction
 from django.http import HttpResponse
+from rest_framework import permissions
+from rest_framework_simplejwt import authentication
 from app_resources.models import ServiceInfo, ServiceSla, ServiceImage, HWCloudAccount, HWCloudEipInfo, ServiceIntroduce
 from app_resources.resources.account_mgr import AccountMgr
 from app_resources.resources.eip_mgr import EipMgr
@@ -17,12 +18,16 @@ from open_infra.utils.common import assemble_api_result, list_param_check_and_tr
 from open_infra.utils.api_error_code import ErrCode
 from django.conf import settings
 from logging import getLogger
+from rest_framework.viewsets import GenericViewSet
 
 logger = getLogger("django")
 
 
-class IndexView(AuthView):
-    def get(self, request):
+class IndexView(GenericViewSet):
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.JWTAuthentication,)
+
+    def list(self, request):
         account_count_dict = HWCloudAccount.count_account()
         service_count_dict = ServiceInfo.count_id()
         eip_count_dict = HWCloudEipInfo.count_id()
@@ -35,18 +40,24 @@ class IndexView(AuthView):
 
 
 # noinspection DuplicatedCode,PyMethodMayBeStatic
-class AccountView(AuthView):
+class AccountView(GenericViewSet):
     """get the all account info"""
 
-    def get(self, request):
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.JWTAuthentication,)
+
+    def list(self, request):
         account_mgr = AccountMgr()
         clouds_account = account_mgr.get_cloud_account()
         return clouds_account
 
 
 # noinspection DuplicatedCode,PyMethodMayBeStatic
-class EipView(AuthView):
-    def get(self, request):
+class EipView(GenericViewSet):
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.JWTAuthentication,)
+
+    def list(self, request):
         """get the list of eip"""
         params_dict = list_param_check_and_trans(request.GET.dict())
         eip_mgr = EipMgr()
@@ -55,7 +66,10 @@ class EipView(AuthView):
 
 
 # noinspection DuplicatedCode,PyMethodMayBeStatic
-class ServiceView(AuthView):
+class ServiceView(GenericViewSet):
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.JWTAuthentication,)
+
     def get(self, request):
         """get the list of serive"""
         dict_data = request.GET.dict()
@@ -127,7 +141,10 @@ class ServiceView(AuthView):
         return assemble_api_result(ErrCode.STATUS_SUCCESS)
 
 
-class DetailServiceView(AuthView):
+class DetailServiceView(GenericViewSet):
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.JWTAuthentication,)
+
     def get(self, request):
         """get the detail of service"""
         dict_data = request.GET.dict()
@@ -143,7 +160,10 @@ class DetailServiceView(AuthView):
         return assemble_api_result(ErrCode.STATUS_SUCCESS, data=service_dict)
 
 
-class SeviceExportView(AuthView):
+class SeviceExportView(GenericViewSet):
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.JWTAuthentication,)
+
     def get(self, request):
         """get the file excel of sla"""
         dict_data = request.GET.dict()
@@ -177,7 +197,10 @@ class SeviceExportView(AuthView):
         return res
 
 
-class NameSpaceView(AuthView):
+class NameSpaceView(GenericViewSet):
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.JWTAuthentication,)
+
     def get(self, request):
         """get all namespace"""
         sla_mgr = SlaMgr()
@@ -185,7 +208,10 @@ class NameSpaceView(AuthView):
         return assemble_api_result(ErrCode.STATUS_SUCCESS, data=data)
 
 
-class ClusterView(AuthView):
+class ClusterView(GenericViewSet):
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.JWTAuthentication,)
+
     def get(self, request):
         """get all cluster"""
         sla_mgr = SlaMgr()
@@ -193,7 +219,10 @@ class ClusterView(AuthView):
         return assemble_api_result(ErrCode.STATUS_SUCCESS, data=data)
 
 
-class RegionView(AuthView):
+class RegionView(GenericViewSet):
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.JWTAuthentication,)
+
     def get(self, request):
         """get all region"""
         sla_mgr = SlaMgr()
@@ -201,7 +230,10 @@ class RegionView(AuthView):
         return assemble_api_result(ErrCode.STATUS_SUCCESS, data=data)
 
 
-class CommunityView(AuthView):
+class CommunityView(GenericViewSet):
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.JWTAuthentication,)
+
     def get(self, request):
         """get all community"""
         sla_mgr = SlaMgr()
@@ -209,14 +241,20 @@ class CommunityView(AuthView):
         return assemble_api_result(ErrCode.STATUS_SUCCESS, data=data)
 
 
-class BaseOsView(AuthView):
+class BaseOsView(GenericViewSet):
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.JWTAuthentication,)
+
     def get(self, request):
         list_data = ServiceImage.get_all_base_os()
         list_data = [{"label": i["base_os"], "value": i["base_os"]} for i in list_data if i["base_os"]]
         return assemble_api_result(ErrCode.STATUS_SUCCESS, data=list_data)
 
 
-class BaseImageView(AuthView):
+class BaseImageView(GenericViewSet):
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.JWTAuthentication,)
+
     def get(self, request):
         list_data = ServiceImage.get_all_base_image()
         list_data = [{"label": i["base_image"], "value": i["base_image"]} for i in list_data if i["base_image"]]
@@ -224,7 +262,10 @@ class BaseImageView(AuthView):
 
 
 # noinspection DuplicatedCode,PyMethodMayBeStatic
-class SlaExportView(AuthView):
+class SlaExportView(GenericViewSet):
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.JWTAuthentication,)
+
     def get(self, request):
         """get the file excel of sla"""
         sla_mgr = SlaMgr()
@@ -237,20 +278,26 @@ class SlaExportView(AuthView):
         return res
 
 
-class ServiceIntroduceView(AuthView):
+class ServiceIntroduceView(GenericViewSet):
     """get the service introduce by es"""
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.JWTAuthentication,)
+
     def get(self, request):
         data = [{
-                "name": i.service_name,
-                "introduce": i.service_introduce,
-                "lang": i.service_lang,
-                "url": i.service_sla.url,
-                "zone": i.service_sla.service_zone,
-                } for i in ServiceIntroduce.all()]
+            "name": i.service_name,
+            "introduce": i.service_introduce,
+            "lang": i.service_lang,
+            "url": i.service_sla.url,
+            "zone": i.service_sla.service_zone,
+        } for i in ServiceIntroduce.all()]
         return assemble_api_result(ErrCode.STATUS_SUCCESS, data=data)
 
 
-class RepoView(AuthView):
+class RepoView(GenericViewSet):
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.JWTAuthentication,)
+
     def get(self, request):
         list_data = ServiceImage.get_image()
         set_data, ret_data = set(), list()

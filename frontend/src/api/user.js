@@ -6,43 +6,43 @@ export const login = ({ username, password }) => {
     password
   }
   return axios.request({
-    url: '/api/users/login',
+    url: '/api/users/login/',
     data,
+    method: 'post'
+  })
+}
+
+export const logout = () => {
+  return axios.request({
+    url: '/api/users/logout/',
     method: 'post'
   })
 }
 
 export const getUserInfo = () => {
   return axios.request({
-    url: '/api/users/user_info',
+    url: '/api/users/user_info/',
     method: 'get'
-  })
-}
-
-export const logout = (token) => {
-  return axios.request({
-    url: '/api/users/logout',
-    method: 'post'
   })
 }
 
 export const getUnreadCount = () => {
   return axios.request({
-    url: '/api/users/message_count',
+    url: '/api/users/message_count/',
     method: 'get'
   })
 }
 
 export const getMessage = () => {
   return axios.request({
-    url: 'message/init',
+    url: 'message/init/',
     method: 'get'
   })
 }
 
 export const getContentByMsgId = msg_id => {
   return axios.request({
-    url: 'message/content',
+    url: 'message/content/',
     method: 'get',
     params: {
       msg_id

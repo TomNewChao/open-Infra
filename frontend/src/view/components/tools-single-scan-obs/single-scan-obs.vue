@@ -60,7 +60,7 @@ export default {
           let account = this.formValidate.account
           this.scanObsProgressValue = 0
           downloadSingleScanObsExcelApi(ak, sk, account).then(res => {
-            if (res.data.err_code !== 0) {
+            if (res.data.code !== 0) {
               this.$Message.info(res.data.description)
             } else {
               this.startTimer()

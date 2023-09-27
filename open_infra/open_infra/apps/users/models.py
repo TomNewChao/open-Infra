@@ -3,7 +3,6 @@ from django.contrib.auth.models import AbstractUser
 
 
 class User(AbstractUser):
-    mobile = models.CharField(max_length=11, verbose_name='手机号')
     is_superuser = models.IntegerField(default=1, verbose_name='超级管理员')
 
     class Meta:
@@ -13,3 +12,7 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.username
+
+    @classmethod
+    def get_user_info(cls, username):
+        return cls.objects.filter(username=username).first()

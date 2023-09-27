@@ -24,8 +24,8 @@ sys.path.insert(0, os.path.join(BASE_DIR, "apps"))
 
 config_path = os.getenv("open_infra_config", os.path.join(BASE_DIR, "config/secret.yaml"))
 config = yaml.load(open(config_path, "r", encoding="utf-8"), Loader=yaml.FullLoader)
-if len(sys.argv) > 1 and sys.argv[1] == "runserver":
-    os.remove(config_path)
+# if len(sys.argv) > 1 and sys.argv[1] == "runserver":
+#     os.remove(config_path)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
@@ -34,9 +34,9 @@ if len(sys.argv) > 1 and sys.argv[1] == "runserver":
 SECRET_KEY = config["pwd"]
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
-ALLOWED_HOSTS = ["*", ]
+ALLOWED_HOSTS = ["*"]
 
 # Application definition
 
@@ -53,7 +53,7 @@ INSTALLED_APPS = [
     # owner apps
     'alarm.apps.AlarmConfig',
     'app_resources.apps.AppResourcesConfig',
-    'clouds_tools.apps.CloudsToolsConfig',
+    'app_tools.apps.AppToolsConfig',
     'consumption_control.apps.ConsumptionControlConfig',
     'obs_upload.apps.ObsUploadConfig',
     'permission.apps.PermissionConfig',
@@ -155,14 +155,24 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
+CACHE_TIMEOUT = 600
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6379/0",
+        "LOCATION": "redis://{}:{}/0".format(config["redis_host"], config["redis_port"]),
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "PASSWORD": config["redis_password"]
         }
-    }
+    },
+    "session": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://{}:{}/1".format(config["redis_host"], config["redis_port"]),
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "PASSWORD": config["redis_password"]
+        }
+    },
 }
 
 # log and lib path setting
@@ -234,6 +244,8 @@ LOGGING = {
 AUTH_USER_MODEL = 'users.User'
 
 # jwt settings
+LOGIN_FAILED_BLACKLIST_LIFETIME = 24 * 60 * 60
+LOGIN_FAILED_BLACKLIST_COUNT = 5
 SIMPLE_JWT = {
     'USER_ID_FIELD': 'id',
     'ACCESS_TOKEN_LIFETIME': datetime.timedelta(minutes=30),
@@ -242,12 +254,12 @@ SIMPLE_JWT = {
 }
 
 # REST_FRAMEWORK = {
-    # 'DEFAULT_PERMISSION_CLASSES': (
-    #     'rest_framework.permissions.IsAuthenticated',
-    # ),
-    # 'DEFAULT_AUTHENTICATION_CLASSES': (
-    #     'rest_framework_simplejwt.authentication.JWTAuthentication'
-    # ),
+# 'DEFAULT_PERMISSION_CLASSES': (
+#     'rest_framework.permissions.IsAuthenticated',
+# ),
+# 'DEFAULT_AUTHENTICATION_CLASSES': (
+#     'rest_framework_simplejwt.authentication.JWTAuthentication'
+# ),
 # }
 
 # cors setting

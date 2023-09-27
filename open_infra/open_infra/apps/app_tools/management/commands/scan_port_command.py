@@ -4,7 +4,7 @@
 # @FileName: scan_port_command.py
 # @Software: PyCharm
 from django.core.management.base import BaseCommand
-from clouds_tools.resources.init_task import InitMgr
+from app_tools.resources.init_task import InitMgr
 
 
 # every day 1:00

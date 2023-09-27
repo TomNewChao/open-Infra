@@ -92,7 +92,7 @@ export default {
       this.loadingText = '数据正在加载中'
       slaListApi(this.slaPageNum, this.slaPageSize, this.order_by, this.order_type, this.slaSearchKey, this.slaSearchValue, this.slaDate).then(res => {
         this.loadingText = ''
-        if (res.data.err_code !== 0) {
+        if (res.data.code !== 0) {
           this.$Message.info(res.data.description)
         } else {
           this.slaTableData = res.data.data.data

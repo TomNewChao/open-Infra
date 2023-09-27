@@ -11,9 +11,9 @@ from threading import Thread, Lock
 from logging import getLogger
 
 from app_resources.resources.account_mgr import AccountMgr
-from clouds_tools.models import HWCloudScanEipPortInfo, HWCloudScanEipPortStatus, HWCloudScanObsAnonymousBucket, \
+from app_tools.models import HWCloudScanEipPortInfo, HWCloudScanEipPortStatus, HWCloudScanObsAnonymousBucket, \
     HWCloudScanObsAnonymousFile, HWCloudScanObsAnonymousStatus, HWCloudHighRiskPort
-from clouds_tools.resources.constants import NetProtocol, ScanToolsLock, ScanPortStatus, ScanObsStatus
+from app_tools.resources.constants import NetProtocol, ScanToolsLock, ScanPortStatus, ScanObsStatus
 from open_infra.libs.lib_cloud import HWCloudIAM
 from open_infra.utils.common import output_scan_port_excel, output_scan_obs_excel, get_suitable_range
 from open_infra.utils.default_port_list import HighRiskPort

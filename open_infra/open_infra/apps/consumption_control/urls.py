@@ -4,28 +4,24 @@
 # @FileName: urls.py
 # @Software: PyCharm
 
-from django.conf.urls import url
+from rest_framework.routers import DefaultRouter
 from consumption_control.views import BillView, ResourceTypeNameView, AccountNameView, MonthAmountView, YearAmountView, \
     AllBillCycleView, AllYearView, CPUResourceUtilizationMonth, CPUResourceUtilization, CPUResourceUtilizationTable, \
     MemResourceUtilizationMonth, MemResourceUtilization, MemResourceUtilizationTable
 
-urlpatterns = [
-    # bill
-    url(r'^bill$', BillView.as_view()),
-    url(r'^resource_type_name$', ResourceTypeNameView.as_view()),
-    url(r'^account_name$', AccountNameView.as_view()),
-    url(r'^year_amount$', YearAmountView.as_view()),
-    url(r'^all_year$', AllYearView.as_view()),
-    url(r'^month_amount$', MonthAmountView.as_view()),
-    url(r'^all_bill_cycle$', AllBillCycleView.as_view()),
-
-    # resource utilization
-    url("^cpu_month$", CPUResourceUtilizationMonth.as_view()),
-    url("^cpu_data$", CPUResourceUtilization.as_view()),
-    url("^cpu_table$", CPUResourceUtilizationTable.as_view()),
-
-    url("^mem_month$", MemResourceUtilizationMonth.as_view()),
-    url("^mem_data$", MemResourceUtilization.as_view()),
-    url("^mem_table$", MemResourceUtilizationTable.as_view()),
-
-]
+urlpatterns = list()
+router = DefaultRouter()
+router.register("bill", BillView, basename="bill")
+router.register("resource_type_name", ResourceTypeNameView, basename="resource_type_name")
+router.register("account_name", AccountNameView, basename="account_name")
+router.register("year_amount", YearAmountView, basename="year_amount")
+router.register("all_year", AllYearView, basename="all_year")
+router.register("month_amount", MonthAmountView, basename="month_amount")
+router.register("all_bill_cycle", AllBillCycleView, basename="all_bill_cycle")
+router.register("cpu_month", CPUResourceUtilizationMonth, basename="cpu_month")
+router.register("cpu_data", CPUResourceUtilization, basename="cpu_data")
+router.register("cpu_table", CPUResourceUtilizationTable, basename="cpu_table")
+router.register("mem_month", MemResourceUtilizationMonth, basename="mem_month")
+router.register("mem_data", MemResourceUtilization, basename="mem_data")
+router.register("mem_table", MemResourceUtilizationTable, basename="mem_table")
+urlpatterns += router.urls

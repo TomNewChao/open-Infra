@@ -243,7 +243,7 @@ export default {
       ServiceInfoListApi(this.pageNumServiceInfo, this.pageSizeServiceInfo, this.orderByServiceInfo,
         this.orderTypeServiceInfo, this.searchKeyServiceInfo, this.searchValueServiceInfo,
         this.ServiceCluster, this.ServiceRegion, this.ServiceCommunity, this.ServiceBaseImage, this.ServiceBaseOs).then(res => {
-        if (res.data.err_code !== 0) {
+        if (res.data.code !== 0) {
           this.$Message.info(res.data.description)
         } else {
           this.tableDataServiceInfo = res.data.data.data
@@ -274,7 +274,7 @@ export default {
     },
     handleServiceClusterItem () {
       ServiceClusterListApi().then(res => {
-        if (res.data.err_code !== 0) {
+        if (res.data.code !== 0) {
           this.$Message.info(res.data.description)
         } else {
           this.columnsServiceInfo[2].filters = res.data.data
@@ -283,7 +283,7 @@ export default {
     },
     handleServiceRegionItem () {
       ServiceRegionListApi().then(res => {
-        if (res.data.err_code !== 0) {
+        if (res.data.code !== 0) {
           this.$Message.info(res.data.description)
         } else {
           this.columnsServiceInfo[3].filters = res.data.data
@@ -292,7 +292,7 @@ export default {
     },
     handleServiceCommunityItem () {
       ServiceCommunityListApi().then(res => {
-        if (res.data.err_code !== 0) {
+        if (res.data.code !== 0) {
           this.$Message.info(res.data.description)
         } else {
           this.columnsServiceInfo[4].filters = res.data.data
@@ -301,7 +301,7 @@ export default {
     },
     handleServiceBaseImageItem () {
       ServiceBaseImageListApi().then(res => {
-        if (res.data.err_code !== 0) {
+        if (res.data.code !== 0) {
           this.$Message.info(res.data.description)
         } else {
           this.columnsServiceInfo[7].filters = res.data.data
@@ -310,7 +310,7 @@ export default {
     },
     handleServiceOsItem () {
       ServiceBaseOsListApi().then(res => {
-        if (res.data.err_code !== 0) {
+        if (res.data.code !== 0) {
           this.$Message.info(res.data.description)
         } else {
           this.columnsServiceInfo[8].filters = res.data.data
@@ -334,7 +334,7 @@ export default {
     handleRowClick (row, index) {
       const id = row.id
       ServiceDetailApi(id).then(res => {
-        if (res.data.err_code !== 0) {
+        if (res.data.code !== 0) {
           this.$Message.info(res.data.description)
         } else {
           this.serviceDetail = res.data.data

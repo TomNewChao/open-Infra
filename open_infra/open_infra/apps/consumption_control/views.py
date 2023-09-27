@@ -1,15 +1,16 @@
-
 import threading
 
 # Create your views here.
 from datetime import datetime
 
 from django.http import HttpResponse
+from rest_framework.viewsets import GenericViewSet
 
 from consumption_control.resources.bill_mgr import BillMgr
 from consumption_control.resources.resource_utilization_mgr import ResourceUtilizationMgr
 from open_infra.utils.api_error_code import ErrCode
-from open_infra.utils.auth_permisson import AuthView
+from rest_framework import permissions
+from rest_framework_simplejwt import authentication
 from open_infra.utils.common import list_param_check_and_trans, assemble_api_result
 
 from logging import getLogger
@@ -17,7 +18,10 @@ from logging import getLogger
 logger = getLogger("django")
 
 
-class BillView(AuthView):
+class BillView(GenericViewSet):
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.JWTAuthentication,)
+
     def get(self, request):
         dict_data = request.GET.dict()
         params_dict = list_param_check_and_trans(dict_data, order_by="bill_cycle")
@@ -32,21 +36,30 @@ class BillView(AuthView):
         return assemble_api_result(ErrCode.STATUS_SUCCESS, data=data)
 
 
-class ResourceTypeNameView(AuthView):
+class ResourceTypeNameView(GenericViewSet):
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.JWTAuthentication,)
+
     def get(self, request):
         bill_mgr = BillMgr()
         data = bill_mgr.get_all_resource_type_name()
         return assemble_api_result(ErrCode.STATUS_SUCCESS, data=data)
 
 
-class AccountNameView(AuthView):
+class AccountNameView(GenericViewSet):
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.JWTAuthentication,)
+
     def get(self, request):
         bill_mgr = BillMgr()
         data = bill_mgr.get_all_account()
         return assemble_api_result(ErrCode.STATUS_SUCCESS, data=data)
 
 
-class YearAmountView(AuthView):
+class YearAmountView(GenericViewSet):
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.JWTAuthentication,)
+
     def get(self, request):
         dict_data = request.GET.dict()
         if dict_data.get("year") is None:
@@ -61,14 +74,19 @@ class YearAmountView(AuthView):
         return assemble_api_result(ErrCode.STATUS_SUCCESS, data=data)
 
 
-class AllYearView(AuthView):
+class AllYearView(GenericViewSet):
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.JWTAuthentication,)
+
     def get(self, request):
         bill_mgr = BillMgr()
         data = bill_mgr.get_all_year()
         return assemble_api_result(ErrCode.STATUS_SUCCESS, data=data)
 
 
-class MonthAmountView(AuthView):
+class MonthAmountView(GenericViewSet):
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.JWTAuthentication,)
     _lock = threading.Lock()
 
     def get(self, request):
@@ -88,20 +106,29 @@ class MonthAmountView(AuthView):
             return assemble_api_result(ErrCode.STATUS_SUCCESS, data=data)
 
 
-class AllBillCycleView(AuthView):
+class AllBillCycleView(GenericViewSet):
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.JWTAuthentication,)
+
     def get(self, request):
         bill_mgr = BillMgr()
         data = bill_mgr.get_all_bill_cycle()
         return assemble_api_result(ErrCode.STATUS_SUCCESS, data=data)
 
 
-class CPUResourceUtilizationMonth(AuthView):
+class CPUResourceUtilizationMonth(GenericViewSet):
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.JWTAuthentication,)
+
     def get(self, request):
         resource_utilization_mgr = ResourceUtilizationMgr()
         return resource_utilization_mgr.get_cpu_month()
 
 
-class CPUResourceUtilizationTable(AuthView):
+class CPUResourceUtilizationTable(GenericViewSet):
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.JWTAuthentication,)
+
     def get(self, request):
         date_str = request.GET.get("date")
         if date_str is None:
@@ -116,7 +143,10 @@ class CPUResourceUtilizationTable(AuthView):
         return res
 
 
-class CPUResourceUtilization(AuthView):
+class CPUResourceUtilization(GenericViewSet):
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.JWTAuthentication,)
+
     def get(self, request):
         date_str = request.GET.get("date")
         if date_str is None:
@@ -125,13 +155,19 @@ class CPUResourceUtilization(AuthView):
         return resource_utilization_mgr.get_cpu_data(date_str)
 
 
-class MemResourceUtilizationMonth(AuthView):
+class MemResourceUtilizationMonth(GenericViewSet):
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.JWTAuthentication,)
+
     def get(self, request):
         resource_utilization_mgr = ResourceUtilizationMgr()
         return resource_utilization_mgr.get_mem_month()
 
 
-class MemResourceUtilizationTable(AuthView):
+class MemResourceUtilizationTable(GenericViewSet):
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.JWTAuthentication,)
+
     def get(self, request):
         date_str = request.GET.get("date")
         if date_str is None:
@@ -146,7 +182,10 @@ class MemResourceUtilizationTable(AuthView):
         return res
 
 
-class MemResourceUtilization(AuthView):
+class MemResourceUtilization(GenericViewSet):
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.JWTAuthentication,)
+
     def get(self, request):
         date_str = request.GET.get("date")
         if date_str is None:

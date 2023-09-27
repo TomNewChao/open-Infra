@@ -9,7 +9,7 @@ import {
   restoreTrash,
   getUnreadCount
 } from '@/api/user'
-import { setToken, getToken } from '@/libs/util'
+import { setToken, getToken, clearToken, setRefreshToken, getRefreshToken, clearRefreshToken } from '@/libs/util'
 
 export default {
   state: {
@@ -17,6 +17,7 @@ export default {
     userId: '',
     avatarImgPath: '',
     token: getToken(),
+    refreshToken: getRefreshToken(),
     access: '',
     hasGetInfo: false,
     unreadCount: 0,
@@ -41,6 +42,18 @@ export default {
     setToken (state, token) {
       state.token = token
       setToken(token)
+    },
+    clearToken (state, token) {
+      state.token = token
+      clearToken()
+    },
+    setRefreshToken (state, token) {
+      state.refreshToken = token
+      setRefreshToken(token)
+    },
+    clearRefreshToken (state, token) {
+      state.refreshToken = token
+      clearRefreshToken()
     },
     setHasGetInfo (state, status) {
       state.hasGetInfo = status
@@ -73,7 +86,7 @@ export default {
     messageTrashCount: state => state.messageTrashList.length
   },
   actions: {
-    // 登录
+    // login
     handleLogin ({ commit }, { username, password }) {
       username = username.trim()
       return new Promise((resolve, reject) => {
@@ -82,29 +95,39 @@ export default {
           password
         }).then(res => {
           const data = res.data
-          commit('setToken', data.access)
-          resolve()
+          if (data.code === 0) {
+            commit('setToken', data.data.access)
+            commit('setRefreshToken', data.data.refresh)
+            resolve()
+          } else {
+            let err = data.description
+            reject(err)
+          }
         }).catch(err => {
           reject(err)
         })
       })
     },
-    // 退出登录
+    // logout
     handleLogOut ({ state, commit }) {
       return new Promise((resolve, reject) => {
-        // logout(state.token).then(() => {
-        //   commit('setToken', '')
-        //   commit('setAccess', [])
-        //   resolve()
-        // }).catch(err => {
-        //   reject(err)
-        // })
-        commit('setToken', '')
-        commit('setAccess', [])
-        resolve()
+        logout(state.token).then((res) => {
+          const data = res.data
+          if (data.code === 0) {
+            commit('clearToken')
+            commit('clearRefreshToken', '')
+            commit('setAccess', [])
+            resolve()
+          } else {
+            let err = data.description
+            reject(err)
+          }
+        }).catch(err => {
+          reject(err)
+        })
       })
     },
-    // 获取用户相关信息
+    // get user info
     getUserInfo ({ state, commit }) {
       return new Promise((resolve, reject) => {
         try {

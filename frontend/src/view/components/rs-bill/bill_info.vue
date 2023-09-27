@@ -108,7 +108,7 @@ export default {
     },
     queryBillInfoList () {
       BillInfoListApi(this.pageNumBillInfo, this.pageSizeBillInfo, this.orderByBillInfo, this.orderTypeBillInfo, this.searchKeyBillInfo, this.searchValueBillInfo, this.billAccount, this.billType).then(res => {
-        if (res.data.err_code !== 0) {
+        if (res.data.code !== 0) {
           this.$Message.info(res.data.description)
         } else {
           this.tableDataBillInfo = res.data.data.data
@@ -122,7 +122,7 @@ export default {
     },
     queryBillAccountItem () {
       BillAccountListApi().then(res => {
-        if (res.data.err_code !== 0) {
+        if (res.data.code !== 0) {
           this.$Message.info(res.data.description)
         } else {
           this.columnsBillInfo[1].filters = res.data.data
@@ -131,7 +131,7 @@ export default {
     },
     queryBillTypeItem () {
       BillTypeListApi().then(res => {
-        if (res.data.err_code !== 0) {
+        if (res.data.code !== 0) {
           this.$Message.info(res.data.description)
         } else {
           this.columnsBillInfo[2].filters = res.data.data

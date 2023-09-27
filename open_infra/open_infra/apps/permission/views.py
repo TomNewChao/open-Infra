@@ -7,10 +7,10 @@ import json
 import logging
 import traceback
 from django.db import transaction
-from django.views.generic import View
-
+from rest_framework.viewsets import GenericViewSet
+from rest_framework import permissions
+from rest_framework_simplejwt import authentication
 from open_infra.utils.api_error_code import ErrCode
-from open_infra.utils.auth_permisson import AuthView
 from open_infra.utils.common import assemble_api_result, list_param_check_and_trans
 from open_infra.utils.utils_git import GitHubPrStatus
 from open_infra.utils.utils_kubeconfig import KubeconfigLib
@@ -23,7 +23,7 @@ logger = logging.getLogger("django")
 
 
 # noinspection PyMethodMayBeStatic
-class KubeConfigGitView(View):
+class KubeConfigGitView(GenericViewSet):
     def post(self, request):
         """this api is to receive the pr request from github： kubeconfig-interact
            Detail: https://github.com/Open-Infra-Ops/kubeconfig-interact
@@ -34,7 +34,6 @@ class KubeConfigGitView(View):
             return assemble_api_result(err_code=ErrCode.STATUS_SUCCESS)
         github_pr = KubeConfigGitBase(dict_data)
         try:
-            # logger.error("data is:{}".format(dict_data))
             # new pr
             if GitHubPrStatus.is_in_new_pr_status(dict_data["action"]) and dict_data.get("pull_request") is not None:
                 is_ok, msg, _ = github_pr.parse_create_pr()
@@ -63,7 +62,10 @@ class KubeConfigGitView(View):
 
 
 # noinspection PyMethodMayBeStatic
-class KubeConfigView(AuthView):
+class KubeConfigView(GenericViewSet):
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.JWTAuthentication,)
+
     def get(self, request):
         """get the detail of kubeconfig"""
         dict_data = request.GET.dict()
@@ -128,7 +130,10 @@ class KubeConfigView(AuthView):
 
 
 # noinspection PyMethodMayBeStatic
-class BatchKubeConfigView(AuthView):
+class BatchKubeConfigView(GenericViewSet):
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.JWTAuthentication,)
+
     def get(self, request):
         """get the list of kubeconfig"""
         params_dict = list_param_check_and_trans(request.GET.dict(), order_by="create_time")
@@ -158,7 +163,8 @@ class BatchKubeConfigView(AuthView):
                         KubeConfigInfo.objects.filter(id=kubeconfig.id).delete()
                     except Exception as e:
                         failed_dict[kubeconfig.username] = kubeconfig.service_name
-                        logger.error("[BatchKubeConfigView] delete kubeconfig:{}, traceback:{}".format(e, traceback.format_exc()))
+                        logger.error("[BatchKubeConfigView] delete kubeconfig:{}, traceback:{}".format(e,
+                                                                                                       traceback.format_exc()))
         if failed_dict:
             return assemble_api_result(ErrCode.STATUS_KUBECONFIG_DELETE_FAILED, trans_para=str(failed_dict))
         return assemble_api_result(ErrCode.STATUS_SUCCESS)

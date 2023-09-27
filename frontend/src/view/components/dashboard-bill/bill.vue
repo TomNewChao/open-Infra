@@ -129,7 +129,7 @@ export default {
   methods: {
     getAllYear () {
       AllYearListApi().then(res => {
-        if (res.data.err_code !== 0) {
+        if (res.data.code !== 0) {
           this.$Message.info(res.data.description)
         } else {
           this.yearColumns = res.data.data
@@ -138,7 +138,7 @@ export default {
     },
     getAllBillCycle () {
       AllBillCycleListApi().then(res => {
-        if (res.data.err_code !== 0) {
+        if (res.data.code !== 0) {
           this.$Message.info(res.data.description)
         } else {
           this.billCycleColumns = res.data.data
@@ -172,7 +172,7 @@ export default {
     getYearAmountData () {
       let year = this.year
       BillYearAmountListApi(year).then(res => {
-        if (res.data.err_code !== 0) {
+        if (res.data.code !== 0) {
           this.$Message.info(res.data.description)
         } else {
           this.MonthData = res.data.data
@@ -193,7 +193,7 @@ export default {
       let account = this.account[0]
       let bill_cycle = this.billCycle
       BillMonthAccountListApi(account, bill_cycle).then(res => {
-        if (res.data.err_code !== 0) {
+        if (res.data.code !== 0) {
           this.$Message.info(res.data.description)
         } else {
           this.pieData0 = res.data.data
@@ -204,7 +204,7 @@ export default {
       let account = this.account[1]
       let bill_cycle = this.billCycle
       BillMonthAccountListApi(account, bill_cycle).then(res => {
-        if (res.data.err_code !== 0) {
+        if (res.data.code !== 0) {
           this.$Message.info(res.data.description)
         } else {
           this.pieData1 = res.data.data
@@ -215,7 +215,7 @@ export default {
       let account = this.account[2]
       let bill_cycle = this.billCycle
       BillMonthAccountListApi(account, bill_cycle).then(res => {
-        if (res.data.err_code !== 0) {
+        if (res.data.code !== 0) {
           this.$Message.info(res.data.description)
         } else {
           this.pieData2 = res.data.data
@@ -226,7 +226,7 @@ export default {
       let account = this.account[3]
       let bill_cycle = this.billCycle
       BillMonthAccountListApi(account, bill_cycle).then(res => {
-        if (res.data.err_code !== 0) {
+        if (res.data.code !== 0) {
           this.$Message.info(res.data.description)
         } else {
           this.pieData3 = res.data.data
@@ -237,7 +237,7 @@ export default {
       let account = this.account[4]
       let bill_cycle = this.billCycle
       BillMonthAccountListApi(account, bill_cycle).then(res => {
-        if (res.data.err_code !== 0) {
+        if (res.data.code !== 0) {
           this.$Message.info(res.data.description)
         } else {
           this.pieData4 = res.data.data
@@ -248,7 +248,7 @@ export default {
       let account = this.account[5]
       let bill_cycle = this.billCycle
       BillMonthAccountListApi(account, bill_cycle).then(res => {
-        if (res.data.err_code !== 0) {
+        if (res.data.code !== 0) {
           this.$Message.info(res.data.description)
         } else {
           this.pieData5 = res.data.data
@@ -259,7 +259,7 @@ export default {
       let account = this.account[6]
       let bill_cycle = this.billCycle
       BillMonthAccountListApi(account, bill_cycle).then(res => {
-        if (res.data.err_code !== 0) {
+        if (res.data.code !== 0) {
           this.$Message.info(res.data.description)
         } else {
           this.pieData6 = res.data.data
@@ -270,7 +270,7 @@ export default {
       let account = this.account[7]
       let bill_cycle = this.billCycle
       BillMonthAccountListApi(account, bill_cycle).then(res => {
-        if (res.data.err_code !== 0) {
+        if (res.data.code !== 0) {
           this.$Message.info(res.data.description)
         } else {
           this.pieData7 = res.data.data

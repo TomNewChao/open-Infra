@@ -7,10 +7,10 @@ import traceback
 from logging import getLogger
 from django.db import transaction
 from app_resources.resources.account_mgr import AccountMgr
-from clouds_tools.models import HWCloudHighRiskPort, HWCloudScanEipPortInfo, HWCloudScanEipPortStatus, \
+from app_tools.models import HWCloudHighRiskPort, HWCloudScanEipPortInfo, HWCloudScanEipPortStatus, \
     HWCloudScanObsAnonymousFile, HWCloudScanObsAnonymousBucket, HWCloudScanObsAnonymousStatus
-from clouds_tools.resources.alarm import CloudsToolsAlarm
-from clouds_tools.resources.scan_tools import ScanToolsMgr
+from app_tools.resources.alarm import CloudsToolsAlarm
+from app_tools.resources.scan_tools import ScanToolsMgr
 from open_infra.tools.scan_obs import scan_obs
 from open_infra.tools.scan_port import scan_port
 from open_infra.utils.common import func_retry

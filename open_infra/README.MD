@@ -53,6 +53,6 @@ docker run -dit --env-file env.file --name open-infra-demo open-infra:latest
 python3 manage.py refresh_resource_command                 # every day 0:00
 python3 manage.py scan_port_command                        # every day 1:00
 python3 manage.py refresh_bill_command                     # every month day0 2:00
-python3 manage.py refresh_refresh_resource_command         # every week 3:00
+python3 manage.py refresh_resource_command                 # every week 1 3:00
 python3 manage.py clean_expired_command         		   # every 10 minutes
 ~~~

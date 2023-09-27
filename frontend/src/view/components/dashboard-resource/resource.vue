@@ -66,7 +66,7 @@ export default {
   methods: {
     getCpuMonth () {
       queryCpuMonth().then(res => {
-        if (res.data.err_code !== 0) {
+        if (res.data.code !== 0) {
           this.$Message.info(res.data.description)
         } else {
           this.CpuMonth = res.data.data
@@ -80,7 +80,7 @@ export default {
     getCpuMonthData () {
       let date = this.curCpuMonth
       queryCpuMonthData(date).then(res => {
-        if (res.data.err_code !== 0) {
+        if (res.data.code !== 0) {
           this.$Message.info(res.data.description)
         } else {
           this.CpuData = res.data.data
@@ -98,7 +98,7 @@ export default {
     },
     getMemMonth () {
       queryMemMonth().then(res => {
-        if (res.data.err_code !== 0) {
+        if (res.data.code !== 0) {
           this.$Message.info(res.data.description)
         } else {
           this.MemMonth = res.data.data
@@ -112,7 +112,7 @@ export default {
     getMemMonthData () {
       let date = this.curMemMonth
       queryMemMonthData(date).then(res => {
-        if (res.data.err_code !== 0) {
+        if (res.data.code !== 0) {
           this.$Message.info(res.data.description)
         } else {
           this.MemData = res.data.data

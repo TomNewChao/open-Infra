@@ -85,7 +85,7 @@ export default {
     },
     queryEipList () {
       eipListApi(this.pageNum, this.pageSize, this.order_by, this.order_type, this.searchKey, this.searchValue).then(res => {
-        if (res.data.err_code !== 0) {
+        if (res.data.code !== 0) {
           this.$Message.info(res.data.description)
         } else {
           this.tableData = res.data.data.data

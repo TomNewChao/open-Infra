@@ -15,8 +15,8 @@ from alarm.resources.alarm_module.alarm_thread import AlarmClient
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'open_infra.settings.prod')
 
 # Pull up the alarm thread
-print("-" * 25 + "start to alarm" + "-" * 25)
+print("-" * 25 + "1.start to alarm" + "-" * 25)
 alarm_client = AlarmClient()
 alarm_client.start()
-print("-" * 25 + "start to wsgi" + "-" * 25)
+print("-" * 25 + "2.start to wsgi" + "-" * 25)
 application = get_wsgi_application()

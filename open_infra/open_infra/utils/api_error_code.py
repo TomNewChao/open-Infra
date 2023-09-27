@@ -41,7 +41,7 @@ class ErrCode(object):
     # +---------------------------------------------------+
     # |      users            |          101~200          |
     # +---------------------------------------------------+
-    # |      clouds_tools     |          201~300          |
+    # |      app_tools     |          201~300          |
     # +---------------------------------------------------+
 
     # sub module: common
@@ -50,11 +50,10 @@ class ErrCode(object):
 
     # sub module: users
     STATUS_USERS_BASE = STATUS_FACILITY_DASHBOARD + 100
-    STATUS_USER_FAIL = STATUS_SEREVITY_ERROR + STATUS_USERS_BASE + 1
-    STATUS_USER_NOT_EXIST_FAIL = STATUS_SEREVITY_ERROR + STATUS_USERS_BASE + 2
-    STATUS_USER_EXPIRE_FAIL = STATUS_SEREVITY_ERROR + STATUS_USERS_BASE + 3
+    STATUS_USER_LOGIN_FAIL = STATUS_SEREVITY_ERROR + STATUS_USERS_BASE + 1
+    STATUS_USER_DISABLED_FAIL = STATUS_SEREVITY_ERROR + STATUS_USERS_BASE + 2
 
-    # sub module: clouds_tools
+    # sub module: app_tools
     STATUS_CLOUDS_TOOLS_BASE = STATUS_FACILITY_DASHBOARD + 200
     STATUS_SCAN_ING = STATUS_SEREVITY_ERROR + STATUS_CLOUDS_TOOLS_BASE + 1
     STATUS_SCAN_FAILED = STATUS_SEREVITY_ERROR + STATUS_CLOUDS_TOOLS_BASE + 2
@@ -86,11 +85,10 @@ class ErrCode(object):
         STATUS_COMMON_START_SERVICE_FAILED: "Start (%s) service (%s) failed.",
 
         # for auth
-        STATUS_USER_FAIL: "Auth failed.",
-        STATUS_USER_NOT_EXIST_FAIL: "User (%s) is not existed.",
-        STATUS_USER_EXPIRE_FAIL: "User (%s) is expired.",
+        STATUS_USER_LOGIN_FAIL: "Auth failed.",
+        STATUS_USER_DISABLED_FAIL: "Username has been disabled, please contact the administrator.",
 
-        # for clouds_tools
+        # for app_tools
         STATUS_SCAN_ING: "Scanning, Please wait.",
         STATUS_SCAN_FAILED: "No result, please try again.",
         STATUS_SCAN_CLEAN: "The background is trying again later, Please wait.",
@@ -122,11 +120,11 @@ class ErrCode(object):
         STATUS_COMMON_START_SERVICE_FAILED: "启动主机 (%s) 的服务 (%s) 失败。",
 
         # for auth
-        STATUS_USER_FAIL: "用户名或者密码错误，登录失败。",
-        STATUS_USER_NOT_EXIST_FAIL: "用户(%s)不存在，认证失败。",
-        STATUS_USER_EXPIRE_FAIL: "用户(%s)认证已过期，请重新登录。",
+        STATUS_USER_LOGIN_FAIL: "用户名或者密码错误，登录失败。",
+        STATUS_USER_DISABLED_FAIL: "用户已被禁用，请联系管理员。",
 
-        # for clouds_tools
+
+        # for app_tools
         STATUS_SCAN_ING: "正在扫描，请稍等。",
         STATUS_SCAN_FAILED: "查无结果，请重试。",
         STATUS_SCAN_CLEAN: "后台正在清理，请稍后重试。",
