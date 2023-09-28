@@ -1,12 +1,12 @@
 <template>
   <div>
     <Row :gutter="20">
-      <i-col :xs="12" :md="8" :lg="4" v-for="(infor, i) in inforCardData" :key="`infor-${i}`"
+      <i-col :xs="12" :md="8" :lg="4" v-for="(info, i) in infoCardData" :key="`info-${i}`"
              style="height: 120px;padding-bottom: 10px;">
-        <infor-card shadow :color="infor.color" :icon="infor.icon" :icon-size="36">
-          <count-to :end="infor.count" count-class="count-style"/>
-          <p><a :href="infor.url">{{ infor.title }}</a></p>
-        </infor-card>
+        <info-card shadow :color="info.color" :icon="info.icon" :icon-size="36">
+          <count-to :end="info.count" count-class="count-style"/>
+          <p><a :href="info.url">{{ info.title }}</a></p>
+        </info-card>
       </i-col>
     </Row>
     <Row>
@@ -27,16 +27,16 @@
 </template>
 
 <script>
-import InforCard from '_c/info-card'
+import InfoCard from '_c/info-card'
 import CountTo from '_c/count-to'
 import teamResp from '@/assets/images/team-resp.png'
 import teamWork from '@/assets/images/team-work.png'
-import { indexApiList } from '@/api/tools'
+import { indexApiList } from '@/api/indexmenu'
 
 export default {
   name: 'home',
   components: {
-    InforCard,
+    InfoCard,
     CountTo
   },
   data () {
@@ -44,7 +44,7 @@ export default {
       teamResp,
       teamWork,
       carouselValue: '',
-      inforCardData: [
+      infoCardData: [
         { title: '运维账户', icon: 'md-person-add', count: 0, color: '#2d8cf0', url: '/#/resources/account' },
         { title: '在线服务统计', icon: 'md-locate', count: 0, color: '#19be6b', url: '/#/resources/rs_service_info' },
         { title: '弹性公网ip统计', icon: 'md-map', count: 0, color: '#9A66E4', url: '/#/resources/eip' },
@@ -60,13 +60,13 @@ export default {
   methods: {
     getIndexData () {
       indexApiList().then(res => {
-        if (res.data.err_code !== 0) {
+        if (res.data.code !== 0) {
           this.$Message.info(res.data.description)
         } else {
           let data = res.data.data
-          this.inforCardData[0]['count'] = data['account']
-          this.inforCardData[1]['count'] = data['service']
-          this.inforCardData[2]['count'] = data['eip']
+          this.infoCardData[0]['count'] = data['account']
+          this.infoCardData[1]['count'] = data['service']
+          this.infoCardData[2]['count'] = data['eip']
         }
       })
     }

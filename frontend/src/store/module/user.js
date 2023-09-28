@@ -132,7 +132,7 @@ export default {
       return new Promise((resolve, reject) => {
         try {
           getUserInfo().then(res => {
-            const data = res.data
+            const data = res.data.data
             commit('setAvatar', data.avatar)
             commit('setUserName', data.name)
             commit('setUserId', data.user_id)

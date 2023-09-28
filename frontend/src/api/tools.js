@@ -1,13 +1,6 @@
-import axios from '@/libs/api.request'
-// *************Index*****************
-export const indexApiList = () => {
-  return axios.request({
-    url: '/api/app_resources/index',
-    methods: 'get'
-  })
-}
-
 // *************ApplicationTools*****************
+import axios from '@/libs/api.request'
+
 export const highRiskPortApiList = (page, size, order_by, order_type, filter_name, filter_value) => {
   return axios.request({
     url: '/api/clouds_tools/high_risk_port',

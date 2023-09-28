@@ -292,6 +292,9 @@ CORS_ALLOW_HEADERS = (
     'Pragma',
 )
 
+# user setting
+AVATAR_URL = "https://github.com/TomNewChao/open-infra/raw/main/open_infra/open_infra/config/avatar/avatar.jpeg"
+
 # obs setting
 OBS_AK = config["obs_ak"]
 OBS_SK = config["obs_sk"]

@@ -25,8 +25,6 @@ class LoginView(TokenObtainPairView):
         blacklist_count = settings.LOGIN_FAILED_BLACKLIST_COUNT
         try:
             result = super().post(request, *args, **kwargs)
-            print(username)
-            print(token_exp)
             session.set(username, "0", token_exp)
             return assemble_api_result(ErrCode.STATUS_SUCCESS, data=result.data)
         except exceptions.AuthenticationFailed:
@@ -77,7 +75,7 @@ class UserView(GenericViewSet):
         username = request.user.username
         user = User.get_user_info(username)
         data = {
-            "avatar": "",
+            "avatar": settings.AVATAR_URL,
             "name": user.username,
             "user_id": user.id,
             "access": ["admin", "admin"],
