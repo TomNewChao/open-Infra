@@ -1,11 +1,14 @@
-FROM centos:7 as builder
+FROM openeuler/openeuler:22.03 as builder
+RUN python3 -m ensurepip --default-pip && python3 -m pip install --upgrade pip
+RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
+RUN pip config set global.trusted-host pypi.tuna.tsinghua.edu.cn
+RUN pip config set global.timeout 120
 
 RUN mkdir /opt/node
 RUN mkdir -p /home/open-infra/web
 WORKDIR /home/open-infra/web
 
-RUN yum update -y
-RUN yum install wget -y
+RUN yum update -y && yum install wget -y
 RUN cd /opt/node && wget https://npmmirror.com/mirrors/node/v16.16.0/node-v16.16.0-linux-x64.tar.xz && tar -xvf node-v16.16.0-linux-x64.tar.xz && mv node-v16.16.0-linux-x64 nodejs
 RUN ln -s /opt/node/nodejs/bin/node /usr/local/bin/
 RUN ln -s /opt/node/nodejs/bin/npm /usr/local/bin/
@@ -17,7 +20,7 @@ RUN cd /home/open-infra/web && npm run build
 
 
 
-FROM nginx:1.20.0
+FROM openeuler/openeuler:22.03
 
 # COPY ./deploy/test-login.html /usr/share/nginx/html/test-login.html
 
